@@ -1,0 +1,5 @@
+LenHTTP == 2.2.1
+aioredis == 2.0.0
+bcrypt == 3.2.0
+# OPTIONAL, CAN BE REPLACED WITH DEFAULT JSON
+orjson == 3.6.3
