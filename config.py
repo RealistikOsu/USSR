@@ -94,5 +94,6 @@ class Config(ConfigReader):
     dir_maps: str       = ".data/maps"
     dir_replays: str    = ".data/replays"
     dir_screenshot: str = ".data/screenshots"
+    osu_api_key: str    = ""
 
 conf = Config()
