@@ -1,4 +1,5 @@
 from caches.clan import ClanCache
+from caches.bcrypt import BCryptCache
 from caches.priv import PrivilegeCache
 from caches.username import UsernameCache
 from logger import info
@@ -6,6 +7,7 @@ from logger import info
 name = UsernameCache()
 priv = PrivilegeCache()
 clan = ClanCache()
+password = BCryptCache()
 
 #CACHE_INITS = (
 #    name.full_load,
