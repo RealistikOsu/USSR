@@ -1,10 +1,13 @@
+from logger import error, info
+
 # Globals init.
 from globs.conn import connect_sql
-from logger import error, info
+from globs.caches import initialise_cache
 
 # Must return True for success or else server wont start.
 STARTUP_TASKS = (
     connect_sql,
+    initialise_cache,
 )
 
 async def perform_startup():

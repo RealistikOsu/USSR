@@ -27,6 +27,6 @@ async def connect_sql() -> bool:
         )
         return True
     except Exception:
-        tb = traceback.format_exc()
-        error(f"There has been an exception connecting to the MySQL server!\n" + tb)
+        error(f"There has been an exception connecting to the MySQL server!\n" 
+              + traceback.format_exc())
         return False
