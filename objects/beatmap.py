@@ -43,6 +43,12 @@ class Beatmap:
 
         return self.__getattribute__(__diff_attribs[self.mode.value])
     
+    @property
+    def has_leaderboard(self) -> bool:
+        """Bool corresponding to whether the beatmap features a leaderboard."""
+
+        return self.status.value in __leaderboard_statuses
+    
     ## CLASSMETHODS
     @classmethod
     async def from_oapi_v1(cls, md5: str) -> Optional['Beatmap']:
@@ -64,7 +70,7 @@ class Beatmap:
 
         debug(f"Starting osu!api v1 fetch of beatmap {md5}")
         try:
-            found_beatmaps = simple_get_json(
+            found_beatmaps = await simple_get_json(
                 "https://old.ppy.sh/api/get_beatmaps", {
                     "k": conf.osu_api_key,
                     "h": md5
@@ -166,7 +172,7 @@ class Beatmap:
         beatmaps.get(md5)
     
     @classmethod
-    async def from_md5(self, md5: str)  -> Optional['Beatmap']:
+    async def from_md5(_, md5: str)  -> Optional['Beatmap']:
         """Attempts to create/fetch an instance of beatmap using multiple
         sources ordered by speed. High level API.
         
@@ -231,6 +237,13 @@ __cachable = ( # Funcs that should be cached.
 
 __insertable = ( # Funcs that should be inserted into the db
     Beatmap.from_oapi_v1,
+)
+
+__leaderboard_statuses = (
+    Status.RANKED,
+    Status.LOVED,
+    Status.APPROVED,
+    Status.QUALIFIED
 )
 
 def __create_full_name(artist: str, title: str, difficulty: str) -> str:

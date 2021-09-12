@@ -12,7 +12,17 @@ def hash_md5(s: str) -> str:
         `str` hashed in md5.
     """
 
-    return hashlibs.md5(s.encode()).digest().decode()
+    return hashlib.md5(s.encode()).digest().decode()
+
+def validate_md5(s: str) -> bool:
+    """Checks if the provided string is a valid MD5 hash.
+    
+    Args:
+        s (str): An MD5 hashed string.
+    """
+
+    # simple check for now.
+    return len(s) == 32
 
 def verify_bcrypt(s: str, bcrypt_h: str) -> bool:
     """Compares a plaintext string to a bcrypt hash, returning a bool corresponding
