@@ -1,6 +1,7 @@
 # The privilege cache to avoid per-request SQL queries.
 from typing import Dict
 from globs.conn import sql
+from consts.privileges import Privileges
 
 class PrivilegeCache:
     """Stores the privileges of all users in memory for rapid lookups."""
@@ -17,7 +18,7 @@ class PrivilegeCache:
 
         ranks_db = await sql.fetchall("SELECT id, privileges FROM users")
 
-        self.privileges = {user_id: priv for user_id, priv in ranks_db}
+        self.privileges = {user_id: Privileges(priv) for user_id, priv in ranks_db}
     
     # TODO: Call on redis pubsub
     async def load_singular(self, user_id: int) -> None:
@@ -34,6 +35,6 @@ class PrivilegeCache:
         priv_db = await sql.fetchcol("SELECT privileges FROM users WHERE id = %s",
                            (user_id,))
         if priv_db is None: return
-        self.privileges[user_id] = priv_db
+        self.privileges[user_id] = Privileges(priv_db)
     
     def __len__(self) -> int: return len(self.privileges)

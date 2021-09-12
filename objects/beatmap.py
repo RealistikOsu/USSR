@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from consts import modes, statuses
+from consts.modes import Mode
+from consts.statuses import Status
 
 @dataclass
 class Beatmap:
@@ -12,7 +13,7 @@ class Beatmap:
     song_name: str = ""
     ar: float = 0.0
     od: float = 0.0
-    mode: int = modes.STANDARD
+    mode: Mode = Mode(0)
     max_combo: int = 0
     hit_length: int = 0
     bpm: int = 0
@@ -20,7 +21,7 @@ class Beatmap:
     playcount: int = 0
     passcount: int = 0
     last_update: int = 0
-    status: int = statuses.PENDING
+    status: Status = Status(0)
     # Ripple schema difficulties
     difficulty_std: float = 0.0
     difficulty_taiko: float = 0.0

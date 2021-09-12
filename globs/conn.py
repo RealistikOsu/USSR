@@ -3,11 +3,13 @@ from conn.mysql import MySQLPool
 from logger import error
 from config import conf
 import traceback
+import aioredis
 import uvloop
 
 __slots__ = ("sql", "loop")
 
 sql = MySQLPool()
+redis = aioredis.from_url("redis://localhost", decode_responses=True) # TODO: DB config etc
 loop = uvloop.new_event_loop()
 
 # Startup tasks.
