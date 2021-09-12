@@ -3,5 +3,6 @@ aioredis == 2.0.0
 bcrypt == 3.2.0
 aiomysql == 0.0.21
 aiohttp[speedups] == 3.7.4.post0
-# OPTIONAL, CAN BE REPLACED WITH DEFAULT JSON
+# OPTIONALS which may improve speed but lower compatibility.
 orjson == 3.6.3
+uvloop == 0.16.0

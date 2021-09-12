@@ -18,13 +18,12 @@ class MySQLPool:
             pool.
     """
 
-    __slots__ = ("_pool", "_loop")
+    __slots__ = ("_pool",)
 
     def __init__(self):
         """Creates the default values for the connector. Use the `conntect`
         classmethod instead."""
         self._pool: aiomysql.Pool
-        self._loop: asyncio.AbstractEventLoop
     
     @classmethod
     async def connect(
@@ -33,8 +32,7 @@ class MySQLPool:
         user: str,
         password: str,
         database: str,
-        port: int = 3306,
-        loop: asyncio.AbstractEventLoop = None
+        port: int = 3306
     ):
         """Creates the MySQL connecton pool. Handles authentication and the
         configuration of the object.
@@ -53,12 +51,7 @@ class MySQLPool:
             database (str): The database you would like to interact with.
             port (int): The port at which the MySQL server is located at.
                 Default set to 3306.
-            loop (AbstractEventLoop): The event loop that should be used
-                for the MySQL pool. If not set or equal to None, a new
-                one will be created.
         """
-
-        self._loop = asyncio.get_event_loop() if loop is None else loop
 
         # Ok so here we create the pool.
         self._pool = await aiomysql.create_pool(
@@ -66,8 +59,7 @@ class MySQLPool:
             port= port,
             user= user,
             password= password,
-            db = database,
-            loop= self._loop
+            db = database
         )
     
     async def fetchone(self, query: str, args: tuple = ()) -> Optional[tuple]:
