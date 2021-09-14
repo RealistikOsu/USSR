@@ -37,3 +37,5 @@ app = Application(
 )
 
 app.add_task(perform_startup)
+
+app.start()
