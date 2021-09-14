@@ -41,13 +41,13 @@ class Beatmap:
     def difficulty(self) -> float:
         """Returns the star difficulty for the beatmap's main mode."""
 
-        return self.__getattribute__(__diff_attribs[self.mode.value])
+        return self.__getattribute__(_diff_attribs[self.mode.value])
     
     @property
     def has_leaderboard(self) -> bool:
         """Bool corresponding to whether the beatmap features a leaderboard."""
 
-        return self.status.value in __leaderboard_statuses
+        return self.status.value in _leaderboard_statuses
     
     ## CLASSMETHODS
     @classmethod
@@ -81,7 +81,7 @@ class Beatmap:
             return debug(f"Beatmap {md5} not found in the api.")
         
         map_json, = found_beatmaps
-        song_name = __create_full_name(
+        song_name = _create_full_name(
             artist= map_json["artist"],
             title= map_json["title"],
             difficulty= map_json["version"]
@@ -105,7 +105,7 @@ class Beatmap:
         )
         # Set star diff for the main mode.
         bmap.__setattr__(
-            __diff_attribs[bmap.mode.value],
+            _diff_attribs[bmap.mode.value],
             round(float(map_json["difficultyrating"]), 2)
         )
 
@@ -124,7 +124,7 @@ class Beatmap:
 
         # This query is not very fun...
         map_db = await sql.fetchone(
-            "SELECT beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od "
+            "SELECT beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, "
             "mode, rating, difficulty_std, difficulty_taiko, difficulty_ctb, "
             "difficulty_mania, max_combo, hit_length, bpm, playcount, passcount, "
             "ranked, latest_update, ranked_status_freezed FROM beatmaps WHERE "
@@ -186,13 +186,13 @@ class Beatmap:
             Instance of `Beatmap` on successful fetch. Else `None`.
         """
 
-        for fetch in __fetch_order:
+        for fetch in _fetch_order:
             res = await fetch(md5)
             # We have our map.
             if res:
                 # Check if we used a fetch that lets us cache.
-                if fetch in __cachable: res.cache()
-                if fetch in __insertable: await res.insert_db()
+                if fetch in _cachable: res.cache()
+                if fetch in _insertable: await res.insert_db()
                 return res
     
     def cache(self) -> None:
@@ -218,35 +218,35 @@ class Beatmap:
 
         ...
 
-__diff_attribs = {
+_diff_attribs = {
     Mode.STANDARD: "difficulty_std",
     Mode.TAIKO:    "difficulty_taiko",
     Mode.CATCH:    "difficulty_ctb",
     Mode.MANIA:    "difficulty_mania"
 }
 
-__fetch_order = (
+_fetch_order = (
     Beatmap.from_cache,
     Beatmap.from_db,
     Beatmap.from_oapi_v1,
 )
-__cachable = ( # Funcs that should be cached.
+_cachable = ( # Funcs that should be cached.
     Beatmap.from_db,
     Beatmap.from_oapi_v1,
 )
 
-__insertable = ( # Funcs that should be inserted into the db
+_insertable = ( # Funcs that should be inserted into the db
     Beatmap.from_oapi_v1,
 )
 
-__leaderboard_statuses = (
+_leaderboard_statuses = (
     Status.RANKED,
     Status.LOVED,
     Status.APPROVED,
     Status.QUALIFIED
 )
 
-def __create_full_name(artist: str, title: str, difficulty: str) -> str:
+def _create_full_name(artist: str, title: str, difficulty: str) -> str:
     """Creates a full name out of song details for storage in the database."""
 
     return f"{artist} - {title} [{difficulty}]"

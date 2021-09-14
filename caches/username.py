@@ -3,7 +3,7 @@
 from typing import Dict, Optional
 from globs.conn import sql
 
-BASE_QUERY = "SELECT id, username, safe_username FROM users "
+BASE_QUERY = "SELECT id, username, username_safe FROM users "
 
 class UsernameCache:
     """Stores ID->Username etc combinations in memory for quick access."""
@@ -70,7 +70,7 @@ class UsernameCache:
         """Someone please write this."""
 
         user_db = await sql.fetchone(
-            BASE_QUERY + "WHERE safe_username = %s LIMIT 1", (safe_name,) 
+            BASE_QUERY + "WHERE username_safe = %s LIMIT 1", (safe_name,) 
         )
         if not user_db: return
 

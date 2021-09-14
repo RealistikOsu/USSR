@@ -13,9 +13,9 @@ class Completed(IntEnum):
     def completed(self) -> bool:
         """Bool corresponding to whether the user finished playing the map."""
 
-        return self.value in __map_complete
+        return self.value in _map_complete
 
-__map_complete = (
+_map_complete = (
     Completed.COMPLETE,
     Completed.BEST,
     Completed.MOD_BEST,

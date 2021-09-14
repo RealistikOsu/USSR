@@ -9,9 +9,9 @@ class Mode(IntEnum):
     def to_db_str(self) -> str:
         """Converts a mod enum to a `str` used in the database."""
 
-        return __mode_str_conv[self.value]
+        return _mode_str_conv[self.value]
 
-__mode_str_conv = {
+_mode_str_conv = {
     Mode.STANDARD: "std",
     Mode.TAIKO: "taiko",
     Mode.CATCH: "ctb",

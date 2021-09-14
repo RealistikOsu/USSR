@@ -12,7 +12,7 @@ class CustomModes(IntEnum):
         """Returns the database table (for redis and sql) suffix for the given
         `c_mode`."""
 
-        return __db_suffixes[self.value]
+        return _db_suffixes[self.value]
     
     @classmethod
     def from_mods(self, mods: Mods) -> 'CustomModes':
@@ -27,7 +27,7 @@ class CustomModes(IntEnum):
         """Bool corresponding to whether the c_mode offers pp leaderboards
         by default."""
 
-        return self.value in __uses_ppboard
+        return self.value in _uses_ppboard
     
     @property
     def db_table(self) -> str:
@@ -35,13 +35,13 @@ class CustomModes(IntEnum):
 
         return "scores" + self.to_db_suffix()
 
-__db_suffixes = {
+_db_suffixes = {
     CustomModes.VANILLA: "",
     CustomModes.RELAX: "_relax",
     CustomModes.AUTOPILOT: "_ap"
 }
 
-__uses_ppboard = (
+_uses_ppboard = (
     CustomModes.RELAX,
     CustomModes.AUTOPILOT,
 )

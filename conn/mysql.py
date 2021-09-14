@@ -98,7 +98,7 @@ class MySQLPool:
             This is simply a wrapper around `fetchone` with unpacking.
         """
 
-        res = self.fetchone(query, args)
+        res = await self.fetchone(query, args)
 
         return res[0] if res else None
     

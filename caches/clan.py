@@ -32,7 +32,7 @@ class ClanCache:
         self._cached_tags.clear()
 
         # Grab all clan memberships from db.
-        clans_db = await sql.fetchone(
+        clans_db = await sql.fetchall(
             "SELECT uc.user, c.tag FROM user_clans uc "
             "INNER JOIN clans c ON uc.clan = c.id"
         )

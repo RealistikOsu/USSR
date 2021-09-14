@@ -3,7 +3,7 @@ from libs.crypt import verify_bcrypt
 from typing import Dict, Optional
 from globs.conn import sql
 
-async def __fetch_bcrypt(self, user_id: int) -> Optional[str]:
+async def _fetch_bcrypt(user_id: int) -> Optional[str]:
     """Fetches the BCrypt hashed password from SQL."""
 
     return await sql.fetchcol(
@@ -59,11 +59,11 @@ class BCryptCache:
         """
 
         # If we already have a known pwd, use that.
-        if known_md5 := self.known_correct(user_id):
+        if known_md5 := self.known_correct.get(user_id):
             return pwd == known_md5
         
         # Fetch from db and compare using bcrypt.
-        user_pass = await __fetch_bcrypt(user_id)
+        user_pass = await _fetch_bcrypt(user_id)
         if not user_pass: return False # User doesnt exist. Fail.
 
         res = verify_bcrypt(pwd, user_pass) # Long call

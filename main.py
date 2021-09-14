@@ -1,6 +1,7 @@
 from logger import error, info
 from lenhttp import Application, Endpoint
 from config import conf
+import traceback
 
 # Uvloop is a significantly faster loop.
 try:
@@ -27,9 +28,14 @@ async def perform_startup():
 
     info("Running startup tasks...")
 
-    if not all(await c() for c in STARTUP_TASKS):
-        error("Not all startup tasks succeeded! Check logs above.")
+    try:
+        if not all([await c() for c in STARTUP_TASKS]):
+            error("Not all startup tasks succeeded! Check logs above.")
+            raise SystemExit(1)
+    except Exception:
+        error("Error running startup task!" + traceback.format_exc())
         raise SystemExit(1)
+    info("Doned.")
 
 app = Application(
     port= conf.http_port,
