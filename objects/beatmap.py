@@ -207,6 +207,17 @@ class Beatmap:
         )
         beatmaps.cache(self.md5, self)
     
+    async def delete_db(self) -> None:
+        """Deletes all instances of the beatmap from the database.
+        
+        Note:
+            This does NOT nuke the set.
+        """
+
+        await sql.execute(
+            "DELETE FROM beatmaps WHERE beatmap_id = %s", (self.id,)
+        )
+    
     async def insert_db(self, bypass_exist_check: bool = False) -> None:
         """Inserts the beatmap into the MySQL database.
         
@@ -216,7 +227,36 @@ class Beatmap:
                 performed.
         """
 
-        ...
+        await sql.execute(
+            "INSERT INTO `beatmaps` (`id`, `beatmap_id`, `beatmapset_id`, "
+            "`beatmap_md5`, `song_name`, `ar`, `od`, `mode`, `rating`, "
+            "`difficulty_std`, `difficulty_taiko`, `difficulty_ctb`, "
+            "`difficulty_mania`, `max_combo`, `hit_length`, `bpm`, `playcount`, "
+            "`passcount`, `ranked`, `latest_update`, `ranked_status_freezed`) VALUES " #21
+            "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (
+                self.id,
+                self.set_id,
+                self.md5,
+                self.song_name,
+                self.ar,
+                self.od,
+                self.mode.value,
+                self.rating,
+                self.difficulty_std,
+                self.difficulty_taiko,
+                self.difficulty_ctb,
+                self.difficulty_mania,
+                self.max_combo,
+                self.hit_length,
+                self.bpm,
+                self.playcount,
+                self.passcount,
+                self.status.value,
+                self.last_update,
+                int(self.status_frozen)
+            )
+        )
 
 _diff_attribs = {
     Mode.STANDARD: "difficulty_std",
