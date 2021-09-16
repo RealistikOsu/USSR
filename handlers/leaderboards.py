@@ -45,9 +45,20 @@ LIMIT {limit}
 COUNT_QUERY = ("SELECT COUNT(*) FROM {table} s INNER JOIN users a on "
                "s.userid = a.id WHERE {where_clauses}")
 
-# TODO: Cache
+PB_COUNT_QUERY = """
+SELECT
+    COUNT(*) + 1
+FROM
+    {table} s
+INNER JOIN
+    users a on s.userid = a.id
+WHERE
+    {where_clauses}
+ORDER BY {order} DESC
+"""
+
 async def __fetch_global(bmap: Beatmap, mode: Mode, c_mode: CustomModes) -> tuple:
-    """Fetches the global leaderboards for a given beatmaps, returning the
+    """Fetches the global leaderboards for a given beatmap, returning the
     results tuple directly. Also returns the amount of scores."""
 
     # Consult our cache first.
@@ -96,6 +107,69 @@ async def __fetch_global(bmap: Beatmap, mode: Mode, c_mode: CustomModes) -> tupl
         scores_db, score_count = cached_lbs
 
     return scores_db, score_count
+
+async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: int) -> tuple:
+    """Fetches a user's personal best for a given beatmap, returning the
+    result tuple directly. Also returns the score's position on the global leaderboards."""
+
+    # Consult our cache first.
+    cache = caches.get_pb_cache(mode, c_mode, user_id)
+    cached_pb = cache.get(bmap.md5)
+
+    if not cached_pb:
+        scoring = "pp" if c_mode.uses_ppboard else "score"
+        table = "scores" + c_mode.to_db_suffix()
+
+        # SQL Query Generation.
+        where_clauses = (
+            f"a.privileges & {Privileges.USER_PUBLIC.value}",
+            "s.beatmap_md5 = %s",
+            "s.play_mode = %s",
+            f"s.completed = {Completed.BEST.value}",
+            f"a.id = {user_id}",
+        )
+        where_args = (
+            bmap.md5,
+            mode.value,
+        )
+        where_str = " AND ".join(where_clauses)
+
+        query = BASE_QUERY.format(
+            scoring= scoring,
+            table= table,
+            where_clauses= where_str,
+            limit= SCORE_LIMIT,
+            order= "pp" if c_mode.uses_ppboard else "score",
+        )
+
+        personal_best = await sql.fetchcol(query, where_args)
+
+        if not personal_best:
+            personal_best = "" # osu! client still expects an empty string for personal bests
+            personal_place = 0
+        else: # TODO: Query const to merge score & count query into one?
+            place_where_clauses = (
+                f"a.privileges & {Privileges.USER_PUBLIC.value}",
+                "s.beatmap_md5 = %s",
+                "s.play_mode = %s",
+                f"s.completed = {Completed.BEST.value}",
+            )
+            place_where_str = " AND ".join(place_where_clauses)
+
+            query = PB_COUNT_QUERY.format(
+                table= table,
+                where_clauses= place_where_str,
+                order= "pp" if c_mode.uses_ppboard else "score",
+            )
+
+            personal_place = await sql.fetchcol(query, where_args)
+
+        # Cache personal best for later.
+        cache.cache(bmap.md5, (personal_best, personal_place))
+    else:
+        personal_best, personal_place = cached_pb
+
+    return personal_best, personal_place
 
 def __beatmap_header(bmap: Beatmap, score_count: int = 0) -> str:
     """Creates a response header for a beatmap."""
@@ -169,9 +243,15 @@ async def leaderboard_get_handler(req: Request) -> None:
         c_mode
     )
 
+    personal_best, personal_place = __fetch_pb(
+        beatmap,
+        mode,
+        c_mode
+    )
+
     result = "\n".join((
         __beatmap_header(beatmap, score_count),
-        "", # TODO: Own score,
+        __format_score(personal_best, personal_place),
         *[__format_score(s, idx + 1) for idx, s in enumerate(scores_db)]
     ))
     
