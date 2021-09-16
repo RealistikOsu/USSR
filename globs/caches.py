@@ -47,7 +47,7 @@ def get_lb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
     elif c_mode.value == CustomModes.RELAX: return _rx_lb_dict[mode.value]
     else: return _vn_lb_dict[mode.value]
 
-def get_pb_cache(mode: Mode, c_mode: CustomModes, user_id: int) -> Cache:
+def get_pb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
     """Returns a cache for the given `mode`, `c_mode` combo."""
 
     if c_mode.value == CustomModes.AUTOPILOT: return ap_std_pb

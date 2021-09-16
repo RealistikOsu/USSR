@@ -113,8 +113,8 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: in
     result tuple directly. Also returns the score's position on the global leaderboards."""
 
     # Consult our cache first.
-    cache = caches.get_pb_cache(mode, c_mode, user_id)
-    cached_pb = cache.get(bmap.md5)
+    cache = caches.get_pb_cache(mode, c_mode)
+    cached_pb = cache.get((user_id, bmap.md5))
 
     if not cached_pb:
         scoring = "pp" if c_mode.uses_ppboard else "score"
@@ -165,7 +165,7 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: in
             personal_place = await sql.fetchcol(query, where_args)
 
         # Cache personal best for later.
-        cache.cache(bmap.md5, (personal_best, personal_place))
+        cache.cache((user_id, bmap.md5), (personal_best, personal_place))
     else:
         personal_best, personal_place = cached_pb
 
