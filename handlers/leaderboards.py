@@ -246,7 +246,8 @@ async def leaderboard_get_handler(req: Request) -> None:
     personal_best, personal_place = __fetch_pb(
         beatmap,
         mode,
-        c_mode
+        c_mode,
+        user_id
     )
 
     result = "\n".join((
