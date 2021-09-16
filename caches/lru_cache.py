@@ -1,6 +1,7 @@
 # This is an old class taken from GDPyS (made by me) serving as a lru cache.
 # The code is not the best and is in need of a rewrite but it works well for
 # now and is time tested.
+from typing import Union
 from libs.time import get_timestamp
 
 class Cache:
@@ -27,7 +28,7 @@ class Cache:
     
     def __len__(self): return self.cached_items()
     
-    def cache(self, cache_id : int, cache_obj : object) -> None:
+    def cache(self, cache_id : Union[int, str, tuple], cache_obj : object) -> None:
         """Adds an object to the cache."""
         self._cache[cache_id] = {
             "id" : cache_id,
@@ -36,7 +37,7 @@ class Cache:
         }
         self.run_checks()
     
-    def remove_cache(self, cache_id : int) -> None:
+    def remove_cache(self, cache_id :Union[int, str, tuple]) -> None:
         """Removes an object from cache."""
         try:
             del self._cache[cache_id]
@@ -44,7 +45,7 @@ class Cache:
             # It doesnt matter if it fails. All that matters is that no such object exist and if it doesnt exist in the first place, that's already objective complete.
             pass
     
-    def get(self, cache_id : int) -> object:
+    def get(self, cache_id : Union[int, str, tuple]) -> object:
         """Retrieves a cached object from cache."""
 
         # Try to get it from cache.

@@ -28,12 +28,31 @@ rx_catch = Cache(cache_length= 120, cache_limit= 1000)
 
 ap_std   = Cache(cache_length= 120, cache_limit= 1000)
 
+# Leaderboard caches (personal best edition).
+vn_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
+vn_taiko_pb = Cache(cache_length= 120, cache_limit= 1000)
+vn_catch_pb = Cache(cache_length= 120, cache_limit= 1000)
+vn_mania_pb = Cache(cache_length= 120, cache_limit= 1000)
+
+rx_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
+rx_taiko_pb = Cache(cache_length= 120, cache_limit= 1000)
+rx_catch_pb = Cache(cache_length= 120, cache_limit= 1000)
+
+ap_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
+
 def get_lb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
     """Returns a cache for the given `mode`, `c_mode` combo."""
 
     if c_mode.value == CustomModes.AUTOPILOT: return ap_std
     elif c_mode.value == CustomModes.RELAX: return _rx_lb_dict[mode.value]
     else: return _vn_lb_dict[mode.value]
+
+def get_pb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
+    """Returns a cache for the given `mode`, `c_mode` combo."""
+
+    if c_mode.value == CustomModes.AUTOPILOT: return ap_std_pb
+    elif c_mode.value == CustomModes.RELAX: return _rx_lb_dict_pb[mode.value]
+    else: return _vn_lb_dict_pb[mode.value]
 
 _rx_lb_dict = {
     Mode.STANDARD: rx_std,
@@ -46,6 +65,19 @@ _vn_lb_dict = {
     Mode.TAIKO: vn_taiko,
     Mode.CATCH: vn_catch,
     Mode.MANIA: vn_mania
+}
+
+_rx_lb_dict_pb = {
+    Mode.STANDARD: rx_std_pb,
+    Mode.TAIKO: rx_taiko_pb,
+    Mode.CATCH: rx_catch_pb
+}
+
+_vn_lb_dict_pb = {
+    Mode.STANDARD: vn_std_pb,
+    Mode.TAIKO: vn_taiko_pb,
+    Mode.CATCH: vn_catch_pb,
+    Mode.MANIA: vn_mania_pb
 }
 
 #CACHE_INITS = (
