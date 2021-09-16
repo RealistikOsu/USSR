@@ -45,6 +45,33 @@ LIMIT {limit}
 COUNT_QUERY = ("SELECT COUNT(*) FROM {table} s INNER JOIN users a on "
                "s.userid = a.id WHERE {where_clauses}")
 
+PB_BASE_QUERY = """
+SELECT
+    s.id,
+    s.{scoring},
+    s.max_combo,
+    s.50_count,
+    s.100_count,
+    s.300_count,
+    s.misses_count,
+    s.katus_count,
+    s.gekis_count,
+    s.full_combo,
+    s.mods,
+    s.time,
+    a.username,
+    a.id,
+    s.pp
+FROM
+    {table} s
+INNER JOIN
+    users a on s.userid = a.id
+WHERE
+    {where_clauses}
+ORDER BY {order} DESC
+LIMIT 1
+"""
+
 PB_COUNT_QUERY = """
 SELECT
     COUNT(*) + 1
@@ -135,11 +162,10 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: in
         )
         where_str = " AND ".join(where_clauses)
 
-        query = BASE_QUERY.format(
+        query = PB_BASE_QUERY.format(
             scoring= scoring,
             table= table,
             where_clauses= where_str,
-            limit= SCORE_LIMIT,
             order= "pp" if c_mode.uses_ppboard else "score",
         )
 
