@@ -126,11 +126,12 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: in
             "s.beatmap_md5 = %s",
             "s.play_mode = %s",
             f"s.completed = {Completed.BEST.value}",
-            f"a.id = {user_id}",
+            f"a.id = %s",
         )
         where_args = (
             bmap.md5,
             mode.value,
+            user_id,
         )
         where_str = " AND ".join(where_clauses)
 
