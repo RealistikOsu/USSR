@@ -1,3 +1,4 @@
+from typing import Optional
 from objects.beatmap import Beatmap
 from globs import caches
 from lenhttp import Request
@@ -135,7 +136,8 @@ async def __fetch_global(bmap: Beatmap, mode: Mode, c_mode: CustomModes) -> tupl
 
     return scores_db, score_count
 
-async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: int) -> tuple:
+async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes,
+                     user_id: int, scores: tuple = ()) -> tuple:
     """Fetches a user's personal best for a given beatmap, returning the
     result tuple directly. Also returns the score's position on the global leaderboards."""
 
@@ -144,56 +146,64 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: in
     cached_pb = cache.get((user_id, bmap.md5))
 
     if not cached_pb:
-        scoring = "pp" if c_mode.uses_ppboard else "score"
-        table = "scores" + c_mode.to_db_suffix()
+        # Check if we can get our score from scores.
+        score_iter_data = __score_from_data(scores, user_id)
+        # We gotta consult the db.
+        if not score_iter_data[1] is not None:
+            scoring = "pp" if c_mode.uses_ppboard else "score"
+            table = "scores" + c_mode.to_db_suffix()
 
-        # SQL Query Generation.
-        where_clauses = (
-            f"a.privileges & {Privileges.USER_PUBLIC.value}",
-            "s.beatmap_md5 = %s",
-            "s.play_mode = %s",
-            f"s.completed = {Completed.BEST.value}",
-            "a.id = %s",
-        )
-        where_args = (
-            bmap.md5,
-            mode.value,
-            user_id,
-        )
-        where_str = " AND ".join(where_clauses)
-
-        query = PB_BASE_QUERY.format(
-            scoring= scoring,
-            table= table,
-            where_clauses= where_str,
-            order= "pp" if c_mode.uses_ppboard else "score",
-        )
-
-        personal_best = await sql.fetchone(query, where_args)
-
-        if not personal_best:
-            personal_best = None # osu! client still expects an empty string for personal bests
-            personal_place = None
-        else: # TODO: Query const to merge score & count query into one?
-            place_where_clauses = (
+            # SQL Query Generation.
+            where_clauses = (
                 f"a.privileges & {Privileges.USER_PUBLIC.value}",
                 "s.beatmap_md5 = %s",
                 "s.play_mode = %s",
-                f"s.pp > {personal_best[14]}",
                 f"s.completed = {Completed.BEST.value}",
+                "a.id = %s",
             )
-            place_where_str = " AND ".join(place_where_clauses)
+            where_args = (
+                bmap.md5,
+                mode.value,
+                user_id,
+            )
+            where_str = " AND ".join(where_clauses)
 
-            query = PB_COUNT_QUERY.format(
+            query = PB_BASE_QUERY.format(
+                scoring= scoring,
                 table= table,
-                where_clauses= place_where_str,
+                where_clauses= where_str,
                 order= "pp" if c_mode.uses_ppboard else "score",
             )
 
-            # Here we dont use ID arg.
-            where_args = where_args[:2]
+            personal_best = await sql.fetchone(query, where_args)
 
-            personal_place = await sql.fetchcol(query, where_args)
+            if not personal_best:
+                personal_best = None # osu! client still expects an empty string for personal bests
+                personal_place = None
+            else: # TODO: Query const to merge score & count query into one?
+                place_where_clauses = (
+                    f"a.privileges & {Privileges.USER_PUBLIC.value}",
+                    "s.beatmap_md5 = %s",
+                    "s.play_mode = %s",
+                    f"s.pp > {personal_best[14]}",
+                    f"s.completed = {Completed.BEST.value}",
+                )
+                place_where_str = " AND ".join(place_where_clauses)
+
+                query = PB_COUNT_QUERY.format(
+                    table= table,
+                    where_clauses= place_where_str,
+                    order= "pp" if c_mode.uses_ppboard else "score",
+                )
+
+                # Here we dont use ID arg.
+                where_args = where_args[:2]
+
+                personal_place = await sql.fetchcol(query, where_args)
+
+        # We can unpack.
+        else:
+            personal_best, personal_place = score_iter_data
 
         # Cache personal best for later.
         cache.cache((user_id, bmap.md5), (personal_best, personal_place))
@@ -224,6 +234,27 @@ def __format_score(score: tuple, place: int, get_clans: bool = True) -> str:
     return (f"{score[0]}|{name}|{round(score[1])}|{score[2]}|{score[3]}|"
             f"{score[4]}|{score[5]}|{score[6]}|{score[7]}|{score[8]}|"
             f"{score[9]}|{score[10]}|{score[13]}|{place}|{score[11]}|1")
+    
+def __score_from_data(scores: tuple, user_id: int,
+                      lb_size: int = SCORE_LIMIT) -> Optional[tuple[int, tuple]]:
+    """Iterates over a tuple of scores (SQL format) and locates a score and
+    place on the leaderboard. Big optimisation.
+    
+    Note:
+        If position = 0, score is 100% not in the lb. If none, sql query has
+            to be ran to lookup.
+    """
+
+    for idx, score in enumerate(scores):
+        # Score of our user is found.
+        if score[13] == user_id:
+            print("Found score through iter.")
+            return score, idx + 1
+    
+    # Ok now this is 500iq move. If the amount of total scores is below the
+    # limit and did not appear prior, we know it doesn't exist.
+    if len(scores) < lb_size: return None, 0
+    return None, None
 
 async def leaderboard_get_handler(req: Request) -> None:
     """Handles beatmap leaderboards."""
@@ -278,7 +309,8 @@ async def leaderboard_get_handler(req: Request) -> None:
         beatmap,
         mode,
         c_mode,
-        user_id
+        user_id,
+        scores_db
     )
 
     result = "\n".join((
