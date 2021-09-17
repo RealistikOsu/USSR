@@ -169,16 +169,17 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: in
             order= "pp" if c_mode.uses_ppboard else "score",
         )
 
-        personal_best = await sql.fetchcol(query, where_args)
+        personal_best = await sql.fetchone(query, where_args)
 
         if not personal_best:
-            personal_best = "" # osu! client still expects an empty string for personal bests
-            personal_place = 0
+            personal_best = None # osu! client still expects an empty string for personal bests
+            personal_place = None
         else: # TODO: Query const to merge score & count query into one?
             place_where_clauses = (
                 f"a.privileges & {Privileges.USER_PUBLIC.value}",
                 "s.beatmap_md5 = %s",
                 "s.play_mode = %s",
+                f"s.pp > {personal_best[14]}",
                 f"s.completed = {Completed.BEST.value}",
             )
             place_where_str = " AND ".join(place_where_clauses)
@@ -188,6 +189,9 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes, user_id: in
                 where_clauses= place_where_str,
                 order= "pp" if c_mode.uses_ppboard else "score",
             )
+
+            # Here we dont use ID arg.
+            where_args = where_args[:2]
 
             personal_place = await sql.fetchcol(query, where_args)
 
@@ -270,7 +274,7 @@ async def leaderboard_get_handler(req: Request) -> None:
         c_mode
     )
 
-    personal_best, personal_place = __fetch_pb(
+    personal_best, personal_place = await __fetch_pb(
         beatmap,
         mode,
         c_mode,
@@ -279,7 +283,7 @@ async def leaderboard_get_handler(req: Request) -> None:
 
     result = "\n".join((
         __beatmap_header(beatmap, score_count),
-        __format_score(personal_best, personal_place),
+        __format_score(personal_best, personal_place, False) if personal_place else "",
         *[__format_score(s, idx + 1) for idx, s in enumerate(scores_db)]
     ))
     
