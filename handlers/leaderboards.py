@@ -264,7 +264,7 @@ async def leaderboard_get_handler(req: Request) -> None:
     user_id = await caches.name.id_from_safe(safe_username)
 
     if not await caches.password.check_password(user_id, req.get_args["ha"]):
-        return await req.send(200, PASS_ERR)
+        return PASS_ERR
     
     # Grab request args.
     md5 = req.get_args["c"]
@@ -276,8 +276,8 @@ async def leaderboard_get_handler(req: Request) -> None:
     c_mode = CustomModes.from_mods(mods)
 
     # Simple checks to catch out cheaters and tripwires. TODO: mb restrict?
-    if not validate_md5(md5): return await req.send(200, BASIC_ERR)
-    if s_ver != 4: return await req.send(200, BASIC_ERR)
+    if not validate_md5(md5): return BASIC_ERR
+    if s_ver != 4: return BASIC_ERR
 
     # Fetch beatmap object.
     beatmap = await Beatmap.from_md5(md5)
@@ -287,16 +287,13 @@ async def leaderboard_get_handler(req: Request) -> None:
         # TODO: Handle beatmap updates.
         print("Bitch ass beatmap not found.")
         ...
-        return await req.send(200, BASIC_ERR)
+        return BASIC_ERR
     
     if not beatmap.has_leaderboard:
         # Just the header is required here.
         print("Motherfucker exited early as no bmap lbs fuck you.")
         print(beatmap.status)
-        return await req.send(
-            200,
-            __beatmap_header(beatmap).encode()
-        )
+        return __beatmap_header(beatmap).encode()
     
     # TODO: More lb types.
     scores_db, score_count = await __fetch_global(
@@ -319,7 +316,4 @@ async def leaderboard_get_handler(req: Request) -> None:
         *[__format_score(s, idx + 1) for idx, s in enumerate(scores_db)]
     ))
     
-    return await req.send(
-        200,
-        result.encode()
-    )
+    return result.encode()

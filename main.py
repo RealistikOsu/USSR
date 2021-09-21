@@ -14,6 +14,7 @@ from globs.conn import connect_sql
 from globs.caches import initialise_cache
 
 # Load handlers.
+from handlers.direct import direct_get_handler, download_map, get_set_handler
 from handlers.leaderboards import leaderboard_get_handler
 
 # Must return True for success or else server wont start.
@@ -27,7 +28,6 @@ async def perform_startup():
     `SystemExit` will be raised."""
 
     info("Running startup tasks...")
-
     try:
         if not all([await c() for c in STARTUP_TASKS]):
             error("Not all startup tasks succeeded! Check logs above.")
@@ -39,7 +39,13 @@ async def perform_startup():
 
 app = Application(
     port= conf.http_port,
-    routes= [Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler)]
+    logging= conf.framework_log,
+    routes= [
+        Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
+        Endpoint("/web/osu-search.php", direct_get_handler),
+        Endpoint("/web/osu-search-set.php", get_set_handler),
+        Endpoint("/d/<map_id>", download_map)
+    ]
 )
 
 app.add_task(perform_startup)

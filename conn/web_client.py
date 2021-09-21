@@ -3,15 +3,13 @@
 # it when we have it.
 try: from orjson import loads as j_load
 except ImportError: from json import loads as j_load
-
 import aiohttp
 
 async def simple_get(url: str, args: dict = {}) -> str:
     """Sends a simple `GET` request to `url` with GET args `args` and returns
     the response body as a `str`."""
-
     async with aiohttp.ClientSession() as s:
-        async with s.get(url, args=args) as res:
+        async with s.get(url, params=args) as res:
             return await res.text()
     
 async def simple_get_json(url: str, args: dict = {}) -> dict:

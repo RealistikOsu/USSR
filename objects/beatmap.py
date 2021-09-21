@@ -228,12 +228,12 @@ class Beatmap:
         """
 
         await sql.execute(
-            "INSERT INTO `beatmaps` (`id`, `beatmap_id`, `beatmapset_id`, "
+            "INSERT INTO `beatmaps` (`beatmap_id`, `beatmapset_id`, "
             "`beatmap_md5`, `song_name`, `ar`, `od`, `mode`, `rating`, "
             "`difficulty_std`, `difficulty_taiko`, `difficulty_ctb`, "
             "`difficulty_mania`, `max_combo`, `hit_length`, `bpm`, `playcount`, "
             "`passcount`, `ranked`, `latest_update`, `ranked_status_freezed`) VALUES " #21
-            "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (
                 self.id,
                 self.set_id,

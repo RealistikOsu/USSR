@@ -93,6 +93,10 @@ class Config(ConfigReader):
     dir_maps: str       = ".data/maps"
     dir_replays: str    = ".data/replays"
     dir_screenshot: str = ".data/screenshots"
+    direct_api_url: str = "https://api.chimu.moe/v1"
+    bancho_nick: str    = "My Acc Slow"
+    bancho_hash: str    = "nope"
+    framework_log: bool = False
     osu_api_key: str    = ""
 
 conf = Config()

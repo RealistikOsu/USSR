@@ -12,7 +12,7 @@ def hash_md5(s: str) -> str:
         `str` hashed in md5.
     """
 
-    return hashlib.md5(s.encode()).digest().decode()
+    return hashlib.md5(s.encode()).digest().hex()
 
 def validate_md5(s: str) -> bool:
     """Checks if the provided string is a valid MD5 hash.
