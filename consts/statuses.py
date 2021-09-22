@@ -15,24 +15,26 @@ class Status(IntEnum):
     @classmethod
     def from_direct(self, value: int):
         """Convert current direct status to osu! normal."""
-        return {
-            0: self.RANKED,
-            2: self.PENDING,
-            3: self.QUALIFIED,
-            4: None,
-            5: self.GRAVEYARD,
-            7: self.RANKED,
-            8: self.LOVED
-        }.get(value, self.PENDING)
+        return _normal_direct_conv.get(value, self.PENDING)
 
     def to_direct(self) -> int:
         """Converts osu statuses to osu!direct ones."""
-        return {
-            self.PENDING: 0,
-            self.QUALIFIED: 3,
-            self.RANKED: 1,
-            self.LOVED: 4,
-            self.GRAVEYARD: -2,
-            self.APPROVED: 1
-        }.get(self.value, self.value)
-    
+        return _direct_normal_conv.get(self.value, self.value)
+
+_direct_normal_conv = {
+    Status.PENDING: 0,
+    Status.QUALIFIED: 3,
+    Status.RANKED: 1,
+    Status.LOVED: 4,
+    Status.GRAVEYARD: -2,
+    Status.APPROVED: 1
+}
+
+_normal_direct_conv = {
+    0: Status.RANKED,
+    2: Status.PENDING,
+    3: Status.QUALIFIED,
+    5: Status.GRAVEYARD,
+    7: Status.RANKED,
+    8: Status.LOVED
+}

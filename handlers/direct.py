@@ -22,11 +22,10 @@ def __format_search_response(diffs: dict, bmap: dict):
     """Formats the beatmapset dictionary to full direct response."""
 
     base_str = BASE_HEADER.format(**bmap, Video=int(bmap['HasVideo']))
-    child_bmaps = []
-    for diff in diffs:
-        child_bmaps.append(CHILD_HEADER.format(**diff))
 
-    return base_str + ','.join(child_bmaps)
+    return base_str + ','.join(
+        CHILD_HEADER.format(**diff) for diff in diffs
+    )
 
 async def download_map(req: Request, map_id: str):
     """Handles osu!direct map download route"""
@@ -91,11 +90,11 @@ async def direct_get_handler(req: Request) -> None:
     mode = int(req.get_args.get("m", "-1"))
 
     # Handle Auth..
-    if not await caches.password.check_password(user_id, req.get_args.get("h", "")) or not nick:
+    if not await caches.password.check_password(user_id, req.get_args.get("h", ""))\
+    or not nick:
         return PASS_ERR
 
-    bancho_params = req.get_args
-    bancho_params |= {
+    bancho_params = req.get_args | {
         "q": query,
         "u": conf.bancho_nick,
         "h": conf.bancho_hash
@@ -115,10 +114,7 @@ async def direct_get_handler(req: Request) -> None:
         return bancho_response.encode()
 
     try:
-        url = f"{URI_SEARCH}?"
-        for key, val in mirror_params.items():
-            url += f"{key}={val}&"
-        direct_resp = await simple_get_json(url[:-1])
+        direct_resp = await simple_get_json(URI_SEARCH, mirror_params)
     except Exception: 
         error(f"Error with direct search: {traceback.format_exc()}")
         return bancho_response.encode() # Just send bancho response.

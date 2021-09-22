@@ -10,7 +10,7 @@ try:
 except ImportError: pass
 
 # Globals innit.
-from globs.conn import connect_sql
+from globs.conn import connect_sql, connect_redis
 from globs.caches import initialise_cache
 
 # Load handlers.
@@ -20,6 +20,7 @@ from handlers.leaderboards import leaderboard_get_handler
 # Must return True for success or else server wont start.
 STARTUP_TASKS = (
     connect_sql,
+    connect_redis,
     initialise_cache,
 )
 
