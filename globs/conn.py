@@ -8,7 +8,7 @@ import aioredis
 __slots__ = ("sql", "loop")
 
 sql = MySQLPool()
-redis = aioredis.Redis()
+redis = aioredis.Redis(True)
 
 # Startup tasks.
 async def connect_sql() -> bool:

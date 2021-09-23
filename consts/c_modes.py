@@ -21,6 +21,19 @@ class CustomModes(IntEnum):
         if mods & Mods.AUTOPILOT: return CustomModes(CustomModes.AUTOPILOT)
         elif mods & Mods.RELAX: return CustomModes(CustomModes.RELAX)
         return CustomModes(CustomModes.VANILLA)
+    
+    @classmethod
+    def from_score_id(self, score_id: int) -> 'CustomModes':
+        """Calculates the c_mode for a score using score offsets.
+        
+        Args:
+            score_id (int): The score ID that the `CustomMode` will be
+                calculated from.
+        """
+
+        if RELAX_OFFSET < score_id < AP_OFFSET: return CustomModes(CustomModes.RELAX)
+        elif score_id > AP_OFFSET: return CustomModes(CustomModes.AUTOPILOT)
+        return CustomModes(CustomModes.VANILLA)
 
     @property
     def uses_ppboard(self) -> bool:
@@ -45,3 +58,7 @@ _uses_ppboard = (
     CustomModes.RELAX,
     CustomModes.AUTOPILOT,
 )
+
+# Score offsets for each mode, avoiding queries.
+RELAX_OFFSET = 1073741823
+AP_OFFSET = 2000000000

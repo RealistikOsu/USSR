@@ -16,6 +16,7 @@ from globs.caches import initialise_cache
 # Load handlers.
 from handlers.direct import direct_get_handler, download_map, get_set_handler
 from handlers.leaderboards import leaderboard_get_handler
+from handlers.replays import get_replay_web_handler
 
 # Must return True for success or else server wont start.
 STARTUP_TASKS = (
@@ -45,7 +46,8 @@ app = Application(
         Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
         Endpoint("/web/osu-search.php", direct_get_handler),
         Endpoint("/web/osu-search-set.php", get_set_handler),
-        Endpoint("/d/<map_id>", download_map)
+        Endpoint("/d/<map_id>", download_map),
+        Endpoint("/web/osu-getreplay.php", get_replay_web_handler)
     ]
 )
 
