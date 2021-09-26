@@ -1,6 +1,8 @@
 # The Cryptography and/or related tasks/functions come in here.
 import hashlib
 import bcrypt
+import string
+import random
 
 def hash_md5(s: str) -> str:
     """Hashes a string in the MD5 hashing algorhythm.
@@ -63,3 +65,13 @@ def gen_osu_pw(s: str) -> str:
     """
 
     return hash_bcrypt(hash_md5(s))
+
+AV_CHARS = string.ascii_letters + string.digits
+def gen_rand_str(len: int) -> str:
+    """Generates a string consisting of random alpha-numeric characters.
+    
+    Args:
+        len (int): The lenght (in chars) of the string.
+    """
+
+    return "".join(random.choice(AV_CHARS) for _ in range(len))

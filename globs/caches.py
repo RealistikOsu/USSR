@@ -6,6 +6,7 @@ from caches.priv import PrivilegeCache
 from caches.username import UsernameCache
 from caches.lru_cache import Cache
 from logger import info
+from helpers.user import safe_name
 
 # Specialised Caches
 name = UsernameCache()
@@ -99,3 +100,13 @@ async def initialise_cache() -> bool:
     info(f"Successfully cached {len(clan)} clans!")
 
     return True
+
+# Before this, auth required a LOT of boilerplate code.
+async def check_auth(n: str, pw_md5: str) -> bool:
+    """Handles authentication for a name + pass md5 auth."""
+
+    s_name = safe_name(name)
+
+    # Get user_id from cache.
+    user_id = await name.id_from_safe(s_name)
+    return await password.check_password(user_id, pw_md5)
