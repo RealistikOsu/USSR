@@ -49,7 +49,7 @@ app = Application(
         Endpoint("/web/osu-search-set.php", get_set_handler),
         Endpoint("/d/<map_id>", download_map),
         Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
-        Endpoint("/web/osu-screenshot.php", upload_image_handler),
+        Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
     ]
 )
 

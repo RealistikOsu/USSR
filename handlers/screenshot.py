@@ -16,7 +16,8 @@ SS_NAME_LEN = 8
 async def upload_image_handler(req: Request) -> str:
     """Handles screenshot uploads (POST /web/osu-screenshot.php)."""
 
-    if not await check_auth(req.post_args["p"], req.post_args["h"]):
+    print(req.body)
+    if not await check_auth(req.get_args["u"], req.get_args["h"]):
         return "no"
 
     # LETS style ratelimit.
