@@ -1,6 +1,7 @@
-from logger import error, info
+from logger import error, info, warning
 from lenhttp import Application, Endpoint
 from config import conf
+from redis_pubsub.router import pubsub_executor
 import traceback
 
 # Uvloop is a significantly faster loop.
@@ -19,12 +20,27 @@ from handlers.leaderboards import leaderboard_get_handler
 from handlers.replays import get_replay_web_handler
 from handlers.screenshot import upload_image_handler
 
+# Load redis pubsubs.
+from redis_pubsub.ripple import username_change_pubsub
+
 # Must return True for success or else server wont start.
 STARTUP_TASKS = (
     connect_sql,
     connect_redis,
     initialise_cache,
 )
+
+PUBSUB_REGISTER = (
+    (username_change_pubsub, "peppy:change_username"),
+)
+
+async def create_redis_pubsub():
+    """Creates all the subscriptions for redis `publish` events."""
+
+    # FIXME: subscribing is broken due to what i assume is an issue with the lib.
+    return warning("Redis PubSubs are temporarily disabled. No pubsubs registered.")
+
+    for coro, name in PUBSUB_REGISTER: await pubsub_executor(name, coro)
 
 async def perform_startup():
     """Runs all of the startup tasks, checking if they all succeed. If not,
@@ -39,6 +55,12 @@ async def perform_startup():
         error("Error running startup task!" + traceback.format_exc())
         raise SystemExit(1)
     info("Doned.")
+    try:
+        await create_redis_pubsub()
+        info(f"Created {len(PUBSUB_REGISTER)} Redis PubSub listeners!")
+    except Exception:
+        error("Error creating Redis PubSub listeners! " + traceback.format_exc())
+        raise SystemExit(1)
 
 app = Application(
     port= conf.http_port,

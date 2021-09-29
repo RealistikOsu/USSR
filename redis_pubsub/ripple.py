@@ -1,5 +1,7 @@
 # Support for ripple's pubsub handlers. These are featured in **all** ripple
 # based servers.
+from globs.caches import name
+
 try: from orjson import loads as j_load
 except ImportError: from json import loads as j_load
 
@@ -29,3 +31,16 @@ async def beatmap_update_pubsub(data) -> None:
 
     # Parse JSON formatted data.
     j_data = j_load(data)
+
+async def username_change_pubsub(data):
+    """
+    Handles the Redis pubsub event `peppy:change_username`.
+    It handles the update of the username cache.
+    """
+
+    # Parse JSON formatted data.
+    j_data = j_load(data)
+
+    user_id = int(j_data["userID"])
+
+    await name.load_from_id(user_id)

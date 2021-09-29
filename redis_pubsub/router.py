@@ -21,5 +21,5 @@ async def pubsub_executor(name: str, h: Callable) -> None:
     upon creating it, listening to `publish` events. Upon receival, calls `h`.
     """
 
-    ch, = redis.subscribe(name)
+    ch, = await redis.subscribe(name)
     asyncio.get_running_loop().create_task(wait_for_pub(ch, h))
