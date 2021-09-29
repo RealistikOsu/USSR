@@ -80,7 +80,7 @@ class Stats:
             t_acc += s_acc
 
         self.accuracy = t_acc / 100
-        self.pp = t_pp
+        self.pp = t_pp + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp
 
@@ -110,3 +110,18 @@ class Stats:
 
         self.rank = await get_rank_redis(self.user_id, self.mode, self.c_mode)
         return self.rank
+
+    async def __calc_bonus_pp(self) -> float:
+        """Calculates the playcount based PP for the user.
+        https://osu.ppy.sh/wiki/en/Performance_points#how-much-bonus-pp-is-awarded-for-having-lots-of-scores-on-ranked-maps
+
+        Note:
+            Performs a generally expensive join.
+        """
+
+        scores_db = await sql.fetchcol(
+            "SELECT COUNT(*) FROM {t} s RIGHT JOIN beatmaps b ON s.beatmap_md5 = "
+            "b.beatmap_md5 WHERE b.ranked = 2"
+        )
+
+        return 416.6667 * (1 - (0.9994 ** scores_db))
