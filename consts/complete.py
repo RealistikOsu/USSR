@@ -5,6 +5,9 @@ class Completed(IntEnum):
     """Completion statuses for database scores."""
 
     # TODO: This list is incomplete.
+    DUPLICATE = -1
+    QUIT = 0
+    FAILED = 1
     COMPLETE = 2
     BEST = 3
     MOD_BEST = 4

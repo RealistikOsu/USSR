@@ -18,9 +18,9 @@ class CustomModes(IntEnum):
     def from_mods(self, mods: Mods) -> 'CustomModes':
         """Creates an instance of `CustomModes` from a mod combo."""
 
-        if mods & Mods.AUTOPILOT: return CustomModes(CustomModes.AUTOPILOT)
-        elif mods & Mods.RELAX: return CustomModes(CustomModes.RELAX)
-        return CustomModes(CustomModes.VANILLA)
+        if mods & Mods.AUTOPILOT: return CustomModes.AUTOPILOT
+        elif mods & Mods.RELAX: return CustomModes.RELAX
+        return CustomModes.VANILLA
     
     @classmethod
     def from_score_id(self, score_id: int) -> 'CustomModes':
@@ -31,9 +31,9 @@ class CustomModes(IntEnum):
                 calculated from.
         """
 
-        if RELAX_OFFSET < score_id < AP_OFFSET: return CustomModes(CustomModes.RELAX)
-        elif score_id > AP_OFFSET: return CustomModes(CustomModes.AUTOPILOT)
-        return CustomModes(CustomModes.VANILLA)
+        if RELAX_OFFSET < score_id < AP_OFFSET: return CustomModes.RELAX
+        elif score_id > AP_OFFSET: return CustomModes.AUTOPILOT
+        return CustomModes.VANILLA
 
     @property
     def uses_ppboard(self) -> bool:
