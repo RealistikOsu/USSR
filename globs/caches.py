@@ -110,3 +110,37 @@ async def check_auth(n: str, pw_md5: str) -> bool:
     # Get user_id from cache.
     user_id = await name.id_from_safe(s_name)
     return await password.check_password(user_id, pw_md5)
+
+def clear_lbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
+    """Clears the leaderboards for a given map, mode and c_mode combo.
+    
+    Note:
+        This does NOT refresh them.
+        Does NOT raise an exception if lb is not already cached.
+
+    Args:
+        md5 (md5): The MD5 hash for the beatmap to clear the lb for.
+        mode (Mode): The in-game mode of the leaderboard to clear.
+        c_mode (CustomModes): The custom mode of the leaderboard to
+            clear.
+    """
+
+    c = get_lb_cache(mode, c_mode)
+    c.remove_cache(md5)
+
+# FIXME: This is INNEFFICIENT AS HELL. We could be doing over 500 iterations
+# per score submitted.
+def clear_pbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
+    """Clears all personal bests cached for a given beatmap.
+    
+    Args:
+        md5 (md5): The MD5 hash for the beatmap to clear the lb for.
+        mode (Mode): The in-game mode of the leaderboard to clear.
+        c_mode (CustomModes): The custom mode of the leaderboard to
+            clear.
+    """
+
+    c = get_pb_cache(mode, c_mode)
+
+    for t in c.get_all_items():
+        if t[1] == md5: c.remove_cache(t)

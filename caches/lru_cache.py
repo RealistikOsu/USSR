@@ -94,8 +94,10 @@ class Cache:
         self._remove_expired_cache()
         self._remove_limit_cache()
     
-    def get_all_items(self) -> list:
-        """Creates a list of all cached items in the order of when it was
-        cached."""
+    def get_all_items(self):
+        """Generator that lists all of the objects currently cached."""
 
-        return [obj["object"] for _, obj in self._cache.items()]
+        # return [obj["object"] for _, obj in self._cache.items()]
+
+        # Make it a generator for performance.
+        for obj in self._cache.values(): yield obj["object"]
