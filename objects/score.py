@@ -9,6 +9,7 @@ from objects.beatmap import Beatmap
 from globs.conn import sql
 from globs import caches
 from libs.crypt import validate_md5
+from libs.time import get_timestamp
 from lenhttp import Request
 
 @dataclass
@@ -76,13 +77,38 @@ class Score:
         table = self.c_mode.db_table
         scoring = "pp" if self.c_mode.uses_ppboard else "score"
         val = self.pp if self.c_mode.uses_ppboard else self.score
+
+        print("Checking completed thru sql.")
+
+        query = (
+            f"userid = %s AND completed = {Completed.BEST.value} AND beatmap_md5 = %s "
+            f"AND play_mode = {self.mode.value}"
+        )
+        args = (self.user_id, self.bmap.md5,)
         
-        # Welp. Gotta do sql.
+        # Welp. Gotta do sql.n
         await sql.execute(
             f"UPDATE {table} SET completed = {Completed.COMPLETE.value} WHERE "
-            f"userid = %s AND completed = {Completed.BEST.value} AND beatmap_md5 = %s "
-            f"AND playmode = {self.mode.value}"
+            + query + f" AND {scoring} < {val} LIMIT 1", args
         )
+
+        # Check if it remains.
+        ex_db = await sql.fetchcol(
+            f"SELECT 1 FROM {table} WHERE " + query + " LIMIT 1"
+        )
+
+        if not ex_db:
+            print("pb through not finiding.")
+            self.completed = Completed.BEST
+            return self.completed
+        else:
+            print("TMP non mod best. PB not best.")
+            self.completed = Completed.COMPLETE
+            return self.completed
+        
+        # TODO Check for mod best.
+        
+
     
     async def calc_placement(self, handle_first_place: bool = True) -> int:
         """Calculates the placement of the score on the leaderboards.
@@ -108,7 +134,7 @@ class Score:
         self.placement = await sql.fetchcol(
             f"SELECT COUNT(*) FROM {table} s INNER JOIN users u ON s.userid = "
             f"u.id WHERE u.privileges & {Privileges.USER_PUBLIC.value} AND "
-            f"s.playmode = {self.mode.value} AND s.completed = {Completed.BEST.value} "
+            f"s.play_mode = {self.mode.value} AND s.completed = {Completed.BEST.value} "
             f"AND {scoring} > %s AND s.beatmap_md5 = %s",
             (val, self.bmap.md5)
         )
@@ -142,7 +168,7 @@ class Score:
                 "have not yet been implemented!")
 
     async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
-                     calc_place: bool = True) -> None:
+                     calc_place: bool = True, calc_pp: bool = True) -> None:
         """Inserts the score into the database, performing other necessary
         calculations.
         
@@ -155,8 +181,11 @@ class Score:
             calc_place (bool): Whether the placement of the score should be
                 calculated (may not be calculated if `completed` does not
                 allow so).
+            calc_pp (bool): Whether the PP for the score should be recalculated
+                from scratch.
         """
 
+        if calc_pp: await self.calc_pp() # We need this for the rest.
         if calc_completed: await self.calc_completed()
         if clear_lbs and self.completed == Completed.BEST:
             caches.clear_lbs(self.bmap.md5, self.mode, self.c_mode)
@@ -169,3 +198,14 @@ class Score:
         """Inserts the score directly into the database."""
 
         table = self.c_mode.db_table
+        ts = get_timestamp()
+
+        self.id = await sql.execute(
+            f"INSERT INTO {table} (beatmap_md5, userid, score, max_combo, full_combo, mods, "
+            "300_count, 100_count, 50_count, katus_count, gekis_count, misses_count, time, "
+            "play_mode, completed, accuracy, pp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
+            "%s,%s,%s,%s,%s)",
+            (self.bmap.md5, self.user_id, self.score, self.max_combo, int(self.full_combo),
+            self.mods.value, self.count_300, self.count_100, self.count_50, self.count_geki,
+            self.count_katu, ts, self.mode.value, self.completed.value, self.accuracy, self.pp)
+        )
