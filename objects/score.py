@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from helpers.user import safe_name
+from typing import Optional
 from logger import warning
 from consts.modes import Mode
 from consts.mods import Mods
@@ -11,6 +13,8 @@ from globs import caches
 from libs.crypt import validate_md5
 from libs.time import get_timestamp
 from lenhttp import Request
+from py3rijndael import RijndaelCbc, ZeroPadding
+import base64
 
 @dataclass
 class Score:
@@ -47,6 +51,70 @@ class Score:
 
         return self.id != 0
     
+    @classmethod
+    async def from_score_sub(self, req: Request) -> Optional['Score']:
+        """Creates an instance of `Score` from data provided in a score
+        submit request."""
+
+        aes = RijndaelCbc(
+            key= "osu!-scoreburgr---------" + req.post_args["osuver"],
+            iv= base64.b64decode(req.post_args["iv"]).decode("latin_1"),
+            padding= ZeroPadding(32),
+            block_size= 32,
+        )
+        score_data = aes.decrypt(
+            base64.b64decode(req.post_args["score"]).decode()
+        ).decode().split(":")
+        print(score_data)
+
+        # Set data from the score sub.
+        map_md5 = score_data[0]
+
+        # Verify map.
+        if not validate_md5(map_md5):
+            warning(f"Score submit provided invalid beatmap md5 ({map_md5})! "
+                    "Giving up.")
+            return
+        
+        # Verify score data sent is correct.
+        if len(score_data) != 18: # Not sure if we restrict for this
+            warning(f"Someone sent over incorrect score data.... Giving up.")
+            return
+        
+        username = score_data[1].rstrip()
+        user_id = caches.name.id_from_safe(safe_name(username))
+        bmap = await Beatmap.from_md5(map_md5)
+        mods = Mods(int(score_data[13]))
+
+        s = Score(
+            0, bmap, user_id,
+            int(score_data[9]),
+            score_data[10] == "True",
+            score_data[11] == "True",
+            score_data[14] == "True",
+            req.post_args.get("x") == "1",
+            mods,
+            CustomModes.from_mods(mods),
+            int(score_data[3]),
+            int(score_data[4]),
+            int(score_data[5]),
+            int(score_data[7]),
+            int(score_data[6]),
+            int(score_data[8]),
+            get_timestamp(),
+            Mode(int(score_data[15])),
+            None,
+            0.0,
+            0.0,
+            0, # TODO: Playtime
+            0,
+            score_data[12],
+        )
+
+        s.calc_accuracy()
+
+        return s
+    
     async def calc_completed(self) -> Completed:
         """Calculated the `complete` attribute for scores.
         
@@ -59,11 +127,11 @@ class Score:
         """
 
         # Get the simple ones out the way.
-        if self.placement == 0:
+        if self.placement == 1:
             self.completed = Completed.BEST
             return self.completed
         elif self.quit:
-            self.completed = Completed.FAILED
+            self.completed = Completed.QUIT
             return self.completed
         elif not self.passed:
             self.completed = Completed.FAILED
@@ -158,6 +226,47 @@ class Score:
         self.pp = .0
         return self.pp
     
+    # This gives me aids looking at it LOL. Copied from old Kisumi
+    def calc_accuracy(self) -> float:
+        """Calculates the accuracy of the score. Credits to Ripple for this as
+        osu! wiki is not working :woozy_face:"""
+
+        acc = .0
+        # osu!std
+        if self.mode == Mode.STANDARD:
+            acc =  (
+                (self.count_50*50+self.count_100*100+self.count_300*300)
+                / ((self.count_300+self.count_100+self.count_50+self.count_miss) * 300)
+            )
+        # These may be slightly inaccurate but its the best we have without some next gen calculations.
+        # Taiko
+        elif self.mode == Mode.TAIKO:
+            acc = (
+                (self.count_100*50)+(self.count_300*100))/(
+                (
+                    self.count_300+self.count_100+self.count_miss
+                ) * 100
+            )
+        # Catch the beat
+        elif self.mode == Mode.CATCH:
+            acc = (
+                (self.count_300+self.count_100+self.count_50)
+                / (self.count_300+self.count_100+self.count_50+self.count_miss+self.count_katu)
+            )
+        # Mania
+        elif self.mode == Mode.MANIA:
+            acc = (
+                (
+                    self.count_50*50+self.count_100*100+self.count_katu*200+self.count_300*300+self.count_geki*300
+                ) / (
+                    (self.count_miss+self.count_50+self.count_100+self.count_300+self.count_geki+self.count_katu) * 300
+                )
+            )
+        
+        # I prefer having it as a percentage.
+        self.accuracy = acc * 100
+        return self.accuracy
+    
     async def on_first_place(self) -> None:
         """Adds the score to the first_places table."""
 
@@ -195,7 +304,8 @@ class Score:
         await self.__insert()
 
     async def __insert(self) -> None:
-        """Inserts the score directly into the database."""
+        """Inserts the score directly into the database. Also assigns the
+        `id` attribute to the score ID."""
 
         table = self.c_mode.db_table
         ts = get_timestamp()

@@ -257,6 +257,22 @@ class Beatmap:
                 int(self.status_frozen)
             )
         )
+    
+    async def increment_playcount(self, passcount: bool = True) -> None:
+        """Increments the beatmap playcount for the object and MySQL.
+        
+        Args:
+            passcount (bool): Whether the beatmap passcount should also be
+                incremented.
+        """
+
+        self.playcount += 1
+        if passcount: self.passcount += 1
+
+        await sql.execute(
+            "UPDATE beatmaps SET passcount = %s, playcount = %s WHERE "
+            "beatmap_md5 = %s LIMIT 1", (self.passcount, self.playcount)
+        )
 
 _diff_attribs = {
     Mode.STANDARD: "difficulty_std",

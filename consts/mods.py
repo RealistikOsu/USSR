@@ -34,3 +34,21 @@ class Mods(IntFlag):
     KEY2        = 1 << 28
     SCOREV2     = 1 << 29
     MIRROR      = 1 << 30
+
+    def rankable(self) -> bool:
+        """Checks if the mod combo is rank-worthy."""
+
+        if self & Mods.AUTOPLAY: return False
+        # TODO: Expand this
+        return True
+    
+    def conflict(self) -> bool:
+        """Anticheat measure to check for illegal mod combos."""
+
+        if self & Mods.DOUBLETIME and self & Mods.HALFTIME: return True
+        elif self & Mods.NIGHTCORE and not self & Mods.DOUBLETIME: return True
+        elif self & Mods.EASY and self & Mods.HARDROCK: return True
+
+        # TODO: Expand this.
+
+        return False

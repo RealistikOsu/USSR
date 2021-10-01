@@ -125,3 +125,15 @@ class Stats:
         )
 
         return 416.6667 * (1 - (0.9994 ** scores_db))
+    
+    async def save(self) -> None:
+        """Saves the current stats to the MySQL database."""
+
+        await sql.execute(
+            ("UPDATE {table} ranked_score_{m} = %s, total_score_{m} = %s,"
+            "pp_{m} = %s, avg_accuracy_{m} = %s, playcount_{m} = %s,"
+            "max_combo_{m} = %s WHERE id = %s LIMIT 1")
+            .format(m = self.mode.to_db_str(), table= self.c_mode.db_table),
+            (self.ranked_score, self.total_score, self.pp, self.accuracy,
+            self.playcount, self.max_combo)
+        )

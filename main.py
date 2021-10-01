@@ -19,6 +19,7 @@ from handlers.direct import direct_get_handler, download_map, get_set_handler
 from handlers.leaderboards import leaderboard_get_handler
 from handlers.replays import get_replay_web_handler
 from handlers.screenshot import upload_image_handler
+from handlers.score_sub import score_submit_handler
 
 # Load redis pubsubs.
 from redis_pubsub.ripple import username_change_pubsub
@@ -72,9 +73,10 @@ app = Application(
         Endpoint("/d/<map_id>", download_map),
         Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
         Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
+        Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
     ]
 )
 
-app.add_task(perform_startup)
-
-app.start()
+if __name__ == "__main__":
+    app.add_task(perform_startup)
+    app.start()

@@ -1,4 +1,5 @@
 # Helps with users LOL
+from logger import warning
 from typing import Optional
 from globs.conn import redis, sql
 from consts.modes import Mode
@@ -48,3 +49,16 @@ async def incr_replays_watched(user_id: int, mode: Mode) -> None:
         ("UPDATE users_stats SET replays_watched_{0} = replays_watched_{0} + 1 "
         "WHERE id = %s LIMIT 1").format(suffix), (user_id,)
     )
+
+async def restrict_user(user_id: int, reason: str = None) -> None:
+    """Restricts the user from the server."""
+
+    warning(f"Attempted to restrict user {user_id} for {reason} when "
+            "restrictions are not yet implemented.")
+    
+    ...
+
+    # Do priv update.
+    #await priv.load_singular(user_id)
+
+    # TODO: call redis, might make the call above redundant
