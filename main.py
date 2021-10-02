@@ -38,9 +38,6 @@ PUBSUB_REGISTER = (
 async def create_redis_pubsub():
     """Creates all the subscriptions for redis `publish` events."""
 
-    # FIXME: subscribing is broken due to what i assume is an issue with the lib.
-    return warning("Redis PubSubs are temporarily disabled. No pubsubs registered.")
-
     for coro, name in PUBSUB_REGISTER: await pubsub_executor(name, coro)
 
 async def perform_startup():

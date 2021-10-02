@@ -5,7 +5,7 @@ from caches.bcrypt import BCryptCache
 from caches.priv import PrivilegeCache
 from caches.username import UsernameCache
 from caches.lru_cache import Cache
-from logger import info
+from logger import debug, info
 from helpers.user import safe_name
 
 # Specialised Caches
@@ -105,7 +105,7 @@ async def initialise_cache() -> bool:
 async def check_auth(n: str, pw_md5: str) -> bool:
     """Handles authentication for a name + pass md5 auth."""
 
-    s_name = safe_name(name)
+    s_name = safe_name(n)
 
     # Get user_id from cache.
     user_id = await name.id_from_safe(s_name)
@@ -125,6 +125,8 @@ def clear_lbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
             clear.
     """
 
+    debug("Clearing the cached leaderboards for " + md5)
+
     c = get_lb_cache(mode, c_mode)
     c.remove_cache(md5)
 
@@ -143,4 +145,7 @@ def clear_pbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
     c = get_pb_cache(mode, c_mode)
 
     for t in c.get_all_items():
-        if t[1] == md5: c.remove_cache(t)
+        if t[1] == md5:
+            debug("Removed PB from cache.")
+            c.remove_cache(t)
+            break

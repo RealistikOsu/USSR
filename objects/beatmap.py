@@ -79,6 +79,7 @@ class Beatmap:
         except Exception: return error("Failed to fetch map from the osu!api")
         if not found_beatmaps:
             return debug(f"Beatmap {md5} not found in the api.")
+        debug("Beatmap fetched from the osu!api v1!")
         
         map_json, = found_beatmaps
         song_name = _create_full_name(
@@ -134,6 +135,8 @@ class Beatmap:
         # Not found check.
         if not map_db: return
 
+        debug("Beatmap fetched from the MySQL database.")
+
         return Beatmap(
             id= map_db[0],
             set_id= map_db[1],
@@ -169,7 +172,7 @@ class Beatmap:
             Instance of `Beatmap` on successful fetch. Else `None`.
         """
 
-        beatmaps.get(md5)
+        return beatmaps.get(md5)
     
     @classmethod
     async def from_md5(_, md5: str)  -> Optional['Beatmap']:
@@ -271,7 +274,7 @@ class Beatmap:
 
         await sql.execute(
             "UPDATE beatmaps SET passcount = %s, playcount = %s WHERE "
-            "beatmap_md5 = %s LIMIT 1", (self.passcount, self.playcount)
+            "beatmap_md5 = %s LIMIT 1", (self.passcount, self.playcount, self.md5)
         )
 
 _diff_attribs = {

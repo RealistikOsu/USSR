@@ -1,5 +1,5 @@
 from consts.statuses import Status
-from logger import error, info
+from logger import debug, error, info
 from lenhttp import Request
 from objects.score import Score
 from objects.stats import Stats
@@ -7,6 +7,7 @@ from globs import caches
 from helpers.user import restrict_user
 from helpers.replays import write_replay
 from copy import copy
+from config import conf
 
 def __pair_panel(name: str, b: str, a: str) -> str:
     """Creates a pair panel string used in score submit ranking panel.
@@ -21,12 +22,6 @@ def __pair_panel(name: str, b: str, a: str) -> str:
 
 async def score_submit_handler(req: Request) -> str:
     """Handles the score submit endpoint for osu!"""
-
-    print(req.body)
-    print(req.files)
-    print(req.post_args)
-    print(req.headers)
-    print(req.type)
 
     s = await Score.from_score_sub(req)
 
@@ -43,11 +38,11 @@ async def score_submit_handler(req: Request) -> str:
         return "error: no"
     
     # TODO: Online check.
-    if not caches.password.check_password(s.user_id, req.post_args["pass"]):
+    if not await caches.password.check_password(s.user_id, req.post_args["pass"]):
         return "error: pass"
     
     # Anticheat checks.
-    if not req.headers.get("Token"):
+    if not req.headers.get("Token") and not conf.srv_c_clients:
         await restrict_user(s.user_id, "Tampering with osu!auth")
         return "error: ban"
     
@@ -65,17 +60,23 @@ async def score_submit_handler(req: Request) -> str:
     old_stats = copy(stats)
 
     # TODO: Dupe check.
+    debug("Submitting score...")
     await s.submit()
 
+    debug("Incrementing bmap playcount.")
     await s.bmap.increment_playcount(s.passed)
 
     # Stat updates
+    debug("Updating stats.")
     stats.playcount += 1
     stats.total_score += s.score
     if s.bmap.status == Status.RANKED: stats.ranked_score += s.score
     if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
 
-    await stats.recalc_pp_acc_full()
+    if s.bmap.has_leaderboard and s.passed:
+        debug("Performing PP recalculation.")
+        await stats.recalc_pp_acc_full()
+    debug("Saving stats")
     await stats.save()
 
     # Write replay + anticheat.
@@ -84,7 +85,9 @@ async def score_submit_handler(req: Request) -> str:
                             "should contain it).")
         return "error: ban"
     
-    if s.passed: await write_replay(s.id, replay, s.c_mode)
+    if s.passed:
+        debug("Writing replay.")
+        await write_replay(s.id, replay, s.c_mode)
 
     info(f"User {s.user_id} has submitted a #{s.placement} {s.completed} score"
          f" on {s.bmap.song_name} +{s.mods} ({s.pp}pp)")

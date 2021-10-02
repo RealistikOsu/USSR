@@ -83,14 +83,14 @@ class Image:
         if self._file_ext not in ALLOWED_TYPES:
             raise ValueError("Unsupported filetype given. Only PNG and JPEG supproted.")
         
-        if not self.__check_size():
+        if not self.__check_size(max_size):
             raise ValueError("Filesize too large!")
     
     def __check_type(self) -> str:
         """Checks the type of the image we are working with."""
 
-        a = test_jpeg(self._img)
-        return a if a else test_png(self._img)
+        a = test_jpeg(self._img, None)
+        return a if a else test_png(self._img, None)
     
     def __check_size(self, size: int) -> bool:
         """Checks if the image we are working with is below a given size. Else

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from helpers.user import safe_name
 from typing import Optional
-from logger import warning
+from logger import debug, warning
 from consts.modes import Mode
 from consts.mods import Mods
 from consts.c_modes import CustomModes
@@ -63,9 +63,8 @@ class Score:
             block_size= 32,
         )
         score_data = aes.decrypt(
-            base64.b64decode(req.post_args["score"]).decode()
+            base64.b64decode(req.post_args["score"]).decode("latin_1")
         ).decode().split(":")
-        print(score_data)
 
         # Set data from the score sub.
         map_md5 = score_data[0]
@@ -82,7 +81,7 @@ class Score:
             return
         
         username = score_data[1].rstrip()
-        user_id = caches.name.id_from_safe(safe_name(username))
+        user_id = await caches.name.id_from_safe(safe_name(username))
         bmap = await Beatmap.from_md5(map_md5)
         mods = Mods(int(score_data[13]))
 
@@ -126,6 +125,8 @@ class Score:
                 save.
         """
 
+        debug("Calculating completed.")
+
         # Get the simple ones out the way.
         if self.placement == 1:
             self.completed = Completed.BEST
@@ -146,7 +147,7 @@ class Score:
         scoring = "pp" if self.c_mode.uses_ppboard else "score"
         val = self.pp if self.c_mode.uses_ppboard else self.score
 
-        print("Checking completed thru sql.")
+        debug("Using MySQL to calculate Completed.")
 
         query = (
             f"userid = %s AND completed = {Completed.BEST.value} AND beatmap_md5 = %s "
@@ -162,15 +163,15 @@ class Score:
 
         # Check if it remains.
         ex_db = await sql.fetchcol(
-            f"SELECT 1 FROM {table} WHERE " + query + " LIMIT 1"
+            f"SELECT 1 FROM {table} WHERE " + query + " LIMIT 1",
+            (self.user_id, self.bmap.md5)
         )
 
         if not ex_db:
-            print("pb through not finiding.")
             self.completed = Completed.BEST
+            print("our best")
             return self.completed
         else:
-            print("TMP non mod best. PB not best.")
             self.completed = Completed.COMPLETE
             return self.completed
         
@@ -191,21 +192,24 @@ class Score:
                 will be automatically performed if placement == 1.
         """
 
-        if (not self.completed.completed) and (not self.bmap.has_leaderboard):
+        if (not self.passed) or (not self.bmap.has_leaderboard):
+            debug("Not bothering calculating placement.")
             self.placement = 0
             return 0
+        
+        debug("Calculating score placement based on MySQL.")
 
         table = self.c_mode.db_table
         scoring = "pp" if self.c_mode.uses_ppboard else "score"
         val = self.pp if self.c_mode.uses_ppboard else self.score
 
-        self.placement = await sql.fetchcol(
+        self.placement = (await sql.fetchcol(
             f"SELECT COUNT(*) FROM {table} s INNER JOIN users u ON s.userid = "
             f"u.id WHERE u.privileges & {Privileges.USER_PUBLIC.value} AND "
             f"s.play_mode = {self.mode.value} AND s.completed = {Completed.BEST.value} "
             f"AND {scoring} > %s AND s.beatmap_md5 = %s",
             (val, self.bmap.md5)
-        )
+        )) + 1
 
         if self.placement == 1 and handle_first_place:
             await self.on_first_place()
@@ -215,9 +219,11 @@ class Score:
     async def calc_pp(self) -> float:
         """Calculates the PP given for the score."""
 
-        if (not self.bmap.has_leaderboard) or (not self.completed.completed):
+        if (not self.bmap.has_leaderboard) or (not self.passed):
+            debug("Not bothering to calculate PP.")
             self.pp = .0
             return self.pp
+        debug("Calculating PP...")
         
         warning("Attempted PP calculation for score while PP calc is not implemented."
                 " Score will not have a PP value.")
@@ -310,12 +316,15 @@ class Score:
         table = self.c_mode.db_table
         ts = get_timestamp()
 
+        debug("Inserting score into the MySQL database.")
+
         self.id = await sql.execute(
             f"INSERT INTO {table} (beatmap_md5, userid, score, max_combo, full_combo, mods, "
             "300_count, 100_count, 50_count, katus_count, gekis_count, misses_count, time, "
             "play_mode, completed, accuracy, pp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,"
             "%s,%s,%s,%s,%s)",
             (self.bmap.md5, self.user_id, self.score, self.max_combo, int(self.full_combo),
-            self.mods.value, self.count_300, self.count_100, self.count_50, self.count_geki,
-            self.count_katu, ts, self.mode.value, self.completed.value, self.accuracy, self.pp)
+            self.mods.value, self.count_300, self.count_100, self.count_50, self.count_katu,
+            self.count_geki, self.count_miss, ts, self.mode.value, self.completed.value,
+            self.accuracy, self.pp)
         )

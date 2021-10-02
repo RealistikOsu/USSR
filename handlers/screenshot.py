@@ -4,7 +4,7 @@ from globs.caches import check_auth
 from globs.conn import redis
 from libs.files import Image
 from lenhttp import Request
-from logger import error
+from logger import error, info
 from config import conf
 import traceback
 import os
@@ -16,20 +16,19 @@ SS_NAME_LEN = 8
 async def upload_image_handler(req: Request) -> str:
     """Handles screenshot uploads (POST /web/osu-screenshot.php)."""
 
-    print(req.body)
-    if not await check_auth(req.get_args["u"], req.get_args["h"]):
+    if not await check_auth(req.post_args["u"], req.post_args["p"]):
         return "no"
 
     # LETS style ratelimit.
     rl_key = "ussr:ss_limit:" + req.headers["X-Real-IP"] # Use IP.
-    if redis.get(rl_key): return ERR_RESP
+    if await redis.get(rl_key): return ERR_RESP
     await redis.set(rl_key, 1, expire= SS_DELAY)
 
     # Working with files.
     try:
         im = Image(req.files["ss"])
     except ValueError:
-        error(f"Error loading screenshot from user {req.post_args['p']} "
+        error(f"Error loading screenshot from user {req.post_args['u']} "
                + traceback.format_exc())
         return ERR_RESP
     
@@ -39,5 +38,7 @@ async def upload_image_handler(req: Request) -> str:
 
     # Write file.
     im.write(conf.dir_screenshot, name)
+
+    info(f"{req.get_args['u']} has uploaded the screenshot {name}.{im._file_ext}")
 
     return f"{name}.{im._file_ext}"

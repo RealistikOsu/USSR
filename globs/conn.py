@@ -8,7 +8,7 @@ import aioredis
 __slots__ = ("sql", "loop")
 
 sql = MySQLPool()
-redis = aioredis.Redis(True)
+redis = aioredis.Redis(None)
 
 # Startup tasks.
 async def connect_sql() -> bool:
@@ -37,8 +37,7 @@ async def connect_redis() -> bool:
     """
 
     try:
-        global redis
-        redis = await aioredis.create_redis_pool("redis://localhost")
+        redis._pool_or_conn = await aioredis.create_pool("redis://localhost")
         return True
     except Exception:
         error(f"There has been an exception connecting to the Redis database!\n" 

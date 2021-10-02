@@ -98,5 +98,6 @@ class Config(ConfigReader):
     bancho_hash: str    = "nope"
     framework_log: bool = False
     osu_api_key: str    = ""
+    srv_c_clients: bool = False # Allow custom clients on
 
 conf = Config()

@@ -47,11 +47,22 @@ class CustomModes(IntEnum):
         """Returns the MySQL database table for the scores of this `c_mode`."""
 
         return "scores" + self.to_db_suffix()
+    
+    @property
+    def db_prefix(self) -> str:
+
+        return _db_prefixes[self]
 
 _db_suffixes = {
     CustomModes.VANILLA: "",
     CustomModes.RELAX: "_relax",
     CustomModes.AUTOPILOT: "_ap"
+}
+
+_db_prefixes = {
+    CustomModes.VANILLA: "users",
+    CustomModes.RELAX: "rx",
+    CustomModes.AUTOPILOT: "ap"
 }
 
 _uses_ppboard = (

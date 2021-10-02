@@ -33,8 +33,8 @@ class Stats:
 
         stats_db = await sql.fetchone(
             ("SELECT ranked_score_{m}, total_score_{m}, pp_{m}, avg_accuracy_{m}, "
-            "playcount_{m}, max_combo_{m} FROM {table} WHERE id = %s LIMIT 1")
-            .format(m = mode.to_db_str(), table= c_mode.db_table),
+            "playcount_{m}, max_combo_{m} FROM {p}_stats WHERE id = %s LIMIT 1")
+            .format(m = mode.to_db_str(), p= c_mode.db_prefix),
             (user_id,)
         )
         if not stats_db: return
@@ -68,7 +68,7 @@ class Stats:
         scores_db = await sql.fetchall(
             ("SELECT s.accuracy, s.pp FROM {t} s RIGHT JOIN beatmaps b ON "
             "s.beatmap_md5 = b.beatmap_md5 WHERE s.completed = 3 AND "
-            "s.mode = {m_val} AND b.ranked IN (3,2) ORDER BY s.pp DESC LIMIT 100")
+            "s.play_mode = {m_val} AND b.ranked IN (3,2) ORDER BY s.pp DESC LIMIT 100")
             .format(t = self.c_mode.db_table, m_val = self.mode.value)
         )
 
@@ -76,7 +76,7 @@ class Stats:
         t_pp = 0.0
 
         for idx, (s_acc, s_pp) in enumerate(scores_db):
-            t_pp += s_pp ** idx
+            t_pp += s_pp ** (0.95 * idx)
             t_acc += s_acc
 
         self.accuracy = t_acc / 100
@@ -121,7 +121,7 @@ class Stats:
 
         scores_db = await sql.fetchcol(
             "SELECT COUNT(*) FROM {t} s RIGHT JOIN beatmaps b ON s.beatmap_md5 = "
-            "b.beatmap_md5 WHERE b.ranked = 2"
+            "b.beatmap_md5 WHERE b.ranked = 2".format(t= self.c_mode.db_table)
         )
 
         return 416.6667 * (1 - (0.9994 ** scores_db))
@@ -130,10 +130,10 @@ class Stats:
         """Saves the current stats to the MySQL database."""
 
         await sql.execute(
-            ("UPDATE {table} ranked_score_{m} = %s, total_score_{m} = %s,"
+            ("UPDATE {table}_stats SET ranked_score_{m} = %s, total_score_{m} = %s,"
             "pp_{m} = %s, avg_accuracy_{m} = %s, playcount_{m} = %s,"
             "max_combo_{m} = %s WHERE id = %s LIMIT 1")
-            .format(m = self.mode.to_db_str(), table= self.c_mode.db_table),
+            .format(m = self.mode.to_db_str(), table= self.c_mode.db_prefix),
             (self.ranked_score, self.total_score, self.pp, self.accuracy,
-            self.playcount, self.max_combo)
+            self.playcount, self.max_combo, self.user_id)
         )
