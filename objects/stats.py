@@ -4,6 +4,7 @@ from consts.c_modes import CustomModes
 from typing import Optional
 from globs.conn import sql
 from helpers.user import get_rank_redis
+from helpers.pep import stats_refresh
 
 @dataclass
 class Stats:
@@ -127,8 +128,13 @@ class Stats:
 
         return 416.6667 * (1 - (0.9994 ** scores_db))
     
-    async def save(self) -> None:
-        """Saves the current stats to the MySQL database."""
+    async def save(self, refresh_cache: bool = True) -> None:
+        """Saves the current stats to the MySQL database.
+        
+        Args:
+            refresh_cache (bool): Whether the stats cached by pep.py
+                should be refreshed.
+        """
 
         await sql.execute(
             ("UPDATE {table}_stats SET ranked_score_{m} = %s, total_score_{m} = %s,"
@@ -138,3 +144,5 @@ class Stats:
             (self.ranked_score, self.total_score, self.pp, self.accuracy,
             self.playcount, self.max_combo, self.user_id)
         )
+
+        if refresh_cache: await stats_refresh(self.user_id)

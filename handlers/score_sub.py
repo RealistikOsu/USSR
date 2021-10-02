@@ -1,3 +1,4 @@
+from consts.complete import Completed
 from consts.statuses import Status
 from logger import debug, error, info
 from lenhttp import Request
@@ -6,6 +7,7 @@ from objects.stats import Stats
 from globs import caches
 from helpers.user import restrict_user
 from helpers.replays import write_replay
+from helpers.pep import check_online
 from copy import copy
 from config import conf
 from libs.time import Timer
@@ -25,6 +27,9 @@ async def score_submit_handler(req: Request) -> str:
     """Handles the score submit endpoint for osu!"""
 
     s = await Score.from_score_sub(req)
+
+    # Check if theyre online, if not, force the client to wait to log in.
+    if not await check_online(s.user_id): return ""
 
     if not s:
         error("Could not perform score sub! Check messages above!")
@@ -74,7 +79,8 @@ async def score_submit_handler(req: Request) -> str:
     if s.bmap.status == Status.RANKED: stats.ranked_score += s.score
     if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
 
-    if s.bmap.has_leaderboard and s.passed:
+    # THIS IS REALLY EXPENSIVE (on RealistikOsu, can take up to 1s)
+    if s.bmap.has_leaderboard and s.completed == Completed.BEST and s.pp:
         debug("Performing PP recalculation.")
         await stats.recalc_pp_acc_full()
     debug("Saving stats")

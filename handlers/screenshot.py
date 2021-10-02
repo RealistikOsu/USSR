@@ -1,6 +1,8 @@
 # The screenshot related handlers.
+from helpers.user import safe_name
 from libs.crypt import gen_rand_str
-from globs.caches import check_auth
+from globs.caches import check_auth, name
+from helpers.pep import check_online
 from globs.conn import redis
 from libs.files import Image
 from lenhttp import Request
@@ -18,6 +20,13 @@ async def upload_image_handler(req: Request) -> str:
 
     if not await check_auth(req.post_args["u"], req.post_args["p"]):
         return "no"
+    
+    # This is a particularly dangerous endpoint.
+    user_id = await name.id_from_safe(safe_name(req.post_args["u"]))
+    if not check_online(user_id, req.headers["x-real-ip"]):
+        return ERR_RESP
+    
+    if req.headers.get("user-agent") != "osu!": return ERR_RESP
 
     # LETS style ratelimit.
     rl_key = "ussr:ss_limit:" + req.headers["X-Real-IP"] # Use IP.
@@ -33,12 +42,12 @@ async def upload_image_handler(req: Request) -> str:
         return ERR_RESP
     
     # Get a random name for the file that does not overlap.
-    while not os.path.exists((name := gen_rand_str(SS_NAME_LEN) + "." + im._file_ext)):
+    while not os.path.exists((fname := gen_rand_str(SS_NAME_LEN) + "." + im._file_ext)):
         pass
 
     # Write file.
-    im.write(conf.dir_screenshot, name)
+    im.write(conf.dir_screenshot, fname)
 
-    info(f"{req.get_args['u']} has uploaded the screenshot {name}.{im._file_ext}")
+    info(f"{req.get_args['u']} has uploaded the screenshot {fname}.{im._file_ext}")
 
-    return f"{name}.{im._file_ext}"
+    return f"{fname}.{im._file_ext}"
