@@ -144,7 +144,7 @@ def clear_pbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
 
     c = get_pb_cache(mode, c_mode)
 
-    for t in c.get_all_items():
+    for t in c.get_all_keys():
         if t[1] == md5:
             debug("Removed PB from cache.")
             c.remove_cache(t)

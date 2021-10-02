@@ -101,3 +101,8 @@ class Cache:
 
         # Make it a generator for performance.
         for obj in self._cache.values(): yield obj["object"]
+    
+    def get_all_keys(self):
+        """Generator that returns all keys of the keys to the cache."""
+
+        for key in self._cache: yield key

@@ -210,6 +210,16 @@ class Beatmap:
         )
         beatmaps.cache(self.md5, self)
     
+    async def update(self) -> bool:
+        """Updates the beatmap data based on newest data from the osu! api.
+        
+        Returns:
+            `bool` corresponding to whether the beatmap was affected.
+        """
+
+        # TODO: Delete cached `.osu` file.
+        
+    
     async def delete_db(self) -> None:
         """Deletes all instances of the beatmap from the database.
         

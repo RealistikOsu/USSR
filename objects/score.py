@@ -16,6 +16,9 @@ from lenhttp import Request
 from py3rijndael import RijndaelCbc, ZeroPadding
 import base64
 
+# PP Calculators
+from pp.peace import CalculatorPeace
+
 @dataclass
 class Score:
     """A class representing a singular score set on a beatmap."""
@@ -88,7 +91,7 @@ class Score:
         s = Score(
             0, bmap, user_id,
             int(score_data[9]),
-            score_data[10] == "True",
+            int(score_data[10]),
             score_data[11] == "True",
             score_data[14] == "True",
             req.post_args.get("x") == "1",
@@ -219,17 +222,15 @@ class Score:
     async def calc_pp(self) -> float:
         """Calculates the PP given for the score."""
 
-        if (not self.bmap.has_leaderboard) or (not self.passed):
+        if (not self.bmap.has_leaderboard):# or (not self.passed):
             debug("Not bothering to calculate PP.")
             self.pp = .0
             return self.pp
-        debug("Calculating PP...")
+        debug("Calculating PP...") # We calc for failed scores!
         
-        warning("Attempted PP calculation for score while PP calc is not implemented."
-                " Score will not have a PP value.")
-        
-        # TODO
-        self.pp = .0
+        # TODO: More calculators (custom for standard.)
+        calc = CalculatorPeace(self)
+        self.pp = await calc.calculate()
         return self.pp
     
     # This gives me aids looking at it LOL. Copied from old Kisumi

@@ -8,6 +8,7 @@ from helpers.user import restrict_user
 from helpers.replays import write_replay
 from copy import copy
 from config import conf
+from libs.time import Timer
 
 def __pair_panel(name: str, b: str, a: str) -> str:
     """Creates a pair panel string used in score submit ranking panel.

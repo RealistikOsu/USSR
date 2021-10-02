@@ -1,3 +1,4 @@
+from logger import info
 from typing import Optional
 from objects.beatmap import Beatmap
 from globs import caches
@@ -315,5 +316,7 @@ async def leaderboard_get_handler(req: Request) -> None:
         __format_score(personal_best, personal_place, False) if personal_place else "",
         *[__format_score(s, idx + 1) for idx, s in enumerate(scores_db)]
     ))
+
+    info(f"Served leaderboards for {beatmap.song_name}!")
     
     return result.encode()
