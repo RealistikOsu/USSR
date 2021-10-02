@@ -68,19 +68,20 @@ class Stats:
         scores_db = await sql.fetchall(
             ("SELECT s.accuracy, s.pp FROM {t} s RIGHT JOIN beatmaps b ON "
             "s.beatmap_md5 = b.beatmap_md5 WHERE s.completed = 3 AND "
-            "s.play_mode = {m_val} AND b.ranked IN (3,2) ORDER BY s.pp DESC LIMIT 100")
-            .format(t = self.c_mode.db_table, m_val = self.mode.value)
+            "s.play_mode = {m_val} AND b.ranked IN (3,2) AND s.userid = %s ORDER BY s.pp DESC LIMIT 100")
+            .format(t = self.c_mode.db_table, m_val = self.mode.value),
+            (self.user_id,)
         )
 
         t_acc = 0.0
         t_pp = 0.0
 
         for idx, (s_acc, s_pp) in enumerate(scores_db):
-            t_pp += s_pp ** (0.95 * idx)
+            t_pp += s_pp * (0.95 ** idx)
             t_acc += s_acc
 
         self.accuracy = t_acc / 100
-        self.pp = t_pp + await self.__calc_bonus_pp()
+        self.pp = t_pp #TODO + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp
 
