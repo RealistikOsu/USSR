@@ -22,7 +22,14 @@ from handlers.screenshot import upload_image_handler
 from handlers.score_sub import score_submit_handler
 
 # Load redis pubsubs.
-from redis_pubsub.ripple import username_change_pubsub
+from redis_pubsub.ripple import (
+    username_change_pubsub, 
+    update_cached_privileges_pubsub,
+    change_pass_pubsub
+)
+from redis_pubsub.rosu import (
+    clan_update_pubsub,
+)
 
 # Must return True for success or else server wont start.
 STARTUP_TASKS = (
@@ -32,7 +39,12 @@ STARTUP_TASKS = (
 )
 
 PUBSUB_REGISTER = (
+    # Ripple ones.
     (username_change_pubsub, "peppy:change_username"),
+    (update_cached_privileges_pubsub, "peppy:update_cached_stats"),
+    (change_pass_pubsub, "peppy:change_pass"),
+    # RealistikOsu.
+    (clan_update_pubsub, "rosu:clan_update"),
 )
 
 async def create_redis_pubsub():

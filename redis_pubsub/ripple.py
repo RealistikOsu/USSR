@@ -1,6 +1,6 @@
 # Support for ripple's pubsub handlers. These are featured in **all** ripple
 # based servers.
-from globs.caches import name
+from globs.caches import name, priv, password
 
 try: from orjson import loads as j_load
 except ImportError: from json import loads as j_load
@@ -44,3 +44,24 @@ async def username_change_pubsub(data):
     user_id = int(j_data["userID"])
 
     await name.load_from_id(user_id)
+
+async def update_cached_privileges_pubsub(data):
+    """
+    Handles the Redis pubsub event `peppy:update_cached_stats`.
+    It refreshes the cached privileges for a user.
+    """
+
+    j_data = j_load(data)
+    user_id = int(j_data["userID"])
+    await priv.load_singular(user_id)
+
+async def change_pass_pubsub(data):
+    """
+    Handles the Redis pubsub event `peppy:change_pass`.
+    It refreshes the cached password for the user.
+    """
+
+    j_data = j_load(data)
+    user_id = int(j_data["userID"])
+
+    await password.drop_cache_individual(user_id)

@@ -43,7 +43,6 @@ async def score_submit_handler(req: Request) -> str:
         info("Score not submitted due to unrankable mod combo.")
         return "error: no"
     
-    # TODO: Online check.
     if not await caches.password.check_password(s.user_id, req.post_args["pass"]):
         return "error: pass"
     

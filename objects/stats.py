@@ -82,7 +82,7 @@ class Stats:
             t_acc += s_acc
 
         self.accuracy = t_acc / 100
-        self.pp = t_pp #TODO + await self.__calc_bonus_pp()
+        self.pp = t_pp + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp
 
