@@ -61,7 +61,7 @@ async def score_submit_handler(req: Request) -> str:
     # TODO: version check.
 
     # Stats stuff
-    stats = await Stats.from_sql(s.user_id, s.mode, s.c_mode)
+    stats = await Stats.from_id(s.user_id, s.mode, s.c_mode)
     old_stats = copy(stats)
 
     # TODO: Dupe check.
@@ -81,7 +81,7 @@ async def score_submit_handler(req: Request) -> str:
     # THIS IS REALLY EXPENSIVE (on RealistikOsu, can take up to 1s)
     if s.bmap.has_leaderboard and s.completed == Completed.BEST and s.pp:
         debug("Performing PP recalculation.")
-        await stats.recalc_pp_acc_full()
+        await stats.recalc_pp_acc_full(s.pp)
     debug("Saving stats")
     await stats.save()
 

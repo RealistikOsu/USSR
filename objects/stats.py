@@ -5,6 +5,8 @@ from typing import Optional
 from globs.conn import sql
 from helpers.user import get_rank_redis
 from helpers.pep import stats_refresh
+from logger import debug
+from globs.caches import stats_cache
 
 @dataclass
 class Stats:
@@ -21,6 +23,9 @@ class Stats:
     accuracy: float
     playcount: int
     max_combo: int
+
+    # Optimisation data.
+    _required_recalc_pp: int = 0
 
     @classmethod
     async def from_sql(cls, user_id: int, mode: Mode, c_mode: CustomModes) -> Optional['Stats']:
@@ -41,6 +46,8 @@ class Stats:
         if not stats_db: return
         rank = await get_rank_redis(user_id, mode, c_mode)
 
+        debug(f"Retrieved stats for {user_id} from the MySQL database.")
+
         return Stats(
             user_id,
             mode,
@@ -54,7 +61,47 @@ class Stats:
             stats_db[5],
         )
     
-    async def recalc_pp_acc_full(self) -> tuple[float, float]:
+    @classmethod
+    async def from_cache(self, user_id: int, mode: Mode, c_mode: CustomModes) -> Optional['Stats']:
+        """Attempts to fetch an existing stats object from the global stats cache.
+        
+        Args:
+            user_id (int): The user ID for the user to fetch the modus operandi for.
+            mode (Mode): The gamemode for which to fetch the data for.
+            c_mode (CustomMode): The custom mode to fetch the data for.
+        """
+
+        s = stats_cache.get((c_mode, mode, user_id))
+
+        if s: debug(f"Fetched stats for {user_id} from cache!")
+        return s
+    
+    @classmethod
+    async def from_id(self, user_id: int, mode: Mode, c_mode: CustomModes) -> Optional['Stats']:
+        """High level classmethod that attempts to fetch the stats from all
+        possible sources, ordered from fastest to slowest.
+        
+        Args:
+            user_id (int): The user ID for the user to fetch the modus operandi for.
+            mode (Mode): The gamemode for which to fetch the data for.
+            c_mode (CustomMode): The custom mode to fetch the data for.
+        """
+
+        for m in _fetch_ord:
+            r = await m(user_id, mode, c_mode)
+            if r:
+                if m in _fetch_cache: r.cache()
+                return r
+    
+    def cache(self) -> None:
+        """Caches the current stats object to the global stats cache."""
+
+        stats_cache.cache(
+            (self.c_mode, self.mode, self.user_id), self
+        )
+    
+    # EXPENSIVE AF.
+    async def recalc_pp_acc_full(self, _run_pp: int = None) -> tuple[float, float]:
         """Recalculates the full PP amount and average accuract for a user
         from scratch, using their top 100 scores. Sets the values in object
         and returns a tuple of pp and acc.
@@ -62,14 +109,25 @@ class Stats:
         Note:
             Performs a generally costly query due to ordering and joining
                 with large tables.
-            Only gets scores from ranked and approved maps.
+            Only gets scores from ranked and a approved maps.
             Doesn't set the value in the database.
+        
+        Args:
+            _run_pp (int): The amount of PP for the score prompting this recalc.
+                This is an optimisation that means that if this score is not
+                enough to reach the top 100 (min for this to be considered),
+                this will not run.
         """
+
+        if self._required_recalc_pp and _run_pp is not None and _run_pp < self._required_recalc_pp:
+            debug("Bypassed full PP and acc recalc for user: score didnt meet top 100.")
+            return
 
         scores_db = await sql.fetchall(
             ("SELECT s.accuracy, s.pp FROM {t} s RIGHT JOIN beatmaps b ON "
             "s.beatmap_md5 = b.beatmap_md5 WHERE s.completed = 3 AND "
-            "s.play_mode = {m_val} AND b.ranked IN (3,2) AND s.userid = %s ORDER BY s.pp DESC LIMIT 100")
+            "s.play_mode = {m_val} AND b.ranked IN (3,2) AND s.userid = %s "
+            "ORDER BY s.pp DESC LIMIT 100")
             .format(t = self.c_mode.db_table, m_val = self.mode.value),
             (self.user_id,)
         )
@@ -80,6 +138,9 @@ class Stats:
         for idx, (s_acc, s_pp) in enumerate(scores_db):
             t_pp += s_pp * (0.95 ** idx)
             t_acc += s_acc
+
+        # Big brain optimisation to stop this being uselessly ran.
+        if idx == 99: self._required_recalc_pp = s_pp
 
         self.accuracy = t_acc / 100
         self.pp = t_pp + await self.__calc_bonus_pp()
@@ -146,3 +207,9 @@ class Stats:
         )
 
         if refresh_cache: await stats_refresh(self.user_id)
+
+_fetch_ord = (
+    Stats.from_cache,
+    Stats.from_sql,
+)
+_fetch_cache = (Stats.from_sql,)
