@@ -94,17 +94,16 @@ async def score_submit_handler(req: Request) -> str:
     stats.total_score += s.score
     stats.total_hits += (s.count_300 + s.count_100 + s.count_50)
 
+    add_score = s.score
+    if prev_score:
+        add_score -= prev_score.score
+
     if s.passed:
-        if s.bmap.status == Status.RANKED: # Get the right ranked score.
-            if prev_score and s.completed != Completed.BEST: 
-                stats.ranked_score += (s.score - prev_score.score)
-            else:
-                stats.ranked_score += s.score
-            
+        if s.bmap.status == Status.RANKED: stats.ranked_score += add_score   
         if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
         if s.bmap.has_leaderboard and s.completed == Completed.BEST and s.pp:
             debug("Performing PP recalculation.")
-            await stats.recalc_pp_acc_full()
+            await stats.recalc_pp_acc_full() # TODO: work out how to use bonus pp without performance loss.
         debug("Saving stats")
         await stats.save()
 
