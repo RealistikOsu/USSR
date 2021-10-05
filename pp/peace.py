@@ -34,4 +34,4 @@ class CalculatorPeace:
         )
 
         res = c.calculate(b)
-        return res.pp
+        return res.pp, res.stars

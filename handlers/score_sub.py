@@ -8,11 +8,12 @@ from globs import caches
 from globs import conn
 from helpers.user import update_rank
 from datetime import datetime
-from helpers.user import restrict_user
+from helpers.user import restrict_user, unlock_achievement
 from helpers.replays import write_replay
 from helpers.pep import check_online, stats_refresh
 from copy import copy
 from config import conf
+import time
 from libs.time import Timer
 
 def __pair_panel(name: str, b: str, a: str) -> str:
@@ -91,16 +92,21 @@ async def score_submit_handler(req: Request) -> str:
     debug("Updating stats.")
     stats.playcount += 1
     stats.total_score += s.score
-    if s.bmap.status == Status.RANKED: stats.ranked_score += s.score
-    if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
+    stats.total_hits += (s.count_300 + s.count_100 + s.count_50)
 
-    # THIS IS REALLY EXPENSIVE (on RealistikOsu, can take up to 1s)
-    # Update: Currently this takes 13s, needs to be fixed asap
-    if s.bmap.has_leaderboard and s.completed == Completed.BEST and s.pp:
-        debug("Performing PP recalculation.")
-        await stats.recalc_pp_acc_full()
-    debug("Saving stats")
-    await stats.save()
+    if s.passed:
+        if s.bmap.status == Status.RANKED: # Get the right ranked score.
+            if prev_score and s.completed != Completed.BEST: 
+                stats.ranked_score += (s.score - prev_score.score)
+            else:
+                stats.ranked_score += s.score
+            
+        if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
+        if s.bmap.has_leaderboard and s.completed == Completed.BEST and s.pp:
+            debug("Performing PP recalculation.")
+            await stats.recalc_pp_acc_full()
+        debug("Saving stats")
+        await stats.save()
 
     # Write replay + anticheat.
     if (replay := req.files.get("score")) and replay != b"\r\n" and not s.passed:
@@ -113,7 +119,7 @@ async def score_submit_handler(req: Request) -> str:
         await write_replay(s.id, replay, s.c_mode)
 
     info(f"User {s.user_id} has submitted a #{s.placement} place"
-         f" on {s.bmap.song_name} +{s.mods} ({round(s.pp, 2)}pp)")
+         f" on {s.bmap.song_name} +{s.mods.readable} ({round(s.pp, 2)}pp)")
 
     if not s.bmap.has_leaderboard:
         return "error: no"
@@ -125,6 +131,16 @@ async def score_submit_handler(req: Request) -> str:
     if s.passed and old_stats.pp != stats.pp:
         await update_rank(s.user_id, stats.pp, s.mode, s.c_mode)
         await stats.update_rank()
+
+    # At the end, check achievements.
+    new_achievements = []
+    if s.passed:
+        db_achievements = [ ach[0] for ach in await conn.sql.fetchall("SELECT achievement_id FROM users_achievements WHERE user_id = %s", (s.user_id,)) ]
+        for ach in caches.achievements:
+            if ach.id in db_achievements: continue
+            if ach.cond(s, s.mode.value, stats):
+                await unlock_achievement(s.user_id, ach.id)
+                new_achievements.append(ach.full_name)
 
     # Create beatmap info panel.
     panels.append(
@@ -178,8 +194,7 @@ async def score_submit_handler(req: Request) -> str:
             __pair_panel("accuracy", round(old_stats.accuracy, 2), round(stats.accuracy, 2)),
             __pair_panel("pp", round(old_stats.pp), round(stats.pp))
         )),
-        # TODO: Add achievements.
-        "achievements-new:",
+        f"achievements-new:{'/'.join(new_achievements)}",
         f"onlineScoreId:{s.id}"
     )))
 

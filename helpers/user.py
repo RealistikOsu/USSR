@@ -1,4 +1,5 @@
 # Helps with users LOL
+import time
 from logger import warning
 from typing import Optional
 from globs.conn import redis, sql
@@ -48,6 +49,13 @@ async def incr_replays_watched(user_id: int, mode: Mode) -> None:
     await sql.execute(
         ("UPDATE users_stats SET replays_watched_{0} = replays_watched_{0} + 1 "
         "WHERE id = %s LIMIT 1").format(suffix), (user_id,)
+    )
+
+async def unlock_achievement(user_id: int, ach_id: int):
+    """Adds the achievement to database."""
+    await sql.execute(
+        "INSERT INTO users_achievements (user_id, achievement_id, `time`) VALUES"
+		"(%s, %s, %s)", (user_id, ach_id, int(time.time()))
     )
 
 async def update_rank(user_id: int, new_score: int, mode: Mode, c_mode: CustomModes):

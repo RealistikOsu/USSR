@@ -47,6 +47,7 @@ class Score:
     play_time: int
     placement: int
     grade: str
+    sr: float
 
     @property
     def is_submitted(self) -> bool:
@@ -111,6 +112,7 @@ class Score:
             0, # TODO: Playtime
             0,
             score_data[12],
+            0.0
         )
 
         s.calc_accuracy()
@@ -172,7 +174,6 @@ class Score:
 
         if not ex_db:
             self.completed = Completed.BEST
-            print("our best")
             return self.completed
         else:
             self.completed = Completed.COMPLETE
@@ -230,7 +231,7 @@ class Score:
         
         # TODO: More calculators (custom for standard.)
         calc = CalculatorPeace(self)
-        self.pp = await calc.calculate()
+        self.pp, self.sr = await calc.calculate()
         return self.pp
     
     # This gives me aids looking at it LOL. Copied from old Kisumi
@@ -331,7 +332,7 @@ class Score:
         )
 
     @classmethod
-    async def from_db(cls, score_id: int, table: str = "scores"):
+    async def from_db(cls, score_id: int, table: str = "scores") -> Optional['Score']:
         """Creates an instance of `Score` using data fetched from the
         database.
         
@@ -375,7 +376,8 @@ class Score:
             pp= s_db[17], 
             play_time= s_db[18], 
             placement= 0, 
-            grade= ""
+            grade= "",
+            sr= 0.0
         )
         await s.calc_placement(False)
 

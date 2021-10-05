@@ -6,6 +6,8 @@ from caches.priv import PrivilegeCache
 from caches.username import UsernameCache
 from caches.lru_cache import Cache
 from logger import debug, info
+from . import conn
+from objects.achievement import Achievement
 from helpers.user import safe_name
 
 # Specialised Caches
@@ -13,6 +15,7 @@ name = UsernameCache()
 priv = PrivilegeCache()
 clan = ClanCache()
 password = BCryptCache()
+achievements = []
 
 # General Caches.
 beatmaps = Cache(cache_length= 120, cache_limit= 1000)
@@ -99,6 +102,25 @@ async def initialise_cache() -> bool:
     await clan.full_load()
     info(f"Successfully cached {len(clan)} clans!")
 
+    return True
+
+async def achievements_load() -> bool:
+    """Initialises all achievements into the cache."""
+
+    # For fella who wants to use our new achievements system. You need database with content to fetch
+    # you can use cmyuis gulag one as our system was based on it. 
+    achs = await conn.sql.fetchall("SELECT * FROM ussr_achievements")
+    for ach in achs:
+        condition = eval(f"lambda score, mode_vn, stats: {ach[4]}")
+        achievements.append(Achievement(
+            id= ach[0],
+            file= ach[1],
+            name= ach[2],
+            desc= ach[3],
+            cond= condition
+        ))
+        
+    debug(f"Loaded {len(achievements)} achievements into cache!") 
     return True
 
 # Before this, auth required a LOT of boilerplate code.
