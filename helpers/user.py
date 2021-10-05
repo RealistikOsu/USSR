@@ -50,6 +50,15 @@ async def incr_replays_watched(user_id: int, mode: Mode) -> None:
         "WHERE id = %s LIMIT 1").format(suffix), (user_id,)
     )
 
+async def update_rank(user_id: int, new_score: int, mode: Mode, c_mode: CustomModes):
+    """Updates redis leaderboard list by pushing new score into."""
+
+    suffix = c_mode.to_db_suffix()
+    mode_str = mode.to_db_str()
+    country = await sql.fetchcol("SELECT country FROM users_stats WHERE id = %s", (user_id,))
+    await redis.zadd(f"ripple:leaderboard{suffix}:{mode_str}", new_score, user_id)
+    await redis.zadd(f"ripple:leaderboard{suffix}:{mode_str}:{country.lower()}", new_score, user_id)
+
 async def restrict_user(user_id: int, reason: str = None) -> None:
     """Restricts the user from the server."""
 

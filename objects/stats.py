@@ -81,7 +81,7 @@ class Stats:
             t_pp += s_pp * (0.95 ** idx)
             t_acc += s_acc
 
-        self.accuracy = t_acc / 100
+        self.accuracy = t_acc / (idx + 1)
         self.pp = t_pp + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp

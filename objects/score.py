@@ -329,3 +329,54 @@ class Score:
             self.count_geki, self.count_miss, ts, self.mode.value, self.completed.value,
             self.accuracy, self.pp)
         )
+
+    @classmethod
+    async def from_db(cls, score_id: int, table: str = "scores"):
+        """Creates an instance of `Score` using data fetched from the
+        database.
+        
+        Args:
+            score_id (int): The ID of the score within the database.
+            table (str): The table the score should be loacted within 
+                (directly formatted into the query).
+        """
+        s_db = await sql.fetchone(
+            f"SELECT * FROM {table} WHERE id = %s LIMIT 1",
+            (score_id,)
+        )
+
+        if s_db is None:
+            # Score not found in db.
+            return None
+
+        bmap = await Beatmap.from_md5(s_db[1])
+
+        s = Score(
+            id= s_db[0], 
+            bmap= bmap, 
+            user_id= s_db[2],
+            score= s_db[3], 
+            max_combo= s_db[4], 
+            full_combo= s_db[5],
+            passed= True, 
+            quit= False, 
+            mods= s_db[6],
+            c_mode= CustomModes.from_mods(s_db[6]),
+            count_300= s_db[7], 
+            count_100= s_db[8], 
+            count_50= s_db[9], 
+            count_katu= s_db[10],
+            count_geki= s_db[11], 
+            count_miss= s_db[12], 
+            timestamp= s_db[13],
+            mode= Mode(s_db[14]), 
+            completed= Completed(s_db[15]),
+            accuracy= s_db[16], 
+            pp= s_db[17], 
+            play_time= s_db[18], 
+            placement= 0, 
+            grade= ""
+        )
+        await s.calc_placement(False)
+
+        return s
