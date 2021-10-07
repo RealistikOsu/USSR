@@ -6,7 +6,7 @@ except ImportError: from json import dumps as j_dump
 async def stats_refresh(user_id: int) -> None:
     """Forces a stats refresh in pep.py for a given user."""
 
-    redis.publish("peppy:update_cached_stats", user_id)
+    await redis.publish("peppy:update_cached_stats", user_id)
 
 async def notify(user_id: int, message: str) -> None:
     """Sends an in-game notification to the user."""
@@ -15,7 +15,7 @@ async def notify(user_id: int, message: str) -> None:
         "userID": user_id,
         "message": message
     })
-    redis.publish("peppy:notification", msg)
+    await redis.publish("peppy:notification", msg)
 
 async def check_online(user_id: int, ip: str = None) -> bool:
     """Checks if the given `user_id` is online on the bancho server.
@@ -29,4 +29,4 @@ async def check_online(user_id: int, ip: str = None) -> bool:
     key = f"peppy:sessions:{user_id}"
 
     if ip: return redis.sismember(key, ip)
-    return redis.exists(key)
+    return await redis.exists(key)

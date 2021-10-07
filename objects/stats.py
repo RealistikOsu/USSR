@@ -23,6 +23,7 @@ class Stats:
     accuracy: float
     playcount: int
     max_combo: int
+    total_hits: int
 
     # Optimisation data.
     _required_recalc_pp: int = 0
@@ -39,7 +40,7 @@ class Stats:
 
         stats_db = await sql.fetchone(
             ("SELECT ranked_score_{m}, total_score_{m}, pp_{m}, avg_accuracy_{m}, "
-            "playcount_{m}, max_combo_{m} FROM {p}_stats WHERE id = %s LIMIT 1")
+            "playcount_{m}, max_combo_{m}, total_hits_{m} FROM {p}_stats WHERE id = %s LIMIT 1")
             .format(m = mode.to_db_str(), p= c_mode.db_prefix),
             (user_id,)
         )
@@ -59,6 +60,7 @@ class Stats:
             stats_db[3],
             stats_db[4],
             stats_db[5],
+            stats_db[6]
         )
     
     @classmethod
@@ -141,9 +143,10 @@ class Stats:
 
         # Big brain optimisation to stop this being uselessly ran.
         if idx == 99: self._required_recalc_pp = s_pp
+  
+        self.accuracy = t_acc / (idx + 1)
+        self.pp = t_pp #+ await self.__calc_bonus_pp()
 
-        self.accuracy = t_acc / 100
-        self.pp = t_pp + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp
 
@@ -182,12 +185,13 @@ class Stats:
             Performs a generally expensive join.
         """
 
-        scores_db = await sql.fetchcol(
+        scores = await sql.fetchcol(
             "SELECT COUNT(*) FROM {t} s RIGHT JOIN beatmaps b ON s.beatmap_md5 = "
-            "b.beatmap_md5 WHERE b.ranked = 2".format(t= self.c_mode.db_table)
+            "b.beatmap_md5 WHERE b.ranked = 2 AND " # Max limit is 25397 for all scores.
+            "s.completed >= 2 ORDER BY s.pp DESC LIMIT 25397".format(t= self.c_mode.db_table)
         )
 
-        return 416.6667 * (1 - (0.9994 ** scores_db))
+        return 416.6667 * (1 - (0.9994 ** scores))
     
     async def save(self, refresh_cache: bool = True) -> None:
         """Saves the current stats to the MySQL database.
@@ -200,10 +204,10 @@ class Stats:
         await sql.execute(
             ("UPDATE {table}_stats SET ranked_score_{m} = %s, total_score_{m} = %s,"
             "pp_{m} = %s, avg_accuracy_{m} = %s, playcount_{m} = %s,"
-            "max_combo_{m} = %s WHERE id = %s LIMIT 1")
+            "max_combo_{m} = %s, total_hits_{m} = %s WHERE id = %s LIMIT 1")
             .format(m = self.mode.to_db_str(), table= self.c_mode.db_prefix),
             (self.ranked_score, self.total_score, self.pp, self.accuracy,
-            self.playcount, self.max_combo, self.user_id)
+            self.playcount, self.max_combo, self.total_hits, self.user_id)
         )
 
         if refresh_cache: await stats_refresh(self.user_id)

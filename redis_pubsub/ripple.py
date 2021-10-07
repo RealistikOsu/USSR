@@ -51,8 +51,7 @@ async def update_cached_privileges_pubsub(data):
     It refreshes the cached privileges for a user.
     """
 
-    j_data = j_load(data)
-    user_id = int(j_data["userID"])
+    user_id = int(data.decode())
     await priv.load_singular(user_id)
 
 async def change_pass_pubsub(data):
