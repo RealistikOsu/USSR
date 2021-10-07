@@ -44,6 +44,9 @@ rx_catch_pb = Cache(cache_length= 120, cache_limit= 1000)
 
 ap_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
 
+# Stats cache. Key = tuple[CustomModes, Mode, user_id]
+stats_cache = Cache(cache_length= 240, cache_limit= 300)
+
 def get_lb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
     """Returns a cache for the given `mode`, `c_mode` combo."""
 

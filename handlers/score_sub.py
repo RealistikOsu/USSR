@@ -65,7 +65,7 @@ async def score_submit_handler(req: Request) -> str:
     # TODO: version check.
 
     # Stats stuff
-    stats = await Stats.from_sql(s.user_id, s.mode, s.c_mode)
+    stats = await Stats.from_id(s.user_id, s.mode, s.c_mode)
     old_stats = copy(stats)
 
     # Fetch old score to compare.
@@ -103,9 +103,9 @@ async def score_submit_handler(req: Request) -> str:
         if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
         if s.bmap.has_leaderboard and s.completed == Completed.BEST and s.pp:
             debug("Performing PP recalculation.")
-            await stats.recalc_pp_acc_full() # TODO: work out how to use bonus pp without performance loss.
-        debug("Saving stats")
-        await stats.save()
+            await stats.recalc_pp_acc_full(s.pp) # TODO: work out how to use bonus pp without performance loss.
+    debug("Saving stats")
+
 
     # Write replay + anticheat.
     if (replay := req.files.get("score")) and replay != b"\r\n" and not s.passed:
