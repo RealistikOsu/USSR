@@ -29,6 +29,16 @@ class Privileges(IntFlag):
     USER_TOURNAMENT_STAFF     = 2 << 20
     ADMIN_CAKER               = 20 << 21
 
+    @property
+    def is_restricted(self) -> bool:
+        """Checks if user is restricted."""
+        return (self & Privileges.USER_NORMAL) and not (self & Privileges.USER_PUBLIC)
+    
+    @property
+    def is_banned(self) -> bool:
+        """Checks if user is banned."""
+        return not (self & Privileges.USER_PUBLIC | Privileges.USER_NORMAL > 0)
+
     def has_privilege(self, priv: 'Privileges') -> bool:
         """Returns a bool corresponding to whether the privilege flag contains
         a single privilege.

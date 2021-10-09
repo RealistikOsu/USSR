@@ -7,7 +7,7 @@ class PrivilegeCache:
     """Stores the privileges of all users in memory for rapid lookups."""
 
     def __init__(self) -> None:
-        self.privileges: Dict[int, int] = {}
+        self.privileges: Dict[int, Privileges] = {}
     
     async def full_load(self) -> None:
         """Loads ALL privileges to memory from the database.

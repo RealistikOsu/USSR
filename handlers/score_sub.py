@@ -1,16 +1,15 @@
 from consts.complete import Completed
 from consts.statuses import Status
-from logger import debug, error, info
+from logger import debug, error, info, warning
 from lenhttp import Request
 from objects.score import Score
 from objects.stats import Stats
 from globs import caches
 from globs import conn
-from helpers.user import update_rank
+from helpers.user import update_rank, restrict_user, unlock_achievement, get_achievements
 from datetime import datetime
-from helpers.user import restrict_user, unlock_achievement
 from helpers.replays import write_replay
-from helpers.pep import check_online, stats_refresh
+from helpers.pep import check_online, stats_refresh, bot_message
 from copy import copy
 from config import conf
 import time
@@ -64,6 +63,18 @@ async def score_submit_handler(req: Request) -> str:
         return "error: ban"
     # TODO: version check.
 
+    dupe_check = await conn.sql.fetchcol( # Try to fetch as much similar score as we can.
+        f"SELECT 1 FROM {s.c_mode.db_table} WHERE "
+        "userid = %s AND beatmap_md5 = %s AND score = %s "
+        "AND play_mode = %s AND mods = %s LIMIT 1",
+        (s.user_id, s.bmap.md5, s.score, s.mode.value, s.mods.value)
+    )
+
+    if dupe_check:
+        # Duplicate, just return error: no.
+        warning("Duplicate score has been spotted and handled!")
+        return "error: no"
+
     # Stats stuff
     stats = await Stats.from_id(s.user_id, s.mode, s.c_mode)
     old_stats = copy(stats)
@@ -75,13 +86,13 @@ async def score_submit_handler(req: Request) -> str:
         f"beatmap_md5 = %s ORDER BY {scoring} DESC LIMIT 1",
         (s.user_id, s.bmap.md5)
     )
+
     prev_score = None
     if prev_db:
         prev_score = await Score.from_db(
             prev_db[0], stats.c_mode.db_table
         )
 
-    # TODO: Dupe check.
     debug("Submitting score...")
     await s.submit()
 
@@ -98,14 +109,14 @@ async def score_submit_handler(req: Request) -> str:
     if prev_score:
         add_score -= prev_score.score
 
-    if s.passed:
+    if s.passed and s.bmap.has_leaderboard:
         if s.bmap.status == Status.RANKED: stats.ranked_score += add_score   
         if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
-        if s.bmap.has_leaderboard and s.completed == Completed.BEST and s.pp:
+        if s.completed == Completed.BEST and s.pp:
             debug("Performing PP recalculation.")
             await stats.recalc_pp_acc_full(s.pp) # TODO: work out how to use bonus pp without performance loss.
     debug("Saving stats")
-
+    await stats.save()
 
     # Write replay + anticheat.
     if (replay := req.files.get("score")) and replay != b"\r\n" and not s.passed:
@@ -120,9 +131,6 @@ async def score_submit_handler(req: Request) -> str:
     info(f"User {s.user_id} has submitted a #{s.placement} place"
          f" on {s.bmap.song_name} +{s.mods.readable} ({round(s.pp, 2)}pp)")
 
-    if not s.bmap.has_leaderboard:
-        return "error: no"
-
     # Trigger peppy stats update.
     await stats_refresh(s.user_id)
     panels = []
@@ -133,8 +141,8 @@ async def score_submit_handler(req: Request) -> str:
 
     # At the end, check achievements.
     new_achievements = []
-    if s.passed:
-        db_achievements = [ ach[0] for ach in await conn.sql.fetchall("SELECT achievement_id FROM users_achievements WHERE user_id = %s", (s.user_id,)) ]
+    if s.passed and s.bmap.has_leaderboard:
+        db_achievements = await get_achievements(s.user_id)
         for ach in caches.achievements:
             if ach.id in db_achievements: continue
             if ach.cond(s, s.mode.value, stats):
@@ -164,23 +172,24 @@ async def score_submit_handler(req: Request) -> str:
         __pair_panel("pp", "", "")
     )
 
-    # Beatmap ranking panel.
-    panels.append("|".join((
-        "chartId:beatmap",
-        f"chartUrl:https://osu.ppy.sh/beatmaps/{s.bmap.id}", # TODO: Replace it with our own domain.
-        "chartName:Beatmap Ranking",
-        *(failed_not_prev_panel \
-            if not prev_score or not s.passed else (
-            __pair_panel("rank", prev_score.placement, s.placement),
-            __pair_panel("maxCombo", prev_score.max_combo, s.max_combo),
-            __pair_panel("accuracy", round(prev_score.accuracy, 2), round(s.accuracy, 2)),
-            __pair_panel("rankedScore", prev_score.score, s.score),
-            __pair_panel("pp", round(prev_score.pp), round(s.pp))
-        )),
-        f"onlineScoreId:{s.id}"
-    )))
+    if s.bmap.has_leaderboard:
+        # Beatmap ranking panel.
+        panels.append("|".join((
+            "chartId:beatmap",
+            f"chartUrl:https://osu.ppy.sh/beatmaps/{s.bmap.id}", # TODO: Replace it with our own domain.
+            "chartName:Beatmap Ranking",
+            *(failed_not_prev_panel \
+                if not prev_score or not s.passed else (
+                __pair_panel("rank", prev_score.placement, s.placement),
+                __pair_panel("maxCombo", prev_score.max_combo, s.max_combo),
+                __pair_panel("accuracy", round(prev_score.accuracy, 2), round(s.accuracy, 2)),
+                __pair_panel("rankedScore", prev_score.score, s.score),
+                __pair_panel("pp", round(prev_score.pp), round(s.pp))
+            )),
+            f"onlineScoreId:{s.id}"
+        )))
 
-    # Overall ranking panel.
+    # Overall ranking panel. XXX: Apparently unranked maps gets overall charts.
     panels.append("|".join((
         "chartId:overall",
         f"chartUrl:https://osu.ppy.sh/users/{s.user_id}", # TODO: Replace it with our own domain.

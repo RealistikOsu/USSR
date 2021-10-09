@@ -12,7 +12,7 @@ except ImportError: pass
 
 # Globals innit.
 from globs.conn import connect_sql, connect_redis
-from globs.caches import initialise_cache, achievements_load
+from globs.caches import initialise_cache
 
 # Load handlers.
 from handlers.direct import direct_get_handler, download_map, get_set_handler
@@ -36,7 +36,6 @@ STARTUP_TASKS = (
     connect_sql,
     connect_redis,
     initialise_cache,
-    achievements_load
 )
 
 PUBSUB_REGISTER = (

@@ -1,4 +1,5 @@
 # Helps coordinating stuff between pep.py and the USSR.
+from globs.caches import name
 from globs.conn import redis
 try: from orjson import dumps as j_dump
 except ImportError: from json import dumps as j_dump
@@ -16,6 +17,15 @@ async def notify(user_id: int, message: str) -> None:
         "message": message
     })
     await redis.publish("peppy:notification", msg)
+
+async def bot_message(user_id: int, message: str) -> None:
+    """Sends a bot message to the user."""
+    
+    msg = j_dump({
+        "username": await name.name_from_id(user_id),
+        "message": message
+    })
+    await redis.publish("peppy:bot_msg", msg)
 
 async def check_online(user_id: int, ip: str = None) -> bool:
     """Checks if the given `user_id` is online on the bancho server.

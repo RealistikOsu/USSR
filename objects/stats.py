@@ -177,6 +177,7 @@ class Stats:
         self.rank = await get_rank_redis(self.user_id, self.mode, self.c_mode)
         return self.rank
 
+    # FIXME: SLOW
     async def __calc_bonus_pp(self) -> float:
         """Calculates the playcount based PP for the user.
         https://osu.ppy.sh/wiki/en/Performance_points#how-much-bonus-pp-is-awarded-for-having-lots-of-scores-on-ranked-maps

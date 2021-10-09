@@ -8,7 +8,7 @@ from caches.lru_cache import Cache
 from logger import debug, info
 from . import conn
 from objects.achievement import Achievement
-from helpers.user import safe_name
+#from helpers.user import safe_name
 
 # Specialised Caches
 name = UsernameCache()
@@ -105,6 +105,9 @@ async def initialise_cache() -> bool:
     await clan.full_load()
     info(f"Successfully cached {len(clan)} clans!")
 
+    await achievements_load()
+    info(f"Successfully cached {len(achievements)} achievements!")
+
     return True
 
 async def achievements_load() -> bool:
@@ -122,15 +125,14 @@ async def achievements_load() -> bool:
             desc= ach[3],
             cond= condition
         ))
-        
-    debug(f"Loaded {len(achievements)} achievements into cache!") 
+
     return True
 
 # Before this, auth required a LOT of boilerplate code.
 async def check_auth(n: str, pw_md5: str) -> bool:
     """Handles authentication for a name + pass md5 auth."""
 
-    s_name = safe_name(n)
+    s_name = n.rstrip().lower().replace(" ", "_")
 
     # Get user_id from cache.
     user_id = await name.id_from_safe(s_name)
