@@ -160,7 +160,7 @@ class Score:
         )
         args = (self.user_id, self.bmap.md5,)
         
-        # Welp. Gotta do sql.n
+        # TODO: Set old best to mod best etc
         await sql.execute(
             f"UPDATE {table} SET completed = {Completed.COMPLETE.value} WHERE "
             + query + f" AND {scoring} < {val} LIMIT 1", args
@@ -175,13 +175,32 @@ class Score:
         if not ex_db:
             self.completed = Completed.BEST
             return self.completed
-        else:
+        
+        # Now we check for mod bests.
+        await sql.execute(
+            f"UPDATE {table} SET completed = {Completed.COMPLETE.value} WHERE "
+            f"completed = {Completed.MOD_BEST.value} AND userid = %s AND "
+            f"play_mode = {self.mode.value} AND beatmap_md5 = %s AND mods = %s "
+            f"AND {scoring} < %s LIMIT 1", (self.user_id, self.bmap.md5,
+            self.mods.value, val)
+        )
+
+        mod_ex_db = await sql.fetchcol(
+            f"SELECT 1 FROM {table} WHERE mods = %s AND play_mode = %s AND "
+            "userid = %s AND beatmap_md5 = %s AND mods = %s AND "
+            f"completed = {Completed.MOD_BEST.value} LIMIT 1",
+            (self.mods.value, self.mode.value, self.user_id, self.bmap.md5,
+            self.mods.value)
+        )
+
+        if mod_ex_db:
+            debug("Calculated simple completed.")
             self.completed = Completed.COMPLETE
             return self.completed
         
-        # TODO Check for mod best.
-        
-
+        debug("Calculated mod best!")
+        self.completed = Completed.MOD_BEST
+        return self.completed
     
     async def calc_placement(self, handle_first_place: bool = True) -> int:
         """Calculates the placement of the score on the leaderboards.

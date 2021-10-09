@@ -44,4 +44,4 @@ async def check_online(user_id: int, ip: str = None) -> bool:
 async def notify_ban(user_id: int) -> None:
     """Notifies pep.py of a restrict/ban/unban/unrestrict of a user."""
 
-    redis.publish("peppy:ban", user_id)
+    await redis.publish("peppy:ban", user_id)

@@ -119,14 +119,3 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
     # Lastly reload perms.
     await priv.load_singular(user_id)
     info(f"User ID {user_id} has been {action.log_action}!")
-
-async def restrict_user(user_id: int, reason: str = "No reason!") -> None:
-    """Restricts the user in-game, removing their `PUBLIC` privilege and
-    notifying the rest of the server stack of it.
-    
-    Args:
-        user_id (int): The database ID of the user.
-        reason (str): The reason for the restriction recorded in the database.
-    """
-
-    await edit_user(Actions.RESTRICT, user_id, reason)

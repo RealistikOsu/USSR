@@ -31,6 +31,9 @@ from redis_pubsub.ripple import (
 from redis_pubsub.rosu import (
     clan_update_pubsub,
 )
+from redis_pubsub.ussr import (
+    drop_bmap_cache_pubsub,
+)
 
 # Must return True for success or else server wont start.
 STARTUP_TASKS = (
@@ -47,6 +50,8 @@ PUBSUB_REGISTER = (
     (ban_reload_pubsub, "peppy:ban"),
     # RealistikOsu.
     (clan_update_pubsub, "rosu:clan_update"),
+    # USSR
+    (drop_bmap_cache_pubsub, "ussr:bmap_decache")
 )
 
 async def create_redis_pubsub():
