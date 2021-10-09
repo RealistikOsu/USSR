@@ -115,7 +115,7 @@ async def score_submit_handler(req: Request) -> str:
         if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
         if s.completed == Completed.BEST and s.pp:
             debug("Performing PP recalculation.")
-            await stats.recalc_pp_acc_full(s.pp) # TODO: work out how to use bonus pp without performance loss.
+            await stats.recalc_pp_acc_full(s.pp)
     debug("Saving stats")
     await stats.save()
 
@@ -173,11 +173,12 @@ async def score_submit_handler(req: Request) -> str:
         __pair_panel("pp", "", "")
     )
 
+    url = req.path.split("/")[2]
     if s.bmap.has_leaderboard:
         # Beatmap ranking panel.
         panels.append("|".join((
             "chartId:beatmap",
-            f"chartUrl:https://osu.ppy.sh/beatmaps/{s.bmap.id}", # TODO: Replace it with our own domain.
+            f"chartUrl:https://{url}/b/{s.bmap.id}",
             "chartName:Beatmap Ranking",
             *(failed_not_prev_panel \
                 if not prev_score or not s.passed else (
@@ -193,7 +194,7 @@ async def score_submit_handler(req: Request) -> str:
     # Overall ranking panel. XXX: Apparently unranked maps gets overall charts.
     panels.append("|".join((
         "chartId:overall",
-        f"chartUrl:https://osu.ppy.sh/users/{s.user_id}", # TODO: Replace it with our own domain.
+        f"chartUrl:https://{url}/u/{s.user_id}",
         "chartName:Global Ranking",
         *((
             __pair_panel("rank", old_stats.rank, stats.rank),

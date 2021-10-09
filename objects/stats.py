@@ -102,7 +102,6 @@ class Stats:
             (self.c_mode, self.mode, self.user_id), self
         )
     
-    # EXPENSIVE AF.
     async def recalc_pp_acc_full(self, _run_pp: int = None) -> tuple[float, float]:
         """Recalculates the full PP amount and average accuract for a user
         from scratch, using their top 100 scores. Sets the values in object
@@ -122,6 +121,7 @@ class Stats:
         """
 
         if self._required_recalc_pp and _run_pp is not None and _run_pp < self._required_recalc_pp:
+            self.pp += await self.__calc_bonus_pp() # Calculate the bonus.
             debug("Bypassed full PP and acc recalc for user: score didnt meet top 100.")
             return
 
@@ -139,14 +139,13 @@ class Stats:
 
         for idx, (s_acc, s_pp) in enumerate(scores_db):
             t_pp += s_pp * (0.95 ** idx)
-            t_acc += s_acc
+            t_acc += s_acc * (0.95 ** idx) # TLDR: accuracy is scaled too!
 
         # Big brain optimisation to stop this being uselessly ran.
         if idx == 99: self._required_recalc_pp = s_pp
   
-        self.accuracy = t_acc / (idx + 1)
-        self.pp = t_pp #+ await self.__calc_bonus_pp()
-
+        self.accuracy = (t_acc * (100.0 / (20 * (1 - 0.95 ** len(scores_db))))) / 100
+        self.pp = t_pp + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp
 
@@ -177,7 +176,6 @@ class Stats:
         self.rank = await get_rank_redis(self.user_id, self.mode, self.c_mode)
         return self.rank
 
-    # FIXME: SLOW
     async def __calc_bonus_pp(self) -> float:
         """Calculates the playcount based PP for the user.
         https://osu.ppy.sh/wiki/en/Performance_points#how-much-bonus-pp-is-awarded-for-having-lots-of-scores-on-ranked-maps
@@ -186,13 +184,14 @@ class Stats:
             Performs a generally expensive join.
         """
 
-        scores = await sql.fetchcol(
+        count = await sql.fetchcol(
             "SELECT COUNT(*) FROM {t} s RIGHT JOIN beatmaps b ON s.beatmap_md5 = "
-            "b.beatmap_md5 WHERE b.ranked = 2 AND " # Max limit is 25397 for all scores.
-            "s.completed >= 2 ORDER BY s.pp DESC LIMIT 25397".format(t= self.c_mode.db_table)
+            "b.beatmap_md5 WHERE b.ranked IN (2, 3) AND " # Max limit is 25397 to get max bonus pp.
+            "s.completed = 3 AND s.userid = %s LIMIT 25397".format(t= self.c_mode.db_table),
+            (self.user_id,)
         )
 
-        return 416.6667 * (1 - (0.9994 ** scores))
+        return 416.6667 * (1 - (0.9994 ** count))
     
     async def save(self, refresh_cache: bool = True) -> None:
         """Saves the current stats to the MySQL database.
