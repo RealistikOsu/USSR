@@ -6,7 +6,6 @@ from libs.time import get_timestamp
 
 class Cache:
     """Cache of objects with IDs."""
-    # TODO: The caching system can maybe call a function to automatically cache something without the help of a helper class.
 
     def __init__(self, cache_length : int = 5, cache_limit : int = 500):
         """Establishes a cache and configures the limits.

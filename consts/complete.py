@@ -4,7 +4,6 @@ from enum import IntEnum
 class Completed(IntEnum):
     """Completion statuses for database scores."""
 
-    # TODO: This list is incomplete.
     DUPLICATE = -1
     QUIT = 0
     FAILED = 1

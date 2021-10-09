@@ -25,7 +25,8 @@ from handlers.score_sub import score_submit_handler
 from redis_pubsub.ripple import (
     username_change_pubsub, 
     update_cached_privileges_pubsub,
-    change_pass_pubsub
+    change_pass_pubsub,
+    ban_reload_pubsub,
 )
 from redis_pubsub.rosu import (
     clan_update_pubsub,
@@ -43,6 +44,7 @@ PUBSUB_REGISTER = (
     (username_change_pubsub, "peppy:change_username"),
     (update_cached_privileges_pubsub, "peppy:update_cached_stats"),
     (change_pass_pubsub, "peppy:change_pass"),
+    (ban_reload_pubsub, "peppy:ban"),
     # RealistikOsu.
     (clan_update_pubsub, "rosu:clan_update"),
 )

@@ -18,7 +18,6 @@ class BCryptCache:
     def __init__(self) -> None:
         self.known_correct: Dict[int, str] = {}
 
-    # TODO: Call on redis pubsub
     def drop_cache_individual(self, user_id: int) -> None:
         """Drops the cached known correct password for a user (usually done
         on password changes).

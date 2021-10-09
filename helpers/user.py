@@ -8,6 +8,7 @@ from globs.conn import redis, sql
 from consts.modes import Mode
 from consts.actions import Actions
 from consts.c_modes import CustomModes
+from .pep import notify_ban
 
 def safe_name(s: str) -> str:
     """Generates a 'safe' variant of the name for usage in rapid lookups
@@ -88,7 +89,7 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
             "ban_datetime = 0, ban_reason = '' WHERE id = %s LIMIT 1",
             (int(Privileges.USER_NORMAL | Privileges.USER_PUBLIC), user_id)
         )
-        await redis.publish("peppy:ban", user_id)
+        await notify_ban(user_id)
 
     elif action in (Actions.RESTRICT, Actions.BAN) and not (privs.is_banned or privs.is_restricted):
         # Now its just ban/restrict stuff..
@@ -101,7 +102,7 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
         )
 
         # Notify pep.py about that.
-        await redis.publish("peppy:ban", user_id)
+        await notify_ban(user_id)
 
         # Do lbs cleanups in redis.
         country = await sql.fetchcol("SELECT country FROM users_stats WHERE id = %s", (user_id,))
@@ -118,3 +119,14 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
     # Lastly reload perms.
     await priv.load_singular(user_id)
     info(f"User ID {user_id} has been {action.log_action}!")
+
+async def restrict_user(user_id: int, reason: str = "No reason!") -> None:
+    """Restricts the user in-game, removing their `PUBLIC` privilege and
+    notifying the rest of the server stack of it.
+    
+    Args:
+        user_id (int): The database ID of the user.
+        reason (str): The reason for the restriction recorded in the database.
+    """
+
+    await edit_user(Actions.RESTRICT, user_id, reason)

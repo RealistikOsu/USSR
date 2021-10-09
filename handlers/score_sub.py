@@ -1,12 +1,13 @@
 from consts.complete import Completed
 from consts.statuses import Status
+from consts.actions import Actions
 from logger import debug, error, info, warning
 from lenhttp import Request
 from objects.score import Score
 from objects.stats import Stats
 from globs import caches
 from globs import conn
-from helpers.user import update_rank, restrict_user, unlock_achievement, get_achievements
+from helpers.user import update_rank, unlock_achievement, get_achievements, edit_user
 from datetime import datetime
 from helpers.replays import write_replay
 from helpers.pep import check_online, stats_refresh, bot_message
@@ -51,15 +52,15 @@ async def score_submit_handler(req: Request) -> str:
     
     # Anticheat checks.
     if not req.headers.get("Token") and not conf.srv_c_clients:
-        await restrict_user(s.user_id, "Tampering with osu!auth")
+        await edit_user(Actions.RESTRICT, s.user_id, "Tampering with osu!auth")
         return "error: ban"
     
     if req.headers.get("User-Agent") != "osu!":
-        await restrict_user(s.user_id, "Score submitter.")
+        await edit_user(Actions.RESTRICT, s.user_id, "Score submitter.")
         return "error: ban"
     
     if s.mods.conflict():
-        await restrict_user(s.user_id, "Illegal mod combo (score submitter).")
+        await edit_user(Actions.RESTRICT, s.user_id, "Illegal mod combo (score submitter).")
         return "error: ban"
     # TODO: version check.
 
@@ -120,8 +121,8 @@ async def score_submit_handler(req: Request) -> str:
 
     # Write replay + anticheat.
     if (replay := req.files.get("score")) and replay != b"\r\n" and not s.passed:
-        await restrict_user(s.user_id, "Score submit without replay (always "
-                            "should contain it).")
+        await edit_user(Actions.RESTRICT, s.user_id, "Score submit without replay "
+                                                     "(always should contain it).")
         return "error: ban"
     
     if s.passed:

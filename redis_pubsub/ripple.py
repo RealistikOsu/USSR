@@ -64,3 +64,15 @@ async def change_pass_pubsub(data):
     user_id = int(j_data["userID"])
 
     await password.drop_cache_individual(user_id)
+
+async def ban_reload_pubsub(data):
+    """
+    Handles the Redis pubsub event `peppy:ban`.
+    It reloads the privileges stored in the cache.
+    """
+
+    j_data = j_load(data)
+
+    user_id = int(j_data["userID"])
+
+    await priv.load_singular(user_id)

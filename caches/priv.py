@@ -20,7 +20,6 @@ class PrivilegeCache:
 
         self.privileges = {user_id: Privileges(priv) for user_id, priv in ranks_db}
     
-    # TODO: Call on redis pubsub
     async def load_singular(self, user_id: int) -> None:
         """Caches the privileges for a singular user and saves to memory.
         
