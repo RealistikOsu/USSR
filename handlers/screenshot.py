@@ -23,8 +23,10 @@ async def upload_image_handler(req: Request) -> str:
     
     # This is a particularly dangerous endpoint.
     user_id = await name.id_from_safe(safe_name(req.post_args["u"]))
-    if not check_online(user_id, req.headers["x-real-ip"]):
+    if not await check_online(user_id, req.headers["x-real-ip"]):
         return ERR_RESP
+    
+    print("Check online")
     
     if req.headers.get("user-agent") != "osu!": return ERR_RESP
 
@@ -41,9 +43,12 @@ async def upload_image_handler(req: Request) -> str:
                + traceback.format_exc())
         return ERR_RESP
     
+    print("reached loop")
     # Get a random name for the file that does not overlap.
-    while not os.path.exists((fname := gen_rand_str(SS_NAME_LEN) + "." + im._file_ext)):
+    while os.path.exists((fname := gen_rand_str(SS_NAME_LEN) + "." + im._file_ext)):
         pass
+
+    print("Our of loop")
 
     # Write file.
     im.write(conf.dir_screenshot, fname)

@@ -349,6 +349,18 @@ class Score:
             self.count_geki, self.count_miss, ts, self.mode.value, self.completed.value,
             self.accuracy, self.pp)
         )
+    
+    async def save_pp(self) -> None:
+        """Saves the score PP attribute to the scores table.
+        
+        Note:
+            This does NOT raise an exception if score is not submitted.
+        """
+
+        await sql.execute(
+            f"UPDATE {self.c_mode.db_table} SET pp = %s WHERE id = %s LIMIT 1",
+            (self.pp, self.id)
+        )
 
     @classmethod
     async def from_db(cls, score_id: int, table: str = "scores") -> Optional['Score']:
@@ -360,6 +372,7 @@ class Score:
             table (str): The table the score should be loacted within 
                 (directly formatted into the query).
         """
+
         s_db = await sql.fetchone(
             f"SELECT * FROM {table} WHERE id = %s LIMIT 1",
             (score_id,)

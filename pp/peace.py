@@ -1,13 +1,17 @@
 # Simple wrapper around the peace PP calc
 from peace_performance_python.objects import Calculator, Beatmap
+from typing import TYPE_CHECKING
 from helpers.beatmap import fetch_osu_file
+
+if TYPE_CHECKING:
+    from objects.score import Score
 
 class CalculatorPeace:
     """A thin wrapper around the peace PP calulcator."""
 
     __slots__ = ("score", "bmap")
 
-    def __init__(self, score) -> None:
+    def __init__(self, score: 'Score') -> None:
         self.score = score
         self.bmap = score.bmap
     
