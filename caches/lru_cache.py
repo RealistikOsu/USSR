@@ -79,7 +79,7 @@ class Cache:
         # Calculate how much objects we have to throw away.
         throw_away_count = len(self._get_cached_ids()) - self._cache_limit
 
-        if throw_away_count < 1:
+        if not throw_away_count:
             # No levels to throw away
             return
         
@@ -104,4 +104,4 @@ class Cache:
     def get_all_keys(self):
         """Generator that returns all keys of the keys to the cache."""
 
-        for key in self._cache: yield key
+        return self._get_cached_ids()

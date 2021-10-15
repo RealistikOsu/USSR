@@ -26,8 +26,6 @@ async def upload_image_handler(req: Request) -> str:
     if not await check_online(user_id, req.headers["x-real-ip"]):
         return ERR_RESP
     
-    print("Check online")
-    
     if req.headers.get("user-agent") != "osu!": return ERR_RESP
 
     # LETS style ratelimit.
@@ -43,16 +41,13 @@ async def upload_image_handler(req: Request) -> str:
                + traceback.format_exc())
         return ERR_RESP
     
-    print("reached loop")
     # Get a random name for the file that does not overlap.
-    while os.path.exists((fname := gen_rand_str(SS_NAME_LEN) + "." + im._file_ext)):
+    while os.path.exists((fname := gen_rand_str(SS_NAME_LEN)) + "." + im._file_ext):
         pass
-
-    print("Our of loop")
 
     # Write file.
     im.write(conf.dir_screenshot, fname)
 
-    info(f"{req.get_args['u']} has uploaded the screenshot {fname}.{im._file_ext}")
+    info(f"{req.post_args['u']} has uploaded the screenshot {fname}.{im._file_ext}")
 
     return f"{fname}.{im._file_ext}"
