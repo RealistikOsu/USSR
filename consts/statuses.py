@@ -38,3 +38,13 @@ _normal_direct_conv = {
     7: Status.RANKED,
     8: Status.LOVED
 }
+
+class LeaderboardTypes(IntEnum):
+    """osu! in-game leaderboards types. Taken from osu! `RankingType` enum at
+    `SongSelection.cs` line 3180."""
+
+    LOCAL: int   = 0 # Not used online.
+    TOP: int     = 1 # Regular top leaderboards.
+    MOD: int     = 2 # Leaderboards for a specific mod combo.
+    FRIENDS: int = 3 # Leaderboard containing only the user's friends.
+    COUNTRY: int = 4 # Leaderboards containing only people from the user's nation.

@@ -1,5 +1,4 @@
 from imghdr import test_png, test_jpeg
-from typing import Union
 import os
 
 # Orjson is optional and can be replaced 1:1 by the default one. Only use
@@ -41,7 +40,7 @@ class JsonFile:
         """
         return self.file
 
-    def write_file(self, new_content: Union[dict, list]) -> None:
+    def write_file(self, new_content: dict | list) -> None:
         """Writes `new_content` to the target file.
         
         Args:

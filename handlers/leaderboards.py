@@ -1,14 +1,15 @@
-from logger import info
+from logger import info, debug
 from typing import Optional
 from objects.beatmap import Beatmap
 from globs import caches
 from lenhttp import Request
-from helpers.user import safe_name
+from helpers.user import safe_name, fetch_user_country
 from consts.mods import Mods
 from consts.modes import Mode
 from consts.c_modes import CustomModes
 from consts.privileges import Privileges
 from consts.complete import Completed
+from consts.statuses import LeaderboardTypes
 from globs.conn import sql
 from libs.crypt import validate_md5
 
@@ -213,6 +214,54 @@ async def __fetch_pb(bmap: Beatmap, mode: Mode, c_mode: CustomModes,
 
     return personal_best, personal_place
 
+async def __fetch_country(bmap: Beatmap, mode: Mode,
+                          c_mode: CustomModes, country: str) -> tuple[tuple]:
+    """Fetches the leaderboards for a given country. Pure MySQL due to"""
+
+    # SQL Query Generation.
+    where_clauses = (
+        f"a.privileges & {Privileges.USER_PUBLIC.value}",
+        "s.beatmap_md5 = %s",
+        "s.play_mode = %s",
+        f"s.completed = {Completed.BEST.value}",
+        "a.country = %s",
+    )
+    where_args = (
+        bmap.md5,
+        mode.value,
+        country,
+    )
+    where_str = " AND ".join(where_clauses)
+
+    query = BASE_QUERY.format(
+        table= c_mode.db_table,
+        order= "pp" if c_mode.uses_ppboard else "score",
+        where= where_str
+    )
+
+    scores_db = await sql.fetchall(query, where_args)
+
+    # Check if we can use this as len.
+    scores_count = len(scores_db)
+
+    if scores_count == SCORE_LIMIT:
+        scores_count= await sql.fetchcol(
+            COUNT_QUERY.format(
+                where= where_str,
+                table= c_mode.db_table
+            ), where_args
+        )
+
+    return scores_db, scores_count
+
+async def __fetch_country_pb(bmap: Beatmap, mode: Mode,
+                          c_mode: CustomModes, country: str,
+                          user_id: int, scores: tuple[tuple]) -> tuple[tuple, int]:
+    """Fetches the personal best for a given sountry lb."""
+
+    # TODO: Proper SQL.
+    return __score_from_data(scores, user_id)
+
 def __beatmap_header(bmap: Beatmap, score_count: int = 0) -> str:
     """Creates a response header for a beatmap."""
 
@@ -249,7 +298,6 @@ def __score_from_data(scores: tuple, user_id: int,
     for idx, score in enumerate(scores):
         # Score of our user is found.
         if score[13] == user_id:
-            print("Found score through iter.")
             return score, idx + 1
     
     # Ok now this is 500iq move. If the amount of total scores is below the
@@ -272,7 +320,7 @@ async def leaderboard_get_handler(req: Request) -> None:
     mods = Mods(int(req.get_args["mods"]))
     mode = Mode(int(req.get_args["m"]))
     s_ver = int(req.get_args["vv"])
-    b_filter = int(req.get_args["v"])
+    b_filter = LeaderboardTypes(int(req.get_args["v"]))
     set_id = int(req.get_args["i"])
     c_mode = CustomModes.from_mods(mods)
 
@@ -286,7 +334,7 @@ async def leaderboard_get_handler(req: Request) -> None:
     # Fetch scores and generate response.
     if not beatmap:
         # TODO: Handle beatmap updates.
-        print("Bitch ass beatmap not found.")
+        debug(f"Beatmap not found for MD5 {md5}")
         ...
         return BASIC_ERR
     
@@ -296,20 +344,43 @@ async def leaderboard_get_handler(req: Request) -> None:
         print(beatmap.status)
         return __beatmap_header(beatmap).encode()
     
-    # TODO: More lb types.
-    scores_db, score_count = await __fetch_global(
-        beatmap,
-        mode,
-        c_mode
-    )
+    # Leaderboard types.
+    match b_filter:
+        case LeaderboardTypes.TOP:
+            scores_db, score_count = await __fetch_global(
+                beatmap,
+                mode,
+                c_mode,
+            )
 
-    personal_best, personal_place = await __fetch_pb(
-        beatmap,
-        mode,
-        c_mode,
-        user_id,
-        scores_db
-    )
+            personal_best, personal_place = await __fetch_pb(
+                beatmap,
+                mode,
+                c_mode,
+                user_id,
+                scores_db,
+            )
+        
+        case LeaderboardTypes.COUNTRY:
+            country = await fetch_user_country(user_id)
+            scores_db, score_count = await __fetch_country(
+                beatmap,
+                mode,
+                c_mode,
+                country,
+            )
+
+            personal_best, personal_place = await __fetch_country_pb(
+                beatmap,
+                mode,
+                c_mode,
+                user_id,
+                scores_db,
+            )
+        
+        case x:
+            debug(f"Requested unhandled leaderboard type! ({x!r})")
+            return BASIC_ERR
 
     result = "\n".join((
         __beatmap_header(beatmap, score_count),

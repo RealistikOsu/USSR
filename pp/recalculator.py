@@ -47,7 +47,7 @@ class ScorePool:
         """Generates score objects from score IDs in the object."""
 
         for score_id in self.score_ids:
-            score = await Score.from_db(score_id, self.c_mode.db_table)
+            score = await Score.from_db(score_id, self.c_mode)
             if not score: continue
             yield score
     

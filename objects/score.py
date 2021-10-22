@@ -363,7 +363,7 @@ class Score:
         )
 
     @classmethod
-    async def from_db(cls, score_id: int, table: str = "scores") -> Optional['Score']:
+    async def from_db(cls, score_id: int, c_mode: CustomModes) -> Optional['Score']:
         """Creates an instance of `Score` using data fetched from the
         database.
         
@@ -373,6 +373,7 @@ class Score:
                 (directly formatted into the query).
         """
 
+        table = c_mode.db_table
         s_db = await sql.fetchone(
             f"SELECT * FROM {table} WHERE id = %s LIMIT 1",
             (score_id,)
@@ -394,7 +395,7 @@ class Score:
             passed= True, 
             quit= False, 
             mods= s_db[6],
-            c_mode= CustomModes.from_mods(s_db[6]),
+            c_mode= c_mode,
             count_300= s_db[7], 
             count_100= s_db[8], 
             count_50= s_db[9], 

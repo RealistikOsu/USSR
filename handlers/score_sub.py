@@ -88,11 +88,9 @@ async def score_submit_handler(req: Request) -> str:
         (s.user_id, s.bmap.md5)
     )
 
-    prev_score = None
-    if prev_db:
-        prev_score = await Score.from_db(
-            prev_db[0], stats.c_mode.db_table
-        )
+    prev_score = await Score.from_db(
+        prev_db[0], s.c_mode
+    ) if prev_db else None
 
     debug("Submitting score...")
     await s.submit()

@@ -119,3 +119,17 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
     # Lastly reload perms.
     await priv.load_singular(user_id)
     info(f"User ID {user_id} has been {action.log_action}!")
+
+async def fetch_user_country(user_id: int) -> Optional[str]:
+    """Fetches the user's 2 letter (uppercase) country code.
+    
+    Args:
+        user_id (int): The database ID of the user.
+    
+    Returns the Alpha2 country code if found, else `None`.
+    """
+
+    return await sql.fetchcol(
+        "SELECT country FROM users WHERE id = %s LIMIT 1",
+        (user_id,)
+    )
