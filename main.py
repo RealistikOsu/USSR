@@ -17,7 +17,7 @@ from globs.caches import initialise_cache
 # Load handlers.
 from handlers.direct import direct_get_handler, download_map, get_set_handler
 from handlers.leaderboards import leaderboard_get_handler
-from handlers.replays import get_replay_web_handler
+from handlers.replays import get_replay_web_handler, get_full_replay_handler
 from handlers.screenshot import upload_image_handler
 from handlers.score_sub import score_submit_handler
 from handlers.rippleapi import status_handler, pp_handler
@@ -95,6 +95,8 @@ app = Application(
         # Ripple API endpoints
         Endpoint("/api/v1/status", status_handler),
         Endpoint("/api/v1/pp", pp_handler),
+        # Web Endpoints
+        Endpoint("/web/replays/<score_id>", get_full_replay_handler),
     ]
 )
 

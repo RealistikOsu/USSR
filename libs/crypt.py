@@ -75,3 +75,10 @@ def gen_rand_str(len: int) -> str:
     """
 
     return "".join(random.choice(AV_CHARS) for _ in range(len))
+
+def ts_to_utc_ticks(ts: int) -> int:
+    """Convert's a UNIX timestamp to a UTC ticks. Equivalent to the reverse of
+    C#'s `DateTime.ToUniversalTime().Ticks`.
+    """
+
+    return ts * 10_000_000 + 0x89F7FF5F7B58000

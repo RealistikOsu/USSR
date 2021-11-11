@@ -1,6 +1,7 @@
 # Replay related handlers.
-from helpers.replays import read_replay
+from helpers.replays import read_replay, build_full_replay
 from helpers.user import incr_replays_watched
+from objects.score import Score
 from consts.c_modes import CustomModes
 from consts.modes import Mode
 from globs.conn import sql
@@ -42,3 +43,23 @@ async def get_replay_web_handler(req: Request) -> bytes:
 
     info(f"Successfully served replay {score_id}.osr")
     return rp
+
+async def get_full_replay_handler(req: Request, score_id) -> bytearray:
+    """Retuns a fully built replay with headers. Used for web."""
+
+    score_id = int(score_id)
+    c_mode = CustomModes.from_score_id(score_id)
+    score = await Score.from_db(score_id, c_mode)
+    if not score: return await req.send(404, b"Score not foun!")
+
+    rp = build_full_replay(score)
+    if not rp: return await req.send(404, b"Replay not found!")
+
+    filename = f"{score.username} - {score.bmap.song_name} ({score.id}).osr"
+
+    info(f"Served compiled replay {score_id}!")
+
+    req.add_header("Content-Disposition", f"attachment; filename={filename}")
+    req.add_header("Content-Type", "application/octet-stream")
+
+    return await req.send(200, rp.buffer)
