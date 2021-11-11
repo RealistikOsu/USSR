@@ -83,7 +83,7 @@ class OsuApiManager:
         """
 
         return await self.make_request("get_beatmaps", {"k": self.get_key(), 
-                                                        "m": md5})
+                                                        "h": md5})
         
     async def get_bmap_from_id(self, bmap_id: int) -> list:
         """Fetches a beatmap from the osu!api using its id, returning the

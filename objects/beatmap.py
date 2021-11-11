@@ -85,7 +85,6 @@ class Beatmap:
         except Exception: return error("Failed to fetch map from the osu!api. " + traceback.format_exc())
         if not found_beatmaps:
             return debug(f"Beatmap {md5} not found in the api.")
-        
         map_json, = found_beatmaps
         debug(f"Beatmap fetched from the osu!api v1!\n {map_json!r}")
         song_name = _create_full_name(

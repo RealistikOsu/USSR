@@ -106,22 +106,28 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
         await notify_ban(user_id)
 
         # Do lbs cleanups in redis.
-        country = await sql.fetchcol("SELECT country FROM users_stats WHERE id = %s", (user_id,))
-        uid = str(user_id)
-        for mode in ("std", "taiko", "ctb", "mania"):
-            await redis.zrem(f"ripple:leaderboard:{mode}", uid)
-            await redis.zrem(f"ripple:leaderboard_relax:{mode}", uid)
-            await redis.zrem(f"ripple:leaderboard_ap:{mode}", uid)
-            if country and (c := country.lower()) != "xx":
-                await redis.zrem(f"ripple:leaderboard:{mode}:{c}", uid)
-                await redis.zrem(f"ripple:leaderboard_relax:{mode}:{c}", uid)
-                await redis.zrem(f"ripple:leaderboard_ap:{mode}:{c}", uid)
+        await remove_user_from_leaderboards(user_id)
     
     await log_user_edit(user_id, "<username>", action, reason)
         
     # Lastly reload perms.
     await priv.load_singular(user_id)
     info(f"User ID {user_id} has been {action.log_action}!")
+
+async def remove_user_from_leaderboards(user_id: int) -> None:
+    """Removes the user from the redis leaderboards. Handles both global
+    and country leaderboards."""
+
+    country = await fetch_user_country(user_id)
+    uid = str(user_id)
+    for mode in ("std", "taiko", "ctb", "mania"):
+        await redis.zrem(f"ripple:leaderboard:{mode}", uid)
+        await redis.zrem(f"ripple:leaderboard_relax:{mode}", uid)
+        await redis.zrem(f"ripple:leaderboard_ap:{mode}", uid)
+        if country and (c := country.lower()) != "xx":
+            await redis.zrem(f"ripple:leaderboard:{mode}:{c}", uid)
+            await redis.zrem(f"ripple:leaderboard_relax:{mode}:{c}", uid)
+            await redis.zrem(f"ripple:leaderboard_ap:{mode}:{c}", uid)
 
 async def fetch_user_country(user_id: int) -> Optional[str]:
     """Fetches the user's 2 letter (uppercase) country code.

@@ -403,7 +403,7 @@ class Score:
         table = c_mode.db_table
         s_db = await sql.fetchone(
             f"SELECT s.*, a.username FROM {table} s INNER JOIN users a "
-            "ON s.userid = a.id WHERE id = %s LIMIT 1",
+            "ON s.userid = a.id WHERE s.id = %s LIMIT 1",
             (score_id,)
         )
 
@@ -441,6 +441,6 @@ class Score:
             sr= 0.0,
             username= s_db[19]
         )
-        await s.calc_placement(False)
+        await s.calc_placement()
 
         return s

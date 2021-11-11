@@ -107,7 +107,11 @@ class Config(ConfigReader):
     srv_c_clients: bool     = False # Allow custom clients on
     srv_url: str            = "https://ussr.pl"
     srv_name: str           = "RealistikOsu"
+    srv_ver_badge_id: int   = 1005
     discord_first_hook: str = ""
     discord_admin_hook: str = ""
+    pp_cap_vn: int          = 700
+    pp_cap_rx: int          = 1200
+    pp_cap_ap: int          = 1200
 
 conf = Config()

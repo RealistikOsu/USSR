@@ -3,7 +3,8 @@ from typing import Optional
 from objects.beatmap import Beatmap
 from globs import caches
 from lenhttp import Request
-from helpers.user import safe_name, fetch_user_country
+from helpers.user import safe_name, fetch_user_country, edit_user
+from consts.actions import Actions
 from consts.mods import Mods
 from consts.modes import Mode
 from consts.c_modes import CustomModes
@@ -329,9 +330,12 @@ async def leaderboard_get_handler(req: Request) -> None:
     set_id = int(req.get_args["i"])
     c_mode = CustomModes.from_mods(mods)
 
-    # Simple checks to catch out cheaters and tripwires. TODO: mb restrict?
+    # Simple checks to catch out cheaters and tripwires.
     if not validate_md5(md5): return BASIC_ERR
-    if s_ver != 4: return BASIC_ERR
+    if s_ver != 4:
+        # Restrict them for outdated client.
+        await edit_user(Actions.RESTRICT, user_id, "Bypassing client version protections.")
+        return BASIC_ERR
 
     # Check if we can avoid any lookups.
     if md5 in caches.no_check_md5s:

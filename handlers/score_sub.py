@@ -10,7 +10,8 @@ from globs import conn
 from helpers.user import update_rank, unlock_achievement, get_achievements, edit_user
 from datetime import datetime
 from helpers.replays import write_replay
-from helpers.pep import check_online, stats_refresh, bot_message
+from helpers.pep import check_online, stats_refresh
+from helpers.anticheat import surpassed_cap_restrict
 from copy import copy
 from config import conf
 import time
@@ -81,22 +82,26 @@ async def score_submit_handler(req: Request) -> str:
     old_stats = copy(stats)
 
     # Fetch old score to compare.
-    scoring = "pp" if stats.c_mode.uses_ppboard else "score"
-    prev_db = await conn.sql.fetchone(
-        f"SELECT id FROM {stats.c_mode.db_table} WHERE userid = %s AND "
-        f"beatmap_md5 = %s ORDER BY {scoring} DESC LIMIT 1",
-        (s.user_id, s.bmap.md5)
-    )
+    prev_score = None
 
-    prev_score = await Score.from_db(
-        prev_db[0], s.c_mode
-    ) if prev_db else None
+    if s.passed:
+        debug("Fetching previous best to compare.")
+        prev_db = await conn.sql.fetchone(
+            f"SELECT id FROM {stats.c_mode.db_table} WHERE userid = %s AND "
+            f"beatmap_md5 = %s WHERE completed = 3 AND play_mode = {s.mode.value} DESC LIMIT 1",
+            (s.user_id, s.bmap.md5)
+        )
+
+        prev_score = await Score.from_db(
+            prev_db[0], s.c_mode
+        ) if prev_db else None
 
     debug("Submitting score...")
     await s.submit()
 
     debug("Incrementing bmap playcount.")
     await s.bmap.increment_playcount(s.passed)
+
 
     # Stat updates
     debug("Updating stats.")
@@ -105,7 +110,7 @@ async def score_submit_handler(req: Request) -> str:
     stats.total_hits += (s.count_300 + s.count_100 + s.count_50)
 
     add_score = s.score
-    if prev_score:
+    if prev_score and s.completed == Completed.BEST:
         add_score -= prev_score.score
 
     if s.passed and s.bmap.has_leaderboard:
@@ -147,6 +152,11 @@ async def score_submit_handler(req: Request) -> str:
             if ach.cond(s, s.mode.value, stats):
                 await unlock_achievement(s.user_id, ach.id)
                 new_achievements.append(ach.full_name)
+    
+    # More anticheat checks.
+    if s.completed == Completed.BEST and await surpassed_cap_restrict(s):
+        await edit_user(Actions.RESTRICT, s.user_id, f"Surpassing PP cap as unverified! ({s.pp}pp)")
+        return "error: ban"
 
     # Create beatmap info panel.
     panels.append(
