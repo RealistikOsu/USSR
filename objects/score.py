@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from helpers.discord import log_first_place
+from helpers.pep import announce
 from helpers.user import safe_name
 from typing import Optional
 from logger import debug, warning
@@ -14,6 +16,7 @@ from libs.crypt import validate_md5
 from libs.time import get_timestamp
 from lenhttp import Request
 from py3rijndael import RijndaelCbc, ZeroPadding
+from config import conf
 import base64
 
 # PP Calculators
@@ -48,6 +51,7 @@ class Score:
     placement: int
     grade: str
     sr: float
+    username: str
 
     @property
     def is_submitted(self) -> bool:
@@ -112,7 +116,8 @@ class Score:
             0, # TODO: Playtime
             0,
             score_data[12],
-            0.0
+            0.0,
+            username
         )
 
         s.calc_accuracy()
@@ -312,6 +317,15 @@ class Score:
         )
         debug("First place added.")
 
+        # TODO: Move somewhere else.
+        msg = (f"[{self.c_mode.acronym}] User [{conf.srv_url}/u/{self.user_id} "
+        f"{self.username}] has submitted a #1 place on "
+        f"[{conf.srv_url}/beatmaps/{self.bmap.id} {self.bmap.song_name}]"
+        f" +{self.mods.readable} ({round(self.pp, 2)}pp)")
+        # Announce it.
+        await announce(msg)
+        await log_first_place(self)
+
     async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
                      calc_place: bool = True, calc_pp: bool = True) -> None:
         """Inserts the score into the database, performing other necessary
@@ -388,7 +402,8 @@ class Score:
 
         table = c_mode.db_table
         s_db = await sql.fetchone(
-            f"SELECT * FROM {table} WHERE id = %s LIMIT 1",
+            f"SELECT s.*, a.username FROM {table} s INNER JOIN users a "
+            "ON s.userid = a.id WHERE id = %s LIMIT 1",
             (score_id,)
         )
 
@@ -423,7 +438,8 @@ class Score:
             play_time= s_db[18], 
             placement= 0, 
             grade= "",
-            sr= 0.0
+            sr= 0.0,
+            username= s_db[19]
         )
         await s.calc_placement(False)
 

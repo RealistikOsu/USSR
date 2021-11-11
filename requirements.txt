@@ -8,3 +8,4 @@ orjson == 3.6.3
 uvloop == 0.16.0
 peace-performance-python == 1.1.2
 py3rijndael == 0.3.3
+dhooks == 1.1.4

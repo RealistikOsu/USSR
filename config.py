@@ -91,19 +91,23 @@ class Config(ConfigReader):
     """The main class for the storage of config values.
     These values are read directly from the `config.json` file."""
 
-    http_port: int      = 5002
-    sql_host: str       = "localhost"
-    sql_user: str       = "root"
-    sql_db: str         = "ripple"
-    sql_password: str   = ""
-    dir_maps: str       = ".data/maps"
-    dir_replays: str    = ".data/replays"
-    dir_screenshot: str = ".data/screenshots"
-    direct_api_url: str = "https://api.chimu.moe/v1"
-    bancho_nick: str    = "My Acc Slow"
-    bancho_hash: str    = "nope"
-    framework_log: bool = False
-    oapi_key_pool: list = ["keys here"]
-    srv_c_clients: bool = False # Allow custom clients on
+    http_port: int          = 5002
+    sql_host: str           = "localhost"
+    sql_user: str           = "root"
+    sql_db: str             = "ripple"
+    sql_password: str       = ""
+    dir_maps: str           = ".data/maps"
+    dir_replays: str        = ".data/replays"
+    dir_screenshot: str     = ".data/screenshots"
+    direct_api_url: str     = "https://api.chimu.moe/v1"
+    bancho_nick: str        = "My Acc Slow"
+    bancho_hash: str        = "nope"
+    framework_log: bool     = False
+    oapi_key_pool: list     = ["keys here"]
+    srv_c_clients: bool     = False # Allow custom clients on
+    srv_url: str            = "https://ussr.pl"
+    srv_name: str           = "RealistikOsu"
+    discord_first_hook: str = ""
+    discord_admin_hook: str = ""
 
 conf = Config()

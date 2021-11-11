@@ -1,6 +1,7 @@
 # Helps with users LOL
 import time
 from consts.privileges import Privileges
+from helpers.discord import log_user_edit
 from logger import warning, info
 from typing import Optional
 from globs.caches import priv
@@ -115,6 +116,8 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
                 await redis.zrem(f"ripple:leaderboard:{mode}:{c}", uid)
                 await redis.zrem(f"ripple:leaderboard_relax:{mode}:{c}", uid)
                 await redis.zrem(f"ripple:leaderboard_ap:{mode}:{c}", uid)
+    
+    await log_user_edit(user_id, "<username>", action, reason)
         
     # Lastly reload perms.
     await priv.load_singular(user_id)

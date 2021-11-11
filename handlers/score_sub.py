@@ -127,7 +127,7 @@ async def score_submit_handler(req: Request) -> str:
         debug("Writing replay.")
         await write_replay(s.id, replay, s.c_mode)
 
-    info(f"User {s.user_id} has submitted a #{s.placement} place"
+    info(f"User {s.username} has submitted a #{s.placement} place"
          f" on {s.bmap.song_name} +{s.mods.readable} ({round(s.pp, 2)}pp)")
 
     # Trigger peppy stats update.

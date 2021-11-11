@@ -52,6 +52,12 @@ class CustomModes(IntEnum):
     def db_prefix(self) -> str:
 
         return _db_prefixes[self]
+    
+    @property
+    def acronym(self) -> str:
+        """Returns the acronym for the c_mode."""
+
+        return _acronyms[self]
 
 _db_suffixes = {
     CustomModes.VANILLA: "",
@@ -63,6 +69,12 @@ _db_prefixes = {
     CustomModes.VANILLA: "users",
     CustomModes.RELAX: "rx",
     CustomModes.AUTOPILOT: "ap"
+}
+
+_acronyms = {
+    CustomModes.VANILLA: "VN",
+    CustomModes.RELAX: "RX",
+    CustomModes.AUTOPILOT: "AP",
 }
 
 _uses_ppboard = (

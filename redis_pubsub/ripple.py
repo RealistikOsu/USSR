@@ -71,8 +71,7 @@ async def ban_reload_pubsub(data):
     It reloads the privileges stored in the cache.
     """
 
-    j_data = j_load(data)
 
-    user_id = int(j_data["userID"])
+    user_id = int(data.decode())
 
     await priv.load_singular(user_id)

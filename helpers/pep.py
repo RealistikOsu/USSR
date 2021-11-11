@@ -27,6 +27,20 @@ async def bot_message(user_id: int, message: str) -> None:
     })
     await redis.publish("peppy:bot_msg", msg)
 
+async def channel_message(chan: str, msg: str) -> None:
+    """Sends a bot message to a specific in-game channel."""
+
+    msg = j_dump({
+        "username": chan,
+        "message": msg,
+    })
+    await redis.publish("peppy:channel_msg", msg)
+
+async def announce(message: str) -> None:
+    """Sends a message in the announcements channel."""
+
+    await channel_message("#announce", message)
+
 async def check_online(user_id: int, ip: str = None) -> bool:
     """Checks if the given `user_id` is online on the bancho server.
     
