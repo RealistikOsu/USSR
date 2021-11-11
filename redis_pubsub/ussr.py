@@ -7,4 +7,6 @@ async def drop_bmap_cache_pubsub(data) -> None:
     Drops the beatmap from cache. Takes in a string that is the beatmap md5.
     """
     
-    beatmaps.drop(str(data))
+    beatmaps.drop(data.decode())
+
+# TODO: Add verify handler.

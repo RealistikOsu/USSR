@@ -16,14 +16,15 @@ class CalculatorPeace:
         self.bmap_id = 0
 
         # Score Values.
-        self.mode: int = 0
-        self.mods: int = 0
-        self.n50: int = 0
-        self.n100: int = 0
-        self.n300: int = 0
-        self.katu: int = 0
-        self.combo: int = 0
-        self.score: int = 0
+        self.mode: int  = None
+        self.mods: int  = None
+        self.n50: int   = None
+        self.n100: int  = None
+        self.n300: int  = None
+        self.katu: int  = None
+        self.combo: int = None
+        self.score: int = None
+        self.acc: float = None
     
     @classmethod
     def from_score(cls, score: 'Score') -> 'CalculatorPeace':
@@ -39,9 +40,10 @@ class CalculatorPeace:
         calc.n300 = score.count_300
         calc.katu = score.count_katu
         calc.combo = score.max_combo
+        calc.acc = score.accuracy
         return calc
     
-    async def calculate(self) -> float:
+    async def calculate(self) -> tuple[float]:
         """Calculates the PP for the given score.
         
         Note:
@@ -61,6 +63,7 @@ class CalculatorPeace:
             katu= self.katu,
             combo= self.combo,
             score= self.score,
+            acc= self.acc,
         )
 
         res = c.calculate(b)

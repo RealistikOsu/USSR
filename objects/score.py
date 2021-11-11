@@ -20,7 +20,7 @@ from config import conf
 import base64
 
 # PP Calculators
-from pp.peace import CalculatorPeace
+from pp.main import select_calculator
 
 @dataclass
 class Score:
@@ -247,7 +247,7 @@ class Score:
         debug("Calculating PP...") # We calc for failed scores!
         
         # TODO: More calculators (custom for standard.)
-        calc = CalculatorPeace.from_score(self)
+        calc = select_calculator(self.mode, self.c_mode).from_score(self)
         self.pp, self.sr = await calc.calculate()
         return self.pp
     

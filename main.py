@@ -20,6 +20,7 @@ from handlers.leaderboards import leaderboard_get_handler
 from handlers.replays import get_replay_web_handler
 from handlers.screenshot import upload_image_handler
 from handlers.score_sub import score_submit_handler
+from handlers.rippleapi import status_handler, pp_handler
 
 # Load redis pubsubs.
 from redis_pubsub.ripple import (
@@ -83,6 +84,7 @@ app = Application(
     port= conf.http_port,
     logging= conf.framework_log,
     routes= [
+        # osu web endpoints
         Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
         Endpoint("/web/osu-search.php", direct_get_handler),
         Endpoint("/web/osu-search-set.php", get_set_handler),
@@ -90,6 +92,9 @@ app = Application(
         Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
         Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
         Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
+        # Ripple API endpoints
+        Endpoint("/api/v1/status", status_handler),
+        Endpoint("/api/v1/pp", pp_handler),
     ]
 )
 
