@@ -3,8 +3,8 @@ from libs.time import get_timestamp
 from typing import Optional
 from consts.modes import Mode
 from consts.statuses import Status
-from globs.caches import beatmaps
-from globs.conn import sql
+from globs.caches import beatmaps, add_nocheck_md5
+from globs.conn import sql, oapi
 from logger import debug, error, info
 from conn.web_client import simple_get_json
 from config import conf
@@ -82,12 +82,7 @@ class Beatmap:
 
         debug(f"Starting osu!api v1 fetch of beatmap {md5}")
         try:
-            found_beatmaps = await simple_get_json(
-                "https://old.ppy.sh/api/get_beatmaps", {
-                    "k": conf.osu_api_key,
-                    "h": md5
-                }
-            )
+            found_beatmaps = await oapi.get_bmap_from_md5(md5)
         except Exception: return error("Failed to fetch map from the osu!api")
         if not found_beatmaps:
             return debug(f"Beatmap {md5} not found in the api.")
@@ -336,13 +331,7 @@ class Beatmap:
 
         debug(f"Fetching update check request for {self.song_name} ({self.id})")
         try:
-            found_beatmaps = await simple_get_json(
-                "https://old.ppy.sh/api/get_beatmaps", {
-                    "k": conf.osu_api_key,
-                    "b": self.id,
-                    #"s": self.set_id
-                }
-            )
+            found_beatmaps = await oapi.get_bmap_from_id(self.id)
         except Exception:
             error("Failed to fetch update data from the osu!api. Will try later.")
             return False
@@ -364,13 +353,19 @@ class Beatmap:
             debug("The MD5s of the beatmaps matched! Updating status.")
             await self.update_status(st)
             await self.update_last_update()
-            return True        
+            return False        
         
         # Delete cached `.osu`
         delete_osu_file(self.id)
 
         # Delete our current entry.
         await self.delete_db()
+
+        # Drop from cache to stop later incorrect indexes.
+        self.drop_cache()
+
+        # Cache the old one as update available.
+        add_nocheck_md5(self.md5, Status.UPDATE_AVAILABLE)
 
         song_name = _create_full_name(
             artist= map_json["artist"],
@@ -399,9 +394,6 @@ class Beatmap:
             _diff_attribs[self.mode.value],
             round(float(map_json["difficultyrating"]), 2)
         )
-
-        # Delete the old beatmap from the database to avoid conflicts.
-        await self.delete_db()
 
         # Insert our new one.
         await self.insert_db()

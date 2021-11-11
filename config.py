@@ -40,9 +40,15 @@ class ConfigReader:
             setattr(cls, var_name, key_val)
 
         if cls.updated:
-            info("The config has just been updated! Please edit according to your preferences!")
-            debug("Keys added: " + ", ".join(cls.updated_keys))
-            raise SystemExit
+            cls.on_finish_update(cls, cls.updated_keys)
+    
+    def on_finish_update(self, keys_updated: list):
+        """Called when the config has just been updated.
+        This is meant to be overridden."""
+
+        info("The config has just been updated! Please edit according to your preferences!")
+        debug("Keys added: " + ", ".join(keys_updated))
+        raise SystemExit(0)
     
     def read_json(self, key: str, default = None):
         """Reads a value directly from the json file and returns
@@ -97,7 +103,7 @@ class Config(ConfigReader):
     bancho_nick: str    = "My Acc Slow"
     bancho_hash: str    = "nope"
     framework_log: bool = False
-    osu_api_key: str    = ""
+    oapi_key_pool: list = ["keys here"]
     srv_c_clients: bool = False # Allow custom clients on
 
 conf = Config()

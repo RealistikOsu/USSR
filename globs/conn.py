@@ -2,6 +2,7 @@
 from conn.mysql import MySQLPool
 from logger import error
 from config import conf
+from helpers.osuapi import OsuApiManager
 import traceback
 import aioredis
 
@@ -9,6 +10,7 @@ __slots__ = ("sql", "loop")
 
 sql = MySQLPool()
 redis = aioredis.Redis(None)
+oapi = OsuApiManager()
 
 # Startup tasks.
 async def connect_sql() -> bool:

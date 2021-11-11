@@ -9,7 +9,7 @@ from consts.modes import Mode
 from consts.c_modes import CustomModes
 from consts.privileges import Privileges
 from consts.complete import Completed
-from consts.statuses import LeaderboardTypes
+from consts.statuses import LeaderboardTypes, Status
 from globs.conn import sql
 from libs.crypt import validate_md5
 
@@ -262,11 +262,16 @@ async def __fetch_country_pb(bmap: Beatmap, mode: Mode,
     # TODO: Proper SQL.
     return __score_from_data(scores, user_id)
 
+def __status_header(st: Status) -> str:
+    """Returns a beatmap header featuring only the status."""
+
+    return f"{st.value}|false"
+
 def __beatmap_header(bmap: Beatmap, score_count: int = 0) -> str:
     """Creates a response header for a beatmap."""
 
     if not bmap.has_leaderboard:
-        return f"{bmap.status.value}|false"
+        return __status_header(bmap.status)
     
     return (f"{bmap.status.value}|false|{bmap.id}|{bmap.set_id}|{score_count}\n"
             f"0\n{bmap.song_name}\n{bmap.rating}")
@@ -328,6 +333,10 @@ async def leaderboard_get_handler(req: Request) -> None:
     if not validate_md5(md5): return BASIC_ERR
     if s_ver != 4: return BASIC_ERR
 
+    # Check if we can avoid any lookups.
+    if md5 in caches.no_check_md5s:
+        return __status_header(caches.no_check_md5s[md5])
+
     # Fetch beatmap object.
     beatmap = await Beatmap.from_md5(md5)
 
@@ -336,7 +345,16 @@ async def leaderboard_get_handler(req: Request) -> None:
         # TODO: Handle beatmap updates.
         debug(f"Beatmap not found for MD5 {md5}")
         ...
+
+        # If set doesn't exist, we cache current map as unavailable.
+        caches.add_nocheck_md5(md5, Status.UNAVAILABLE)
         return BASIC_ERR
+
+    if beatmap.deserves_update:
+        updated = await beatmap.try_update()
+        # They need to update the beatmap.
+        if updated:
+            return __status_header(Status.UPDATE_AVAILABLE)
     
     if not beatmap.has_leaderboard:
         # Just the header is required here.

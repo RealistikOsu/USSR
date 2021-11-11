@@ -9,6 +9,10 @@ from logger import debug, info
 from . import conn
 from objects.achievement import Achievement
 #from helpers.user import safe_name
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from consts.statuses import Status
 
 # Specialised Caches
 name = UsernameCache()
@@ -19,6 +23,9 @@ achievements = []
 
 # General Caches.
 beatmaps = Cache(cache_length= 120, cache_limit= 1000)
+
+# Cache for statuses that require an api call to get. md5: status
+no_check_md5s: dict[str, 'Status'] = {}
 
 # Leaderboard caches.
 vn_std   = Cache(cache_length= 120, cache_limit= 1000)
@@ -46,6 +53,15 @@ ap_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
 
 # Stats cache. Key = tuple[CustomModes, Mode, user_id]
 stats_cache = Cache(cache_length= 240, cache_limit= 300)
+
+def add_nocheck_md5(md5: str, st: 'Status') -> None:
+    """Adds a md5 to the no_check_md5s cache.
+
+    Args:
+        md5 (str): The md5 to add to the cache.
+    """
+
+    no_check_md5s[md5] = st
 
 def get_lb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
     """Returns a cache for the given `mode`, `c_mode` combo."""
