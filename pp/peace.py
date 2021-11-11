@@ -9,11 +9,37 @@ if TYPE_CHECKING:
 class CalculatorPeace:
     """A thin wrapper around the peace PP calulcator."""
 
-    __slots__ = ("score", "bmap")
+    #__slots__ = ("score", "bmap")
 
-    def __init__(self, score: 'Score') -> None:
-        self.score = score
-        self.bmap = score.bmap
+    def __init__(self) -> None:
+        """Initializes the calculator."""
+        self.bmap_id = 0
+
+        # Score Values.
+        self.mode: int = 0
+        self.mods: int = 0
+        self.n50: int = 0
+        self.n100: int = 0
+        self.n300: int = 0
+        self.katu: int = 0
+        self.combo: int = 0
+        self.score: int = 0
+    
+    @classmethod
+    def from_score(cls, score: 'Score') -> 'CalculatorPeace':
+        """Create a calculator from a score."""
+
+        calc =  cls()
+        calc.score = score.score
+        calc.bmap_id = score.bmap.id
+        calc.mode = score.mode.value
+        calc.mods = score.mods.value
+        calc.n50 = score.count_50
+        calc.n100 = score.count_100
+        calc.n300 = score.count_300
+        calc.katu = score.count_katu
+        calc.combo = score.max_combo
+        return calc
     
     async def calculate(self) -> float:
         """Calculates the PP for the given score.
@@ -25,16 +51,16 @@ class CalculatorPeace:
             The PP for the score.
         """
 
-        b = Beatmap(await fetch_osu_file(self.bmap.id))
+        b = Beatmap(await fetch_osu_file(self.bmap_id))
         c = Calculator(
-            mode= self.score.mode.value,
-            mods= self.score.mods.value,
-            n50= self.score.count_50,
-            n100= self.score.count_100,
-            n300= self.score.count_300,
-            katu= self.score.count_katu,
-            combo= self.score.max_combo,
-            score= self.score.score
+            mode= self.mode,
+            mods= self.mods,
+            n50= self.n50,
+            n100= self.n100,
+            n300= self.n300,
+            katu= self.katu,
+            combo= self.combo,
+            score= self.score,
         )
 
         res = c.calculate(b)

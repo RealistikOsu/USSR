@@ -6,9 +6,8 @@ from consts.statuses import Status
 from globs.caches import beatmaps, add_nocheck_md5
 from globs.conn import sql, oapi
 from logger import debug, error, info
-from conn.web_client import simple_get_json
-from config import conf
 from helpers.beatmap import delete_osu_file
+import traceback
 
 TWO_MONTHS = 5.256e+6
 
@@ -83,12 +82,12 @@ class Beatmap:
         debug(f"Starting osu!api v1 fetch of beatmap {md5}")
         try:
             found_beatmaps = await oapi.get_bmap_from_md5(md5)
-        except Exception: return error("Failed to fetch map from the osu!api")
+        except Exception: return error("Failed to fetch map from the osu!api. " + traceback.format_exc())
         if not found_beatmaps:
             return debug(f"Beatmap {md5} not found in the api.")
-        debug("Beatmap fetched from the osu!api v1!")
         
         map_json, = found_beatmaps
+        debug(f"Beatmap fetched from the osu!api v1!\n {map_json!r}")
         song_name = _create_full_name(
             artist= map_json["artist"],
             title= map_json["title"],

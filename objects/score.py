@@ -202,17 +202,13 @@ class Score:
         self.completed = Completed.MOD_BEST
         return self.completed
     
-    async def calc_placement(self, handle_first_place: bool = True) -> int:
+    async def calc_placement(self) -> int:
         """Calculates the placement of the score on the leaderboards.
         
         Note:
             Performs a generally costly query.
             Returns 0 if bmap ranked status doesnt have lbs.
             Returns 0 if completed doesnt allow.
-        
-        Args:
-            handle_first_place (bool): If `True`, the `on_first_place` function
-                will be automatically performed if placement == 1.
         """
 
         if (not self.passed) or (not self.bmap.has_leaderboard):
@@ -234,9 +230,6 @@ class Score:
             (val, self.bmap.md5)
         )) + 1
 
-        if self.placement == 1 and handle_first_place:
-            await self.on_first_place()
-
         return self.placement
     
     async def calc_pp(self) -> float:
@@ -249,7 +242,7 @@ class Score:
         debug("Calculating PP...") # We calc for failed scores!
         
         # TODO: More calculators (custom for standard.)
-        calc = CalculatorPeace(self)
+        calc = CalculatorPeace.from_score(self)
         self.pp, self.sr = await calc.calculate()
         return self.pp
     
@@ -298,10 +291,26 @@ class Score:
         """Adds the score to the first_places table."""
 
         # Why did I design this system when i was stupid...
-        ...
 
-        warning("Attempted to perform first place handling while first places "
-                "have not yet been implemented!")
+        # Delete previous first place.
+        await sql.execute(
+            "DELETE FROM first_places WHERE beatmap_md5 = %s AND mode = %s AND "
+            "relax = %s LIMIT 1",
+            (self.bmap.md5, self.mode.value, self.c_mode.value)
+        )
+
+        # And now we insert the new one.
+        await sql.execute(
+            "INSERT INTO first_places (score_id, user_id, score, max_combo, full_combo,"
+            "mods, 300_count, 100_count, 50_count, miss_count, timestamp, mode, completed,"
+            "accuracy, pp, play_time, beatmap_md5, relax) VALUES "
+            "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (self.id, self.user_id, self.score, self.max_combo, self.full_combo,
+            self.mods.value, self.count_300, self.count_100, self.count_50, self.count_miss,
+            self.timestamp, self.mode.value, self.completed.value, self.accuracy, self.pp,
+            self.play_time, self.bmap.md5, self.c_mode.value)
+        )
+        debug("First place added.")
 
     async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
                      calc_place: bool = True, calc_pp: bool = True) -> None:
@@ -326,9 +335,13 @@ class Score:
         if clear_lbs and self.completed == Completed.BEST:
             caches.clear_lbs(self.bmap.md5, self.mode, self.c_mode)
             caches.clear_pbs(self.bmap.md5, self.mode, self.c_mode)
-        if calc_place: await self.calc_placement(True)
+        if calc_place: await self.calc_placement()
 
         await self.__insert()
+
+        # Handle first place.
+        if self.placement == 1:
+            await self.on_first_place()
 
     async def __insert(self) -> None:
         """Inserts the score directly into the database. Also assigns the

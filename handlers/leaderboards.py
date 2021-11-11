@@ -347,7 +347,7 @@ async def leaderboard_get_handler(req: Request) -> None:
         ...
 
         # If set doesn't exist, we cache current map as unavailable.
-        caches.add_nocheck_md5(md5, Status.UNAVAILABLE)
+        caches.add_nocheck_md5(md5, Status.PENDING)
         return BASIC_ERR
 
     if beatmap.deserves_update:

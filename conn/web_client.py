@@ -8,7 +8,7 @@ import aiohttp
 async def simple_get(url: str, args: dict = {}) -> str:
     """Sends a simple `GET` request to `url` with GET args `args` and returns
     the response body as a `str`."""
-    async with aiohttp.ClientSession(timeout= 5) as s:
+    async with aiohttp.ClientSession() as s:
         async with s.get(url, params=args) as res:
             return await res.text()
     
