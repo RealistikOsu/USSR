@@ -155,7 +155,7 @@ def clear_lbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
     debug("Clearing the cached leaderboards for " + md5)
 
     c = get_lb_cache(mode, c_mode)
-    c.remove_cache(md5)
+    c.drop(md5)
 
 # FIXME: This is INNEFFICIENT AS HELL. We could be doing over 500 iterations
 # per score submitted.
@@ -174,5 +174,5 @@ def clear_pbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
     for t in c.get_all_keys():
         if t[1] == md5:
             debug("Removed PB from cache.")
-            c.remove_cache(t)
+            c.drop(t)
             break

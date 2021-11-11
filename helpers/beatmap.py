@@ -70,3 +70,11 @@ async def fetch_osu_file(bmap_id: int) -> str:
     with open(path, "w") as f: f.write(m_str)
     debug(f"Beatmap cached to {path}!")
     return path
+
+def delete_osu_file(bmap_id: int):
+    """Ensures an `.osu` beatmap file is completely deleted from cache."""
+
+    path = conf.dir_maps + f"/{bmap_id}.osu"
+
+    try: os.remove(path)
+    except FileNotFoundError: pass

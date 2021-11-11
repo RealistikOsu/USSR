@@ -1,6 +1,7 @@
 from typing import (
     Optional,
-    Tuple
+    Tuple,
+    Union
 )
 import aiomysql
 import asyncio
@@ -85,7 +86,7 @@ class MySQLPool:
                 # Immidiately return it
                 return await cur.fetchone()
     
-    async def fetchcol(self, query: str, args: tuple = ()) -> Optional[int | str]:
+    async def fetchcol(self, query: str, args: tuple = ()) -> Optional[Union[int, str]]:
         """Fetches the value of a singular column from the result.
         
         Args:

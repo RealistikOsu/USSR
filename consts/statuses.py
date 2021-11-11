@@ -13,9 +13,17 @@ class Status(IntEnum):
     LOVED = 5
 
     @classmethod
-    def from_direct(self, value: int):
+    def from_direct(self, value: int) -> 'Status':
         """Convert current direct status to osu! normal."""
         return _normal_direct_conv.get(value, self.PENDING)
+    
+    @classmethod
+    def from_api(self, value: int) -> 'Status':
+        """Converts an osu!api status to a regular one."""
+
+        # This is neat thanks james
+        if value <= 0: return self.PENDING
+        else: return self(value + 1)
 
     def to_direct(self) -> int:
         """Converts osu statuses to osu!direct ones."""

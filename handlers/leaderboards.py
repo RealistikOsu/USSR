@@ -340,47 +340,45 @@ async def leaderboard_get_handler(req: Request) -> None:
     
     if not beatmap.has_leaderboard:
         # Just the header is required here.
-        print("Motherfucker exited early as no bmap lbs fuck you.")
-        print(beatmap.status)
-        return __beatmap_header(beatmap).encode()
+        debug(f"Beatmap status {beatmap.status!r} does not offer leaderboards!")
+        return __beatmap_header(beatmap)
     
     # Leaderboard types.
-    match b_filter:
-        case LeaderboardTypes.TOP:
-            scores_db, score_count = await __fetch_global(
-                beatmap,
-                mode,
-                c_mode,
-            )
+    if b_filter == LeaderboardTypes.TOP:
+        scores_db, score_count = await __fetch_global(
+            beatmap,
+            mode,
+            c_mode,
+        )
 
-            personal_best, personal_place = await __fetch_pb(
-                beatmap,
-                mode,
-                c_mode,
-                user_id,
-                scores_db,
-            )
-        
-        case LeaderboardTypes.COUNTRY:
-            country = await fetch_user_country(user_id)
-            scores_db, score_count = await __fetch_country(
-                beatmap,
-                mode,
-                c_mode,
-                country,
-            )
+        personal_best, personal_place = await __fetch_pb(
+            beatmap,
+            mode,
+            c_mode,
+            user_id,
+            scores_db,
+        )
+    
+    elif b_filter == LeaderboardTypes.COUNTRY:
+        country = await fetch_user_country(user_id)
+        scores_db, score_count = await __fetch_country(
+            beatmap,
+            mode,
+            c_mode,
+            country,
+        )
 
-            personal_best, personal_place = await __fetch_country_pb(
-                beatmap,
-                mode,
-                c_mode,
-                user_id,
-                scores_db,
-            )
-        
-        case x:
-            debug(f"Requested unhandled leaderboard type! ({x!r})")
-            return BASIC_ERR
+        personal_best, personal_place = await __fetch_country_pb(
+            beatmap,
+            mode,
+            c_mode,
+            user_id,
+            scores_db,
+        )
+    
+    else:
+        debug(f"Requested unhandled leaderboard type! ({b_filter!r})")
+        return BASIC_ERR
 
     result = "\n".join((
         __beatmap_header(beatmap, score_count),
@@ -390,4 +388,4 @@ async def leaderboard_get_handler(req: Request) -> None:
 
     info(f"Served leaderboards for {beatmap.song_name}!")
     
-    return result.encode()
+    return result
