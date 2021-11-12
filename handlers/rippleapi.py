@@ -39,7 +39,7 @@ async def pp_handler(request: Request):
     acc_str = request.get_args.get("a")
     accuracy = float(acc_str) if acc_str else None
     combo = int(request.get_args.get("max_combo", 0))
-    c_mode = CustomModes.from_mods(mods)
+    c_mode = CustomModes.from_mods(mods, mode)
     do_tillerino = accuracy is None
 
     # Get our calculator.

@@ -120,6 +120,7 @@ class Score:
         user_id = await caches.name.id_from_safe(safe_name(username))
         bmap = await Beatmap.from_md5(map_md5)
         mods = Mods(int(score_data[13]))
+        mode = Mode(int(score_data[15]))
 
         s = Score(
             0, bmap, user_id,
@@ -129,7 +130,7 @@ class Score:
             score_data[14] == "True",
             req.post_args.get("x") == "1",
             mods,
-            CustomModes.from_mods(mods),
+            CustomModes.from_mods(mods, mode),
             int(score_data[3]),
             int(score_data[4]),
             int(score_data[5]),
@@ -137,7 +138,7 @@ class Score:
             int(score_data[6]),
             int(score_data[8]),
             get_timestamp(),
-            Mode(int(score_data[15])),
+            mode,
             None,
             0.0,
             0.0,
@@ -202,7 +203,7 @@ class Score:
         # Check if it remains.
         ex_db = await sql.fetchcol(
             f"SELECT 1 FROM {table} WHERE " + query + " LIMIT 1",
-            (self.user_id, self.bmap.md5)
+            args
         )
 
         if not ex_db:
@@ -420,8 +421,8 @@ class Score:
         quit = completed == Completed.QUIT
         bmap = bmap or await Beatmap.from_md5(tup[1])
         mods = Mods(tup[6])
-        c_mode = CustomModes.from_mods(mods)
         mode = Mode(tup[14])
+        c_mode = CustomModes.from_mods(mods, mode)
 
         return Score(
             id= tup[0],

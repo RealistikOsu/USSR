@@ -1,5 +1,7 @@
 from enum import IntEnum
+from typing import Optional
 from .mods import Mods
+from .modes import Mode
 
 class CustomModes(IntEnum):
     """An enumeration of the custom modes implemented by the private server."""
@@ -15,10 +17,12 @@ class CustomModes(IntEnum):
         return _db_suffixes[self.value]
     
     @classmethod
-    def from_mods(self, mods: Mods) -> 'CustomModes':
+    def from_mods(self, mods: Mods, mode: Optional[Mode] = None) -> 'CustomModes':
         """Creates an instance of `CustomModes` from a mod combo."""
 
-        if mods & Mods.AUTOPILOT: return CustomModes.AUTOPILOT
+        # Mania only supports vanilla
+        if mode is Mode.MANIA: return CustomModes.VANILLA
+        elif mods & Mods.AUTOPILOT: return CustomModes.AUTOPILOT
         elif mods & Mods.RELAX: return CustomModes.RELAX
         return CustomModes.VANILLA
     

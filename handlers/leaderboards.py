@@ -329,7 +329,7 @@ async def leaderboard_get_handler(req: Request) -> None:
     s_ver = int(req.get_args["vv"])
     b_filter = LeaderboardTypes(int(req.get_args["v"]))
     set_id = int(req.get_args["i"])
-    c_mode = CustomModes.from_mods(mods)
+    c_mode = CustomModes.from_mods(mods, mode)
 
     # Simple checks to catch out cheaters and tripwires.
     if not validate_md5(md5): return BASIC_ERR

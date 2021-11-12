@@ -59,7 +59,8 @@ class MySQLPool:
             port= port,
             user= user,
             password= password,
-            db = database
+            db = database,
+            pool_recycle= False, # Causes rather large issues.
         )
     
     async def fetchone(self, query: str, args: tuple = ()) -> Optional[tuple]:
