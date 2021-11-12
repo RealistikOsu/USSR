@@ -2,7 +2,9 @@ from logger import error, info, warning
 from lenhttp import Application, Endpoint
 from config import conf
 from redis_pubsub.router import pubsub_executor
+from pp.main import build_oppai, verify_oppai
 import traceback
+import argparse
 
 # Uvloop is a significantly faster loop.
 try:
@@ -80,26 +82,50 @@ async def perform_startup():
         error("Error creating Redis PubSub listeners! " + traceback.format_exc())
         raise SystemExit(1)
 
-app = Application(
-    port= conf.http_port,
-    logging= conf.framework_log,
-    routes= [
-        # osu web endpoints
-        Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
-        Endpoint("/web/osu-search.php", direct_get_handler),
-        Endpoint("/web/osu-search-set.php", get_set_handler),
-        Endpoint("/d/<map_id>", download_map),
-        Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
-        Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
-        Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
-        # Ripple API endpoints
-        Endpoint("/api/v1/status", status_handler),
-        Endpoint("/api/v1/pp", pp_handler),
-        # Web Endpoints
-        Endpoint("/web/replays/<score_id>", get_full_replay_handler),
-    ]
-)
+def server_start():
+    """Handles a regular start of the server."""
 
-if __name__ == "__main__":
+    app = Application(
+        port= conf.http_port,
+        logging= conf.framework_log,
+        routes= [
+            # osu web endpoints
+            Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
+            Endpoint("/web/osu-search.php", direct_get_handler),
+            Endpoint("/web/osu-search-set.php", get_set_handler),
+            Endpoint("/d/<map_id>", download_map),
+            Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
+            Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
+            Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
+            # Ripple API endpoints
+            Endpoint("/api/v1/status", status_handler),
+            Endpoint("/api/v1/pp", pp_handler),
+            # Web Endpoints
+            Endpoint("/web/replays/<score_id>", get_full_replay_handler),
+        ]
+    )
+
     app.add_task(perform_startup)
     app.start()
+
+# tuples of checker and fixer functions.
+DEPENDENCIES = (
+    (verify_oppai, build_oppai),
+)
+
+def ensure_dependencies():
+    """Checks if all dependencies are met, and if not, attempts to fix them."""
+
+    for checker, fixer in DEPENDENCIES:
+        if not checker():
+            warning(f"Dependency {checker.__name__} not met! Attempting to fix...")
+            try:
+                fixer()
+                info("Dependency fixed!")
+            except Exception:
+                error("Error fixing dependency!" + traceback.format_exc())
+                raise SystemExit(1)
+
+if __name__ == "__main__":
+    ensure_dependencies()
+    server_start()

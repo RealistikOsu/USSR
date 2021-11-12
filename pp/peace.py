@@ -25,6 +25,7 @@ class CalculatorPeace:
         self.combo: int = None
         self.score: int = None
         self.acc: float = None
+        self.miss: int  = None
     
     @classmethod
     def from_score(cls, score: 'Score') -> 'CalculatorPeace':
@@ -41,6 +42,7 @@ class CalculatorPeace:
         calc.katu = score.count_katu
         calc.combo = score.max_combo
         calc.acc = score.accuracy
+        calc.miss = score.count_miss
         return calc
     
     async def calculate(self) -> tuple[float]:
@@ -53,7 +55,9 @@ class CalculatorPeace:
             The PP for the score.
         """
 
-        b = Beatmap(await fetch_osu_file(self.bmap_id))
+        path = await fetch_osu_file(self.bmap_id)
+
+        b = Beatmap(path)
         c = Calculator(
             mode= self.mode,
             mods= self.mods,
@@ -64,6 +68,7 @@ class CalculatorPeace:
             combo= self.combo,
             score= self.score,
             acc= self.acc,
+            miss= self.miss,
         )
 
         res = c.calculate(b)

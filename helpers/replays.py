@@ -7,13 +7,18 @@ from libs.crypt import hash_md5, ts_to_utc_ticks
 from libs.bin import BinaryWriter
 import os
 
+def get_replay_path(score_id: int, c_mode: CustomModes) -> str:
+    """Gets the path of a replay with the given ID."""
+
+    suffix = c_mode.to_db_suffix()
+    return conf.dir_replays + f"{suffix}/replay_{score_id}.osr"
+
 async def read_replay(score_id: int, c_mode: CustomModes) -> Optional[bytes]:
     """Reads a replay with the ID from the fs."""
 
-    suffix = c_mode.to_db_suffix()
-    path = conf.dir_replays + f"{suffix}/replay_{score_id}.osr"
+    path = get_replay_path(score_id, c_mode)
     # Check if it exists.
-    #if not os.path.exists(path): return
+    if not os.path.exists(path): return
     # TODO: Async file reading.
     with open(path, "rb") as f:
         return f.read()
@@ -21,8 +26,7 @@ async def read_replay(score_id: int, c_mode: CustomModes) -> Optional[bytes]:
 async def write_replay(score_id: int, rp: bytes, c_mode: CustomModes) -> None:
     """Writes the replay to storage."""
 
-    suffix = c_mode.to_db_suffix()
-    path = conf.dir_replays + f"{suffix}/replay_{score_id}.osr"
+    path = get_replay_path(score_id, c_mode)
 
     with open(path, "wb") as f:
         f.write(rp)
@@ -30,7 +34,7 @@ async def write_replay(score_id: int, rp: bytes, c_mode: CustomModes) -> None:
 # Variables used in the headers.
 OSU_VERSION = 20211103
 
-def build_full_replay(s: Score) -> BinaryWriter:
+def build_full_replay(s: Score) -> Optional[BinaryWriter]:
     """Builds a full osu! replay featuring headers for download on the web.
     
     Args:
@@ -41,8 +45,7 @@ def build_full_replay(s: Score) -> BinaryWriter:
     # TODO: This is uhh memory intensive...
     # TODO: Maybe do file caching?
 
-    suffix = s.c_mode.to_db_suffix()
-    path = conf.dir_replays + f"{suffix}/replay_{s.id}.osr"
+    path = get_replay_path(s.id, s.c_mode)
 
     if not os.path.exists(path):
         debug(f"Replay {s.id}.osr does not exist.")

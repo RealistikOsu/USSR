@@ -33,8 +33,8 @@ async def get_replay_web_handler(req: Request) -> bytes:
     _play_mode, user_id = score_data_db
     mode = Mode(_play_mode)
 
-    try: rp = await read_replay(score_id, c_mode)
-    except FileNotFoundError:
+    rp = await read_replay(score_id, c_mode)
+    if not rp:
         error(f"Requested non-existent replay file {score_id}.osr")
         return ERR_NOT_FOUND
 

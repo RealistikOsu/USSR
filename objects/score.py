@@ -390,7 +390,8 @@ class Score:
         )
 
     @classmethod
-    async def from_db(cls, score_id: int, c_mode: CustomModes) -> Optional['Score']:
+    async def from_db(cls, score_id: int, c_mode: CustomModes,
+                      calc_placement: bool = True) -> Optional['Score']:
         """Creates an instance of `Score` using data fetched from the
         database.
         
@@ -398,6 +399,8 @@ class Score:
             score_id (int): The ID of the score within the database.
             table (str): The table the score should be loacted within 
                 (directly formatted into the query).
+            calc_placement (bool): Whether the placement of the score should be
+                calculated.
         """
 
         table = c_mode.db_table
@@ -441,6 +444,6 @@ class Score:
             sr= 0.0,
             username= s_db[19]
         )
-        await s.calc_placement()
+        if calc_placement: await s.calc_placement()
 
         return s
