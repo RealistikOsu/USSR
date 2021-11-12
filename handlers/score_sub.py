@@ -88,7 +88,7 @@ async def score_submit_handler(req: Request) -> str:
         debug("Fetching previous best to compare.")
         prev_db = await conn.sql.fetchone(
             f"SELECT id FROM {stats.c_mode.db_table} WHERE userid = %s AND "
-            f"beatmap_md5 = %s WHERE completed = 3 AND play_mode = {s.mode.value} DESC LIMIT 1",
+            f"beatmap_md5 = %s AND completed = 3 AND play_mode = {s.mode.value} LIMIT 1",
             (s.user_id, s.bmap.md5)
         )
 

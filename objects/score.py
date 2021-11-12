@@ -29,7 +29,7 @@ SELECT
     s.userid,
     s.score,
     s.max_combo,
-    s.fullcombo,
+    s.full_combo,
     s.mods,
     s.300_count,
     s.100_count,
@@ -37,7 +37,7 @@ SELECT
     s.katus_count,
     s.gekis_count,
     s.misses_count,
-    s.timestamp,
+    s.time,
     s.play_mode,
     s.completed,
     s.accuracy,
@@ -209,31 +209,10 @@ class Score:
             self.completed = Completed.BEST
             return self.completed
         
-        # Now we check for mod bests.
-        await sql.execute(
-            f"UPDATE {table} SET completed = {Completed.COMPLETE.value} WHERE "
-            f"completed = {Completed.MOD_BEST.value} AND userid = %s AND "
-            f"play_mode = {self.mode.value} AND beatmap_md5 = %s AND mods = %s "
-            f"AND {scoring} < %s LIMIT 1", (self.user_id, self.bmap.md5,
-            self.mods.value, val)
-        )
-
-        mod_ex_db = await sql.fetchcol(
-            f"SELECT 1 FROM {table} WHERE mods = %s AND play_mode = %s AND "
-            "userid = %s AND beatmap_md5 = %s AND mods = %s AND "
-            f"completed = {Completed.MOD_BEST.value} LIMIT 1",
-            (self.mods.value, self.mode.value, self.user_id, self.bmap.md5,
-            self.mods.value)
-        )
-
-        if mod_ex_db:
-            debug("Calculated simple completed.")
-            self.completed = Completed.COMPLETE
-            return self.completed
-        
-        debug("Calculated mod best!")
-        self.completed = Completed.MOD_BEST
+      
+        self.completed = Completed.COMPLETE
         return self.completed
+        # TODO: Mod bests
     
     async def calc_placement(self) -> int:
         """Calculates the placement of the score on the leaderboards.
@@ -423,7 +402,7 @@ class Score:
         
         Format:
             The tuple must feature the following arguments in the specific order:
-            id, beatmap_md5, userid, score, max_combo, fullcombo, mods, 300_count,
+            id, beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count,
             100_count, 50_count, katus_count, gekis_count, misses_count, timestamp,
             play_mode, completed, accuracy, pp, playtime, username.
         
@@ -467,7 +446,10 @@ class Score:
             username= tup[19],
             passed= passed,
             quit= quit,
-            c_mode= c_mode
+            c_mode= c_mode,
+            placement= 0,
+            sr= 0.0,
+            grade= "X",
         )
 
     @classmethod
