@@ -96,7 +96,7 @@ class Beatmap:
 
         # We now create the object with the data.
         # NOTE: All values sent by oapi v1 are strings.
-        bmap = Beatmap(
+        bmap = cls(
             id= int(map_json["beatmap_id"]),
             set_id= int(map_json["beatmapset_id"]),
             md5= md5,
@@ -118,7 +118,7 @@ class Beatmap:
         return bmap
     
     @classmethod
-    async def from_db(self, md5: str) -> Optional['Beatmap']:
+    async def from_db(cls, md5: str) -> Optional['Beatmap']:
         """Fetches data from MySQL and creates an instance of `Beatmap` from it.
         
         Args:
@@ -142,7 +142,7 @@ class Beatmap:
 
         debug("Beatmap fetched from the MySQL database.")
 
-        return Beatmap(
+        return cls(
             id= map_db[0],
             set_id= map_db[1],
             md5= map_db[2],

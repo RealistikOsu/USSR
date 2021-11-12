@@ -22,6 +22,34 @@ import base64
 # PP Calculators
 from pp.main import select_calculator
 
+FETCH_SCORE = """
+SELECT
+    s.id,
+    s.beatmap_md5,
+    s.userid,
+    s.score,
+    s.max_combo,
+    s.fullcombo,
+    s.mods,
+    s.300_count,
+    s.100_count,
+    s.50_count,
+    s.katus_count,
+    s.gekis_count,
+    s.misses_count,
+    s.timestamp,
+    s.play_mode,
+    s.completed,
+    s.accuracy,
+    s.pp,
+    s.playtime,
+    a.username
+FROM {table} s
+INNER JOIN users a ON s.userid = a.id
+WHERE {cond}
+LIMIT {limit}
+"""
+
 @dataclass
 class Score:
     """A class representing a singular score set on a beatmap."""
@@ -388,6 +416,59 @@ class Score:
             f"UPDATE {self.c_mode.db_table} SET pp = %s WHERE id = %s LIMIT 1",
             (self.pp, self.id)
         )
+    
+    @classmethod
+    async def from_tuple(cls, tup: tuple, bmap: Optional[Beatmap] = None) -> 'Score':
+        """Creates an instance of `Score` form a tuple straight from MySQL.
+        
+        Format:
+            The tuple must feature the following arguments in the specific order:
+            id, beatmap_md5, userid, score, max_combo, fullcombo, mods, 300_count,
+            100_count, 50_count, katus_count, gekis_count, misses_count, timestamp,
+            play_mode, completed, accuracy, pp, playtime, username.
+        
+        Args:
+            tup (tuple): The tuple to create the score from.
+            bmap (Beatmap, optional): The beatmap to use. If not provided, will be
+                manually fetched.
+        
+        Returns:
+            Score: The score object.
+        """
+
+        completed = Completed(tup[15])
+        passed = completed.completed
+        quit = completed == Completed.QUIT
+        bmap = bmap or await Beatmap.from_md5(tup[1])
+        mods = Mods(tup[6])
+        c_mode = CustomModes.from_mods(mods)
+        mode = Mode(tup[14])
+
+        return Score(
+            id= tup[0],
+            bmap= bmap,
+            user_id= tup[2],
+            score= tup[3],
+            max_combo= tup[4],
+            full_combo= bool(tup[5]),
+            mods= mods,
+            count_300= tup[7],
+            count_100= tup[8],
+            count_50= tup[9],
+            count_katu= tup[10],
+            count_geki= tup[11],
+            count_miss= tup[12],
+            timestamp= int(tup[13]),
+            mode= mode,
+            completed= completed,
+            accuracy= tup[16],
+            pp= tup[17],
+            play_time= tup[18],
+            username= tup[19],
+            passed= passed,
+            quit= quit,
+            c_mode= c_mode
+        )
 
     @classmethod
     async def from_db(cls, score_id: int, c_mode: CustomModes,
@@ -405,45 +486,16 @@ class Score:
 
         table = c_mode.db_table
         s_db = await sql.fetchone(
-            f"SELECT s.*, a.username FROM {table} s INNER JOIN users a "
-            "ON s.userid = a.id WHERE s.id = %s LIMIT 1",
-            (score_id,)
+            FETCH_SCORE.format(
+                table= table,
+                cond= "s.id = %s",
+                limit= "1",
+            ), (score_id,)
         )
 
-        if s_db is None:
-            # Score not found in db.
-            return None
-
-        bmap = await Beatmap.from_md5(s_db[1])
-
-        s = Score(
-            id= s_db[0], 
-            bmap= bmap, 
-            user_id= s_db[2],
-            score= s_db[3], 
-            max_combo= s_db[4], 
-            full_combo= s_db[5],
-            passed= True, 
-            quit= False, 
-            mods= Mods(s_db[6]),
-            c_mode= c_mode,
-            count_300= s_db[7], 
-            count_100= s_db[8], 
-            count_50= s_db[9], 
-            count_katu= s_db[10],
-            count_geki= s_db[11], 
-            count_miss= s_db[12], 
-            timestamp= int(s_db[13]),
-            mode= Mode(s_db[14]), 
-            completed= Completed(s_db[15]),
-            accuracy= s_db[16], 
-            pp= s_db[17], 
-            play_time= s_db[18], 
-            placement= 0, 
-            grade= "",
-            sr= 0.0,
-            username= s_db[19]
-        )
+        if not s_db: return
+        s = await cls.from_tuple(s_db)
+       
         if calc_placement: await s.calc_placement()
 
         return s

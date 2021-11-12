@@ -11,9 +11,18 @@ from config import conf
 import traceback
 import os
 
+SS_DELAY = 10 # Seconds per screenshot.
+async def is_ratelimit(ip: str) -> bool:
+    """Checks if an IP is ratelimited from taking screenshots. If not,
+    it establises the limit in Redis."""
+
+    rl_key = "ussr:ss_limit:" + ip
+    if await redis.get(rl_key): return True
+    await redis.set(rl_key, 1, expire= SS_DELAY)
+    return False
+
 FS_LIMIT = 500000 # Rosu screenshots don't exceed this.
 ERR_RESP = "https://c.ussr.pl/" # We do a lil trolley.
-SS_DELAY = 30 # Seconds per screenshot.
 SS_NAME_LEN = 8
 async def upload_image_handler(req: Request) -> str:
     """Handles screenshot uploads (POST /web/osu-screenshot.php)."""
@@ -29,9 +38,7 @@ async def upload_image_handler(req: Request) -> str:
     if req.headers.get("user-agent") != "osu!": return ERR_RESP
 
     # LETS style ratelimit.
-    rl_key = "ussr:ss_limit:" + req.headers["X-Real-IP"] # Use IP.
-    if await redis.get(rl_key): return ERR_RESP
-    await redis.set(rl_key, 1, expire= SS_DELAY)
+    if await is_ratelimit(req.headers["x-real-ip"]): return ERR_RESP
 
     # Working with files.
     try:

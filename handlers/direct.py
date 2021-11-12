@@ -1,3 +1,4 @@
+# TODO: Cleanup
 import traceback
 import requests
 from random import randint, shuffle

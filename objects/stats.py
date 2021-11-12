@@ -120,7 +120,8 @@ class Stats:
                 this will not run.
         """
 
-        if self._required_recalc_pp and _run_pp is not None and _run_pp < self._required_recalc_pp:
+        if self._required_recalc_pp and _run_pp is not None \
+           and _run_pp < self._required_recalc_pp:
             self.pp += await self.__calc_bonus_pp() # Calculate the bonus.
             debug("Bypassed full PP and acc recalc for user: score didnt meet top 100.")
             return
@@ -144,7 +145,7 @@ class Stats:
         # Big brain optimisation to stop this being uselessly ran.
         if idx == 99: self._required_recalc_pp = s_pp
   
-        self.accuracy = (t_acc * (100.0 / (20 * (1 - 0.95 ** len(scores_db))))) / 100
+        self.accuracy = (t_acc * (100.0 / (20 * (1 - 0.95 ** (idx + 1))))) / 100
         self.pp = t_pp + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp
