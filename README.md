@@ -2,7 +2,7 @@
 Ultimate Score Server for RealistikOsu (well not just us but it makes the acronym work.)
 *Also I wonder how long this name will last*.
 
-![Speed FLex](https://user-images.githubusercontent.com/36131887/141372213-87f7549a-c5b3-4e3f-8df0-e7d5112f59f8.png)
+![Speed FLex](https://i.imgur.com/31fYbHP.png)
 
 
 ## What is this?

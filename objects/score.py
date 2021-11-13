@@ -503,7 +503,7 @@ class Score:
         Format:
             The tuple has objects in the following order:
             id, <scoring>, max_combo, 50_count, 100_count, 300_count, misses_count,
-            katus_count, gekis_count, full_combo, mods, time, username, id, pp
+            katus_count, gekis_count, full_combo, mods, time, username, user_id, pp
         """
 
         scoring = self.pp if pp_board else self.score
@@ -512,5 +512,5 @@ class Score:
             self.id, scoring, self.max_combo, self.count_50, self.count_100,
             self.count_300, self.count_miss, self.count_katu, self.count_geki,
             int(self.full_combo), self.mods.value, self.timestamp, self.username,
-            self.id, self.pp
+            self.user_id, self.pp
         )

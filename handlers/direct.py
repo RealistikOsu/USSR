@@ -57,9 +57,10 @@ async def get_set_handler(req: Request) -> None:
     }
 
     info(f"{nick} requested osu!direct set search!")
-    bancho_response = await simple_get("https://old.ppy.sh/web/osu-search-set.php", bancho_params)
-    if bancho_response:
-        return bancho_response.encode()
+    if conf.bancho_mirror:
+        bancho_response = await simple_get("https://old.ppy.sh/web/osu-search-set.php", bancho_params)
+        if bancho_response:
+            return bancho_response.encode()
 
     if "b" in req.get_args:
         bmap_id = req.get_args.get("b")
@@ -110,9 +111,10 @@ async def direct_get_handler(req: Request) -> None:
         mirror_params['mode'] = mode
     info(f"{nick} requested osu!direct search with query: {mirror_params.get('query') or 'None'}")
 
-    bancho_response = await simple_get("https://old.ppy.sh/web/osu-search.php", bancho_params)
-    if status in (Status.RANKED, Status.LOVED):
-        return bancho_response.encode()
+    if conf.bancho_mirror:
+        bancho_response = await simple_get("https://old.ppy.sh/web/osu-search.php", bancho_params)
+        if status in (Status.RANKED, Status.LOVED):
+            return bancho_response.encode()
 
     try:
         direct_resp = await simple_get_json(URI_SEARCH, mirror_params)

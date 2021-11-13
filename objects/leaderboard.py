@@ -295,15 +295,17 @@ class GlobalLeaderboard:
 
         Note:
             Raises `ValueError` if no such score exists. It is recommended
-            to use `user_in_top` prior.
+            to use `user_has_score` prior.
 
         Args:
             user_id (int): The database ID of the user.
         """
 
         if user_id in self._scores:
-            del self._scores[user_id]
+            try: del self._scores[user_id]
+            except KeyError: pass
             self.users.remove(user_id)
+            self.total_scores -= 1
     
     def insert_user_score(self, s: 'Score') -> None:
         """Inserts a score into the leaderboard in the appropriate order.
@@ -313,12 +315,12 @@ class GlobalLeaderboard:
         """
 
         # Check if user is in the leaderboard so we can remove his score.
-        if self.user_in_top(s.user_id): self.remove_user_score(s.user_id)
-        if self.user_has_score(s.user_id): self.users.remove(s.user_id)
+        if self.user_has_score(s.user_id): self.remove_user_score(s.user_id)
         
         # Calculate positioning. TODO: Optimize this. The dict reconstruction
         # is only necessary as i don't think there is an option to insert
         # at an index to a dict.
+        self.total_scores += 1
         place_idx = -1
         scoring = s.pp if self.c_mode.uses_ppboard else s.score
         for idx, score in enumerate(self.scores):
