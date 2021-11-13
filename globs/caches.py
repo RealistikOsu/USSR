@@ -23,33 +23,10 @@ achievements = []
 
 # General Caches.
 beatmaps = Cache(cache_length= 120, cache_limit= 1000)
+leaderboards = Cache(cache_length= 240, cache_limit= 100_000)
 
 # Cache for statuses that require an api call to get. md5: status
 no_check_md5s: dict[str, 'Status'] = {}
-
-# Leaderboard caches.
-vn_std   = Cache(cache_length= 120, cache_limit= 1000)
-vn_taiko = Cache(cache_length= 120, cache_limit= 1000)
-vn_catch = Cache(cache_length= 120, cache_limit= 1000)
-vn_mania = Cache(cache_length= 120, cache_limit= 1000)
-
-rx_std   = Cache(cache_length= 120, cache_limit= 1000)
-rx_taiko = Cache(cache_length= 120, cache_limit= 1000)
-rx_catch = Cache(cache_length= 120, cache_limit= 1000)
-
-ap_std   = Cache(cache_length= 120, cache_limit= 1000)
-
-# Leaderboard caches (personal best edition).
-vn_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
-vn_taiko_pb = Cache(cache_length= 120, cache_limit= 1000)
-vn_catch_pb = Cache(cache_length= 120, cache_limit= 1000)
-vn_mania_pb = Cache(cache_length= 120, cache_limit= 1000)
-
-rx_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
-rx_taiko_pb = Cache(cache_length= 120, cache_limit= 1000)
-rx_catch_pb = Cache(cache_length= 120, cache_limit= 1000)
-
-ap_std_pb   = Cache(cache_length= 120, cache_limit= 1000)
 
 # Stats cache. Key = tuple[CustomModes, Mode, user_id]
 stats_cache = Cache(cache_length= 240, cache_limit= 300)
@@ -62,46 +39,6 @@ def add_nocheck_md5(md5: str, st: 'Status') -> None:
     """
 
     no_check_md5s[md5] = st
-
-def get_lb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
-    """Returns a cache for the given `mode`, `c_mode` combo."""
-
-    if c_mode.value == CustomModes.AUTOPILOT: return ap_std
-    elif c_mode.value == CustomModes.RELAX: return _rx_lb_dict[mode.value]
-    else: return _vn_lb_dict[mode.value]
-
-def get_pb_cache(mode: Mode, c_mode: CustomModes) -> Cache:
-    """Returns a cache for the given `mode`, `c_mode` combo."""
-
-    if c_mode.value == CustomModes.AUTOPILOT: return ap_std_pb
-    elif c_mode.value == CustomModes.RELAX: return _rx_lb_dict_pb[mode.value]
-    else: return _vn_lb_dict_pb[mode.value]
-
-_rx_lb_dict = {
-    Mode.STANDARD: rx_std,
-    Mode.TAIKO: rx_taiko,
-    Mode.CATCH: rx_catch
-}
-
-_vn_lb_dict = {
-    Mode.STANDARD: vn_std,
-    Mode.TAIKO: vn_taiko,
-    Mode.CATCH: vn_catch,
-    Mode.MANIA: vn_mania
-}
-
-_rx_lb_dict_pb = {
-    Mode.STANDARD: rx_std_pb,
-    Mode.TAIKO: rx_taiko_pb,
-    Mode.CATCH: rx_catch_pb
-}
-
-_vn_lb_dict_pb = {
-    Mode.STANDARD: vn_std_pb,
-    Mode.TAIKO: vn_taiko_pb,
-    Mode.CATCH: vn_catch_pb,
-    Mode.MANIA: vn_mania_pb
-}
 
 #CACHE_INITS = (
 #    name.full_load,
@@ -153,42 +90,3 @@ async def check_auth(n: str, pw_md5: str) -> bool:
     # Get user_id from cache.
     user_id = await name.id_from_safe(s_name)
     return await password.check_password(user_id, pw_md5)
-
-def clear_lbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
-    """Clears the leaderboards for a given map, mode and c_mode combo.
-    
-    Note:
-        This does NOT refresh them.
-        Does NOT raise an exception if lb is not already cached.
-
-    Args:
-        md5 (md5): The MD5 hash for the beatmap to clear the lb for.
-        mode (Mode): The in-game mode of the leaderboard to clear.
-        c_mode (CustomModes): The custom mode of the leaderboard to
-            clear.
-    """
-
-    debug("Clearing the cached leaderboards for " + md5)
-
-    c = get_lb_cache(mode, c_mode)
-    c.drop(md5)
-
-# FIXME: This is INNEFFICIENT AS HELL. We could be doing over 500 iterations
-# per score submitted.
-def clear_pbs(md5: str, mode: Mode, c_mode: CustomModes) -> None:
-    """Clears all personal bests cached for a given beatmap.
-    
-    Args:
-        md5 (md5): The MD5 hash for the beatmap to clear the lb for.
-        mode (Mode): The in-game mode of the leaderboard to clear.
-        c_mode (CustomModes): The custom mode of the leaderboard to
-            clear.
-    """
-
-    c = get_pb_cache(mode, c_mode)
-
-    for t in c.get_all_keys():
-        if t[1] == md5:
-            debug("Removed PB from cache.")
-            c.drop(t)
-            break

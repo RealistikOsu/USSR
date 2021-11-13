@@ -87,33 +87,9 @@ class Beatmap:
             return debug(f"Beatmap {md5} not found in the api.")
         map_json, = found_beatmaps
         debug(f"Beatmap fetched from the osu!api v1!\n {map_json!r}")
-        song_name = _create_full_name(
-            artist= map_json["artist"],
-            title= map_json["title"],
-            difficulty= map_json["version"]
-        )
-        max_combo = int(mc) if (mc := map_json["max_combo"]) else 0
-
-        # We now create the object with the data.
-        # NOTE: All values sent by oapi v1 are strings.
-        bmap = cls(
-            id= int(map_json["beatmap_id"]),
-            set_id= int(map_json["beatmapset_id"]),
-            md5= md5,
-            song_name= song_name,
-            ar= float(map_json["diff_approach"]),
-            od= float(map_json["diff_overall"]),
-            mode= Mode(int(map_json["mode"])), # You may not have to int it.
-            max_combo= max_combo,
-            hit_length= int(map_json["hit_length"]),
-            bpm= round(float(map_json["bpm"])),
-            last_update= get_timestamp()
-        )
-        # Set star diff for the main mode.
-        bmap.__setattr__(
-            _diff_attribs[bmap.mode.value],
-            round(float(map_json["difficultyrating"]), 2)
-        )
+        
+        # Create the object
+        bmap = cls.from_oapi_v1_dict(map_json)
 
         return bmap
     
@@ -323,21 +299,23 @@ class Beatmap:
             (st, self.md5)
         )
     
-    async def try_update(self) -> bool:
-        """Attempts to update the map using the osu!api v1. Returns a bool
-        stating whether an update occured."""
+    async def try_update(self) -> Optional["Beatmap"]:
+        """Attempts to update the map using the osu!api v1. Returns `None` if
+        there has been no update or only the status has been updated, else
+        deletes the current beatmap from cache and MySQL and inserts the new one.
+        Additionally, it will return the new object."""
 
         debug(f"Fetching update check request for {self.song_name} ({self.id})")
         try:
             found_beatmaps = await oapi.get_bmap_from_id(self.id)
         except Exception:
             error("Failed to fetch update data from the osu!api. Will try later.")
-            return False
+            return None
         if not found_beatmaps:
             debug(f"Beatmap {self.song_name} has been deleted from bancho! "
                    "Keeping in the database and freezing for historical reasons.")
             
-            return False
+            return None
         
         
         map_json = found_beatmaps[0]
@@ -346,12 +324,15 @@ class Beatmap:
         if map_json["file_md5"] == self.md5 and (st == self.status or self.status_frozen):
             debug("The MD5s of the beatmaps matched! Already up-to-date!")
             await self.update_last_update()
-            return False
+            return None
         elif map_json["file_md5"] == self.md5 and st != self.status and not self.status_frozen:
             debug("The MD5s of the beatmaps matched! Updating status.")
             await self.update_status(st)
             await self.update_last_update()
-            return False        
+            return None  
+
+        # Make sure that everything that holds a reference to this knows we are outdated.
+        self.status = Status.UPDATE_AVAILABLE      
         
         # Delete cached `.osu`
         delete_osu_file(self.id)
@@ -365,6 +346,30 @@ class Beatmap:
         # Cache the old one as update available.
         add_nocheck_md5(self.md5, Status.UPDATE_AVAILABLE)
 
+        # Create a new object from the new data.
+        new_beatmap = Beatmap.from_oapi_v1_dict(map_json)
+
+        # Insert our new one.
+        await new_beatmap.insert_db()
+        new_beatmap.cache()
+
+        info(f"Updated {new_beatmap.song_name} ({new_beatmap.id}) using osu!api")
+
+        return new_beatmap
+    
+    @classmethod
+    def from_oapi_v1_dict(cls, map_json: dict) -> "Beatmap":
+        """Creates a Beatmap object from a dictionary returned by the osu!api.
+        
+        Args:
+            map_json (dict): The dictionary returned by the osu!api.
+        
+        Returns:
+            Beatmap: The Beatmap object.
+        """
+
+        st = Status.from_api(int(map_json["approved"]))
+
         song_name = _create_full_name(
             artist= map_json["artist"],
             title= map_json["title"],
@@ -374,31 +379,33 @@ class Beatmap:
 
         # We now create the object with the data.
         # NOTE: All values sent by oapi v1 are strings.
-        self.id= int(map_json["beatmap_id"]),
-        self.set_id= int(map_json["beatmapset_id"]),
-        self.md5= map_json["file_md5"],
-        self.song_name= song_name,
-        self.ar= float(map_json["diff_approach"]),
-        self.od= float(map_json["diff_overall"]),
-        self.mode= Mode(int(map_json["mode"])), # You may not have to int it.
-        self.max_combo= max_combo,
-        self.hit_length= int(map_json["hit_length"]),
-        self.bpm= round(float(map_json["bpm"])),
-        self.last_update= get_timestamp()
-        self.status= st
-        
+        bmap = cls(
+            id= int(map_json["beatmap_id"]),
+            set_id= int(map_json["beatmapset_id"]),
+            md5= map_json["file_md5"],
+            song_name= song_name,
+            ar= float(map_json["diff_approach"]),
+            od= float(map_json["diff_overall"]),
+            mode= Mode(int(map_json["mode"])), # You may not have to int it.
+            max_combo= max_combo,
+            hit_length= int(map_json["hit_length"]),
+            bpm= round(float(map_json["bpm"])),
+            last_update= get_timestamp(),
+            status= st,
+            # These will be set later
+            star_diff_std= 0.0,
+            star_diff_taiko= 0.0,
+            star_diff_ctb= 0.0,
+            star_diff_mania= 0.0,
+        )
+
         # Set star diff for the main mode.
-        self.__setattr__(
-            _diff_attribs[self.mode.value],
+        bmap.__setattr__(
+            _diff_attribs[bmap.mode.value],
             round(float(map_json["difficultyrating"]), 2)
         )
 
-        # Insert our new one.
-        await self.insert_db()
-
-        info(f"Updated {self.song_name} ({self.id}) using osu!api")
-
-        return True
+        return bmap
 
 _diff_attribs = {
     Mode.STANDARD: "difficulty_std",

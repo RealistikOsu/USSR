@@ -9,9 +9,10 @@ class Timer:
         self.start_time = 0
         self.end_time = 0
 
-    def start(self) -> None:
+    def start(self) -> "Timer":
         """Begins the timer."""
         self.start_time = time.time()
+        return self
 
     def end(self) -> float:
         """Ends the timer and returns final time."""
@@ -24,8 +25,7 @@ class Timer:
 
     def reset(self) -> None:
         """Resets the timer."""
-        self.end_time = 0
-        self.start_time = 0
+        self.end_time = self.start_time = 0
 
     def ms_return(self) -> float:
         """Returns difference in 2dp ms."""
@@ -34,8 +34,10 @@ class Timer:
     def time_str(self) -> str:
         """Returns a nicely formatted timing result."""
 
-        # This function already takes a timer so its a match in heaven lmfao.
-        return time_str(self)
+        time = self.end()
+        if time < 1: time_str = f"{self.ms_return()}ms"
+        else: time_str = f"{round(time,2)}s"
+        return time_str
 
 
 def get_timestamp() -> int:
@@ -48,13 +50,3 @@ def formatted_date():
     DD/MM/YYYY HH:MM:SS"""
     
     return time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())
-
-
-def time_str(timer: Timer) -> str:
-    """If time is in ms, returns ms value. Else returns rounded seconds value."""
-    time = timer.end()
-    if time < 1:
-        time_str = f"{timer.ms_return()}ms"
-    else:
-        time_str = f"{round(time,2)}s"
-    return time_str

@@ -17,6 +17,7 @@ from libs.time import get_timestamp
 from lenhttp import Request
 from py3rijndael import RijndaelCbc, ZeroPadding
 from config import conf
+from .leaderboard import GlobalLeaderboard
 import base64
 
 # PP Calculators
@@ -333,6 +334,19 @@ class Score:
         # Announce it.
         await announce(msg)
         await log_first_place(self)
+    
+    def insert_into_lb_cache(self) -> None:
+        """Inserts the score into cached leaderboards if the leaderboards are
+        already cached.
+        
+        Note:
+            Only run if completed is equal to `Completed.BEST`. Else, it will
+            lead to a weird state of the leaderboards, with wrong scores
+            appearing.
+        """
+
+        lb = GlobalLeaderboard.from_cache(self.bmap.md5, self.c_mode, self.mode)
+        if lb is not None: lb.insert_user_score(self)
 
     async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
                      calc_place: bool = True, calc_pp: bool = True) -> None:
@@ -355,8 +369,7 @@ class Score:
         if calc_pp: await self.calc_pp() # We need this for the rest.
         if calc_completed: await self.calc_completed()
         if clear_lbs and self.completed == Completed.BEST:
-            caches.clear_lbs(self.bmap.md5, self.mode, self.c_mode)
-            caches.clear_pbs(self.bmap.md5, self.mode, self.c_mode)
+            self.insert_into_lb_cache()
         if calc_place: await self.calc_placement()
 
         await self.__insert()
@@ -482,3 +495,22 @@ class Score:
         if calc_placement: await s.calc_placement()
 
         return s
+    
+    def as_score_tuple(self, pp_board: bool) -> tuple[object, ...]:
+        """Converts the score object to a tuple used within the leaderboard
+        caching system.
+        
+        Format:
+            The tuple has objects in the following order:
+            id, <scoring>, max_combo, 50_count, 100_count, 300_count, misses_count,
+            katus_count, gekis_count, full_combo, mods, time, username, id, pp
+        """
+
+        scoring = self.pp if pp_board else self.score
+
+        return (
+            self.id, scoring, self.max_combo, self.count_50, self.count_100,
+            self.count_300, self.count_miss, self.count_katu, self.count_geki,
+            int(self.full_combo), self.mods.value, self.timestamp, self.username,
+            self.id, self.pp
+        )

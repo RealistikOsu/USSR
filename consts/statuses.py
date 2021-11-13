@@ -58,13 +58,14 @@ class LeaderboardTypes(IntEnum):
     FRIENDS: int = 3 # Leaderboard containing only the user's friends.
     COUNTRY: int = 4 # Leaderboards containing only people from the user's nation.
 
-FETCH_TEXT = ("No Result", "Cache", "MySQL", "API")
+FETCH_TEXT = ("No Result", "Cache", "MySQL", "API", "Local")
 
 FETCH_COL = (
-    Fore.RED,  # None
-    Fore.GREEN,  # Cache
-    Fore.BLUE,  # MySQL
+    Fore.RED,     # None
+    Fore.GREEN,   # Cache
+    Fore.BLUE,    # MySQL
     Fore.YELLOW,  # API
+    Fore.MAGENTA, # Local
 )
 class FetchStatus(IntEnum):
     """Statuses representing how information was fetched. Mostly meant for
@@ -73,6 +74,7 @@ class FetchStatus(IntEnum):
     CACHE = 1 # Information was fetched from cache.
     MYSQL = 2 # Information was fetched from MySQL.
     API = 3 # Information was fetched from the API.
+    LOCAL = 4 # Information deduced from other information.
 
     @property
     def result_exists(self) -> bool:
