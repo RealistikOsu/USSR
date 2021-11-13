@@ -314,6 +314,7 @@ class GlobalLeaderboard:
 
         # Check if user is in the leaderboard so we can remove his score.
         if self.user_in_top(s.user_id): self.remove_user_score(s.user_id)
+        if self.user_has_score(s.user_id): self.users.remove(s.user_id)
         
         # Calculate positioning. TODO: Optimize this. The dict reconstruction
         # is only necessary as i don't think there is an option to insert
@@ -332,11 +333,10 @@ class GlobalLeaderboard:
         score_dict.update({i: self._scores[i] for i in tuple(self._scores.keys())[place_idx:]})
         self._scores = score_dict
 
-        self.users = list(self._scores.keys()) # Recalc in order.
+        self.users.insert(place_idx, s.user_id)
 
         # Trim lb in case.
-        if len(self._scores) > SIZE_LIMIT:
-            del self._scores[self.users[-1]]
+        if len(self._scores) > SIZE_LIMIT: del self._scores[self.users[SIZE_LIMIT]]
 
         debug(f"Inserted score by {s.username} ({s.user_id}) on {s.bmap.song_name} "
                "into the cached leaderboards!")
