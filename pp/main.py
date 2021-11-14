@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 # Calculators
 from .peace import CalculatorPeace
-from .oppai import OppaiAP
+from .oppai import OppaiAP, OppaiRX
 
 # Base class for type hints.
 class BaseCalculator:
@@ -35,13 +35,14 @@ def select_calculator(mode: Mode, c_mode: CustomModes) -> Type[BaseCalculator]:
     """Selects the PP calculator to use based on multiple factors."""
 
     # TODO: Add more calculator selection logic.
-    if c_mode == CustomModes.AUTOPILOT:
-        return OppaiAP
+    if c_mode is CustomModes.AUTOPILOT: return OppaiAP
+    elif c_mode is CustomModes.RELAX and mode is Mode.STANDARD: return OppaiRX
     return CalculatorPeace
 
 # All directories of the C based calculator.
 OPPAI_DIRS = (
-    "pp/oppai-ap",
+    "/pp/oppai-ap",
+    "/pp/oppai-rx",
 )
 
 def verify_oppai() -> bool:
@@ -49,9 +50,10 @@ def verify_oppai() -> bool:
     be used."""
 
     res = True
+    loc_dir = os.getcwd()
 
     for dir in OPPAI_DIRS:
-        if not os.path.exists(path := f"{dir}/liboppai.so"):
+        if not os.path.exists(path := f"{loc_dir}{dir}/liboppai.so"):
             # We don't return here immediately to check all directories for
             # possible errors.
             res = False
@@ -66,7 +68,7 @@ def build_oppai() -> None:
 
     for dir in OPPAI_DIRS:
         info(f"Building PP calculator {dir} ...")
-        os.chdir(dir)
+        os.chdir(old_dir + dir)
         # Make it executable in case
         os.system(f"chmod +x libbuild")
         os.system(f"./libbuild")

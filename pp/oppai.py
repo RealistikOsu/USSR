@@ -34,6 +34,21 @@ class OppaiWrapper:
         self.static_lib.ezpp_free(self._ez)
         self._ez = 0
         return False
+    
+    # Screw proper with usage.
+    def set_static_lib(self):
+        """Creates a static lib binding for the object.
+        
+        Note:
+            Remember to call this before using the object.
+            Remember to free the static lib using `free_static_lib` after you're done.
+        """
+
+        self._ez = self.static_lib.ezpp_new()
+    
+    def free_static_lib(self):
+        """Frees the static lib for the object."""
+        self.static_lib.ezpp_free(self._ez)
 
     # NOTE: probably the only function you'll need to use
     def configure(
@@ -575,7 +590,8 @@ class BaseOppaiCalculator:
     
     def __configure(self) -> None:
         """Configures the C calculator to use the data from the calculator object."""
-
+        
+        self._lib.set_static_lib()
         self._lib.configure(
             self.mode,
             self.acc,
@@ -593,10 +609,18 @@ class BaseOppaiCalculator:
         self.__configure()
         self._lib.calculate(path)
 
-        return self._lib.get_pp(), self._lib.get_stars()
+        res = self._lib.get_pp(), self._lib.get_sr()
+        self._lib.free_static_lib()
+        return res
 
 class OppaiAP(BaseOppaiCalculator):
     """A wrapper around the Oppai Autopilot calculator."""
 
-    def __init__(self, lib_path: str) -> None:
+    def __init__(self) -> None:
         super().__init__("pp/oppai-ap/liboppai.so")
+
+class OppaiRX(BaseOppaiCalculator):
+    """A wrapper around the Oppai Relax calculator."""
+
+    def __init__(self) -> None:
+        super().__init__("pp/oppai-rx/liboppai.so")
