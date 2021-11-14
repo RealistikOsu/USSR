@@ -3,7 +3,7 @@
 # This is just to ensure compatibility with the popular variants.
 from globs.caches import clan
 
-async def clan_update_pubsub(msg) -> None:
+async def clan_update_pubsub(msg: bytes) -> None:
     """Handles the pubsub handler for `rosu:clan_update`.
     
     Refreshes the state of a user's clan in the cache.

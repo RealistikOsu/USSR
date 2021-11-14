@@ -393,10 +393,10 @@ class Beatmap:
             last_update= get_timestamp(),
             status= st,
             # These will be set later
-            star_diff_std= 0.0,
-            star_diff_taiko= 0.0,
-            star_diff_ctb= 0.0,
-            star_diff_mania= 0.0,
+            difficulty_std= 0.0,
+            difficulty_taiko= 0.0,
+            difficulty_ctb= 0.0,
+            difficulty_mania= 0.0,
         )
 
         # Set star diff for the main mode.

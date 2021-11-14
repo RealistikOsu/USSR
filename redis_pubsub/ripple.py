@@ -1,6 +1,7 @@
 # Support for ripple's pubsub handlers. These are featured in **all** ripple
 # based servers.
-from globs.caches import name, priv, password
+from consts.privileges import Privileges
+from globs.caches import name, priv, password, leaderboards
 
 try: from orjson import loads as j_load
 except ImportError: from json import loads as j_load
@@ -8,7 +9,7 @@ except ImportError: from json import loads as j_load
 async def __update_singular(md5: str) -> None:
     """Updates a singular map using data from the osu API."""
 
-async def beatmap_update_pubsub(data) -> None:
+async def beatmap_update_pubsub(data: bytes) -> None:
     """Handler for the pubsub event `lets:beatmap_updates`.
     
     Forces a beatmap to be updated straight form the osu!api.
@@ -32,7 +33,7 @@ async def beatmap_update_pubsub(data) -> None:
     # Parse JSON formatted data.
     j_data = j_load(data)
 
-async def username_change_pubsub(data):
+async def username_change_pubsub(data: bytes):
     """
     Handles the Redis pubsub event `peppy:change_username`.
     It handles the update of the username cache.
@@ -45,7 +46,7 @@ async def username_change_pubsub(data):
 
     await name.load_from_id(user_id)
 
-async def update_cached_privileges_pubsub(data):
+async def update_cached_privileges_pubsub(data: bytes):
     """
     Handles the Redis pubsub event `peppy:update_cached_stats`.
     It refreshes the cached privileges for a user.
@@ -54,7 +55,7 @@ async def update_cached_privileges_pubsub(data):
     user_id = int(data.decode())
     await priv.load_singular(user_id)
 
-async def change_pass_pubsub(data):
+async def change_pass_pubsub(data: bytes):
     """
     Handles the Redis pubsub event `peppy:change_pass`.
     It refreshes the cached password for the user.
@@ -65,7 +66,7 @@ async def change_pass_pubsub(data):
 
     await password.drop_cache_individual(user_id)
 
-async def ban_reload_pubsub(data):
+async def ban_reload_pubsub(data: bytes):
     """
     Handles the Redis pubsub event `peppy:ban`.
     It reloads the privileges stored in the cache.
@@ -73,5 +74,9 @@ async def ban_reload_pubsub(data):
 
 
     user_id = int(data.decode())
-
     await priv.load_singular(user_id)
+
+    # If they have been restricted, we clear all leaderboard with them in.
+    if not priv.privileges.get(user_id) & Privileges.USER_PUBLIC:
+        for leaderboard in leaderboards.get_all_items():
+            await leaderboard.refresh()

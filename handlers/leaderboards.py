@@ -41,7 +41,7 @@ def __format_score(score: tuple, place: int, get_clans: bool = True) -> str:
 
     name = score[USERNAME_IDX]
     if get_clans:
-        clan = caches.clan.get(score[USERNAME_IDX])
+        clan = caches.clan.get(score[USER_ID_IDX])
         if clan: name = f"[{clan}] " + name
 
     return (f"{score[0]}|{name}|{round(score[1])}|{score[2]}|{score[3]}|"
