@@ -368,7 +368,8 @@ class Score:
 
         if calc_pp: await self.calc_pp() # We need this for the rest.
         if calc_completed: await self.calc_completed()
-        if clear_lbs and self.completed == Completed.BEST:
+        if clear_lbs and self.completed == Completed.BEST \
+            and self.bmap.has_leaderboard:
             self.insert_into_lb_cache()
         if calc_place: await self.calc_placement()
 

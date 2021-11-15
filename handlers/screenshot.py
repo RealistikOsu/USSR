@@ -21,7 +21,7 @@ async def is_ratelimit(ip: str) -> bool:
     await redis.set(rl_key, 1, expire= SS_DELAY)
     return False
 
-FS_LIMIT = 500000 # Rosu screenshots don't exceed this.
+FS_LIMIT = 500_000 # Rosu screenshots don't exceed this.
 ERR_RESP = "https://c.ussr.pl/" # We do a lil trolley.
 SS_NAME_LEN = 8
 async def upload_image_handler(req: Request) -> str:

@@ -81,6 +81,13 @@ async def _try_bmap(md5: str) -> tuple[FetchStatus, Optional[Beatmap]]:
     return res_status, res_bmap
 
 @dataclass
+class PersonalBestResult:
+    """A class meant to represent a personal best score on a map."""
+
+    score: tuple[object, ...]
+    placement: int
+
+@dataclass
 class GlobalLeaderboard:
     """A class for storing beatmap leaderboards. Designed with inheritence
     in mind."""
@@ -91,6 +98,7 @@ class GlobalLeaderboard:
     users: list[int] # ALL USERS, not just ones in `scores`
     total_scores: int
     bmap: Beatmap
+    _pb_cache: dict[int, PersonalBestResult]
 
     # Logging info.
     bmap_fetch: FetchStatus
@@ -141,12 +149,11 @@ class GlobalLeaderboard:
     
         return self._scores[user_id]
     
-    async def __fetch_scores(self) -> tuple[tuple[object, ...]]:
-        """Fetches the score directly from the MySQL database based on the
-        parameters of the Leaderboard object."""
-
-        table = self.c_mode.db_table
-        scoring = "pp" if self.c_mode.uses_ppboard else "score"
+    # Made this a function to make inheritence easier.
+    def __fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+        """Returns the where conditions to be used within MySQL queries
+        related to the leaderboard, alongside args meant to be safely formatted
+        into the query."""
 
         where_conds = (
             f"a.privileges & {Privileges.USER_PUBLIC.value}",
@@ -155,6 +162,16 @@ class GlobalLeaderboard:
             f"s.play_mode = {self.mode.value}"
         )
         where_args = (self.bmap.md5,)
+        return where_conds, where_args
+    
+    async def __fetch_scores(self) -> tuple[tuple[object, ...]]:
+        """Fetches the score directly from the MySQL database based on the
+        parameters of the Leaderboard object."""
+
+        table = self.c_mode.db_table
+        scoring = "pp" if self.c_mode.uses_ppboard else "score"
+
+        where_conds, where_args = self.__fetch_where_conds()
         where_cond_str = " AND ".join(where_conds)
 
         # No limit as we use it to fill `self.users`.
@@ -245,7 +262,8 @@ class GlobalLeaderboard:
             total_scores= 0,
             bmap= bmap,
             bmap_fetch= bmap_fetch,
-            lb_fetch= FetchStatus.NONE
+            lb_fetch= FetchStatus.NONE,
+            _pb_cache= {}
         )
 
         await res.refresh()
@@ -304,6 +322,8 @@ class GlobalLeaderboard:
         if user_id in self._scores:
             try: del self._scores[user_id]
             except KeyError: pass
+            try: del self._pb_cache[user_id]
+            except KeyError: pass
             self.users.remove(user_id)
             self.total_scores -= 1
     
@@ -322,11 +342,14 @@ class GlobalLeaderboard:
         # at an index to a dict.
         self.total_scores += 1
         place_idx = -1
-        scoring = s.pp if self.c_mode.uses_ppboard else s.score
-        for idx, score in enumerate(self.scores):
-            if score[SCORING_IDX] < scoring:
-                place_idx = idx
-                break
+
+        if self.has_scores:
+            scoring = s.pp if self.c_mode.uses_ppboard else s.score
+            for idx, score in enumerate(self.scores):
+                if score[SCORING_IDX] < scoring:
+                    place_idx = idx
+                    break
+        else: place_idx = 0 # They have first place
         
         # Score is not in leaderboard top. Ignore.
         if place_idx == -1: return
@@ -342,3 +365,47 @@ class GlobalLeaderboard:
 
         debug(f"Inserted score by {s.username} ({s.user_id}) on {s.bmap.song_name} "
                "into the cached leaderboards!")
+        
+    async def get_user_pb(self, user_id: int, cache: bool = True) -> tuple[FetchStatus, Optional[PersonalBestResult]]:
+        """Attempts to fetch a user's personal best for this leaderboard
+        using data provided by the object and MySQL.
+        
+        Args:
+            user_id (int): The database ID of the user.
+            cache (bool): Whether to cache the result for use later.
+        """
+        
+        # Check if they are in the lb as a quick way to avoid querying.
+        if not self.user_has_score(user_id): return FetchStatus.NONE, None
+        if pb := self._pb_cache.get(user_id): return FetchStatus.CACHE, pb
+
+        st = FetchStatus.LOCAL
+
+        # Check if we can construct a score from data in the object.
+        if self.user_in_top(user_id):
+            score = self.get_user_score(user_id)
+        else:
+            st = FetchStatus.MYSQL
+            # MySQL time!
+            where_conds, where_args = self.__fetch_where_conds()
+
+            # Extend them to limit them to the user.
+            where_conds = (*where_conds, f"s.userid = %s")
+            where_args = (*where_args, user_id)
+            where_cond_str = " AND ".join(where_conds)
+            scoring = "pp" if self.c_mode.uses_ppboard else "score"
+            table = self.c_mode.db_table
+
+            query = BASE_QUERY.format(
+                scoring= scoring,
+                table= table,
+                where_clauses= where_cond_str,
+                order= "s.id",
+            ) + "LIMIT 1"
+
+            score = await sql.fetchone(query, where_args)
+        
+        pb = PersonalBestResult(score, self.get_user_placement(user_id))
+        if cache: self._pb_cache[user_id] = pb
+
+        return st, pb

@@ -100,25 +100,12 @@ async def leaderboard_get_handler(req: Request) -> None:
         return __status_header(Status.NOT_SUBMITTED)
 
     # Personal best calculation.
-    pb = None
-    pb_pos = 0
-    pb_fetch = FetchStatus.NONE
-    if lb.user_has_score(user_id):
-        # Check if we can just grab it from lb top.
-        if lb.user_in_top(user_id):
-            pb = lb.get_user_score(user_id)
-            pb_pos = lb.get_user_placement(user_id)
-            pb_fetch = FetchStatus.LOCAL
-        else:
-            # TODO: MySQL and caching of pb.
-            print("MySQL")
-            ...
-    
+    pb_fetch, pb_res = await lb.get_user_pb(user_id)
 
     # Build Response.
     res = "\n".join([
         __beatmap_header(lb.bmap, lb.total_scores),
-        "" if not pb else __format_score(pb, pb_pos, False),
+        "" if not pb_res else __format_score(pb_res.score, pb_res.placement, False),
         "\n".join(__format_score(score, idx + 1) for idx, score in enumerate(lb.scores))
     ])
 
