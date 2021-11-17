@@ -60,6 +60,11 @@ async def get_achievements(user_id: int):
     """Gets all user unlocked achievements from sql."""
     return [ach[0] for ach in await sql.fetchall("SELECT achievement_id FROM users_achievements WHERE user_id = %s", (user_id,))]
 
+async def get_friends(user_id: int) -> list[int]:
+    """Fetches the user IDs of users which are friends of the user"""
+    friends_db = await sql.fetchall("SELECT user2 FROM users_relationships WHRE user1 = %s", (user_id,))
+    return [friend[0] for friend in friends_db]
+
 async def unlock_achievement(user_id: int, ach_id: int):
     """Adds the achievement to database."""
     await sql.execute(

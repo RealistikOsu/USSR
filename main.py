@@ -23,6 +23,7 @@ from handlers.replays import get_replay_web_handler, get_full_replay_handler
 from handlers.screenshot import upload_image_handler
 from handlers.score_sub import score_submit_handler
 from handlers.rippleapi import status_handler, pp_handler
+from handlers.misc import lastfm_handler
 
 # Load redis pubsubs.
 from redis_pubsub.ripple import (
@@ -97,10 +98,11 @@ def server_start():
             Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
             Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
             Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
+            Endpoint("/web/lastfm.php", lastfm_handler),
             # Ripple API endpoints
             Endpoint("/api/v1/status", status_handler),
             Endpoint("/api/v1/pp", pp_handler),
-            # Web Endpoints
+            # Frontend Endpoints
             Endpoint("/web/replays/<score_id>", get_full_replay_handler),
         ]
     )
