@@ -1,4 +1,4 @@
-from logger import error, info, warning
+from logger import error, info, warning, DEBUG
 from lenhttp import Application, Endpoint
 from config import conf
 from redis_pubsub.router import pubsub_executor
@@ -23,7 +23,12 @@ from handlers.replays import get_replay_web_handler, get_full_replay_handler
 from handlers.screenshot import upload_image_handler
 from handlers.score_sub import score_submit_handler
 from handlers.rippleapi import status_handler, pp_handler
-from handlers.misc import lastfm_handler
+from handlers.misc import (
+    lastfm_handler,
+    getfriends_handler,
+    osu_error_handler,
+    beatmap_rate_handler
+)
 
 # Load redis pubsubs.
 from redis_pubsub.ripple import (
@@ -88,7 +93,7 @@ def server_start():
 
     app = Application(
         port= conf.http_port,
-        logging= conf.framework_log,
+        logging= DEBUG,
         routes= [
             # osu web endpoints
             Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
@@ -99,6 +104,9 @@ def server_start():
             Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
             Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
             Endpoint("/web/lastfm.php", lastfm_handler),
+            Endpoint("/web/osu-getfriends.php", getfriends_handler),
+            Endpoint("/web/osu-error.php", osu_error_handler, ["POST"]),
+            Endpoint("/web/osu-rate.php", beatmap_rate_handler),
             # Ripple API endpoints
             Endpoint("/api/v1/status", status_handler),
             Endpoint("/api/v1/pp", pp_handler),

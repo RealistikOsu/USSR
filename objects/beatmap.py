@@ -246,6 +246,8 @@ class Beatmap:
                 int(self.status_frozen)
             )
         )
+
+        debug(f"Inserted beatmap {self.song_name} ({self.id}) into the database!")
     
     async def increment_playcount(self, passcount: bool = True) -> None:
         """Increments the beatmap playcount for the object and MySQL.

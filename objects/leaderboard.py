@@ -74,6 +74,7 @@ async def _try_bmap(md5: str) -> tuple[FetchStatus, Optional[Beatmap]]:
     elif res_bmap := await Beatmap.from_oapi_v1(md5):
         res_status = FetchStatus.API
         res_bmap.cache()
+        await res_bmap.insert_db()
 
     # Check if we have to try to update it.
     if res_bmap and res_bmap.deserves_update: await res_bmap.try_update()
@@ -350,6 +351,9 @@ class GlobalLeaderboard:
                     place_idx = idx
                     break
         else: place_idx = 0 # They have first place
+
+        # Last place
+        if place_idx == -1 and self.total_scores < SIZE_LIMIT: place_idx = self.total_scores
         
         # Score is not in leaderboard top. Ignore.
         if place_idx == -1: return

@@ -10,6 +10,7 @@ from consts.modes import Mode
 from consts.actions import Actions
 from consts.c_modes import CustomModes
 from .pep import notify_ban
+from libs.time import get_timestamp
 
 def safe_name(s: str) -> str:
     """Generates a 'safe' variant of the name for usage in rapid lookups
@@ -62,7 +63,7 @@ async def get_achievements(user_id: int):
 
 async def get_friends(user_id: int) -> list[int]:
     """Fetches the user IDs of users which are friends of the user"""
-    friends_db = await sql.fetchall("SELECT user2 FROM users_relationships WHRE user1 = %s", (user_id,))
+    friends_db = await sql.fetchall("SELECT user2 FROM users_relationships WHERE user1 = %s", (user_id,))
     return [friend[0] for friend in friends_db]
 
 async def unlock_achievement(user_id: int, ach_id: int):
@@ -146,4 +147,18 @@ async def fetch_user_country(user_id: int) -> Optional[str]:
     return await sql.fetchcol(
         "SELECT country FROM users WHERE id = %s LIMIT 1",
         (user_id,)
+    )
+
+async def log_user_error(user_id: Optional[int], traceback: str, config: str,
+                         osu_ver: str, osu_hash: str) -> None:
+    """Logs an error in the osu!client in the database. Uses data from the
+    `/web/osu-error.php` endpoint.
+    """
+
+    ts = get_timestamp()
+
+    await sql.execute(
+        "INSERT INTO client_err_logs (user_id, timestamp, traceback, config, "
+        "osu_ver, osu_hash) VALUES (%s,%s,%s,%s,%s,%s)",
+        (user_id, ts, traceback, config, osu_ver, osu_hash)
     )

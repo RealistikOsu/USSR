@@ -78,3 +78,56 @@ def delete_osu_file(bmap_id: int):
 
     try: os.remove(path)
     except FileNotFoundError: pass
+
+async def user_rated_bmap(user_id: int, bmap_md5: str) -> bool:
+    """Check if a user has already submitted a rating for a beatmap.
+    
+    Args:
+        user_id (int): The user ID.
+        bmap_md5 (str): The beatmap MD5 hash.
+    
+    Returns:
+        `True` if the user has already submitted a rating for the beatmap.
+        `False` otherwise.
+    """
+
+    exists_db = await sql.fetchcol(
+        "SELECT 1 FROM beatmaps_rating WHERE user_id = %s AND beatmap_md5 = %s",
+        (user_id, bmap_md5)
+    )
+
+    return bool(exists_db)
+
+async def add_bmap_rating(user_id: int, bmap_md5: str, rating: int) -> float:
+    """Adds a new beatmap rating from a user and recalculates the new average
+    rating, returning it.
+    
+    Note:
+        This function does not update the rating values of any of the cached
+        beatmap objects.
+    
+    Args:
+        user_id (int): The user ID.
+        rating (int): The rating to add.
+    
+    Returns:
+        The new average rating as float.
+    """
+
+    await sql.execute(
+        "INSERT INTO beatmaps_rating (user_id, rating, beatmap_md5) VALUES (%s, %s, %s)",
+        (user_id, rating, bmap_md5)
+    )
+
+    new_rating = await sql.fetchcol(
+        "SELECT AVG(rating) FROM beatmaps_rating WHERE user_id = %s AND beatmap_md5 = %s",
+        (user_id, bmap_md5)
+    )
+
+    # Set new value in the beatmaps table.
+    await sql.execute(
+        "UPDATE beatmaps SET rating = %s WHERE beatmap_md5 = %s LIMIT 1",
+        (new_rating, bmap_md5)
+    )
+
+    return new_rating

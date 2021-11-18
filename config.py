@@ -103,7 +103,6 @@ class Config(ConfigReader):
     bancho_mirror: bool     = True
     bancho_nick: str        = "My Acc Slow"
     bancho_hash: str        = "nope"
-    framework_log: bool     = False
     oapi_key_pool: list     = ["keys here"]
     srv_c_clients: bool     = False # Allow custom clients on
     srv_url: str            = "https://ussr.pl"
