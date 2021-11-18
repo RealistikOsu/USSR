@@ -6,6 +6,9 @@ from pp.main import build_oppai, verify_oppai
 import traceback
 import argparse
 
+# Possible CLI stuff
+from utils.pptester import run_example
+
 # Uvloop is a significantly faster loop.
 try:
     import uvloop

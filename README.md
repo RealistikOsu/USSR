@@ -17,3 +17,10 @@ All of this while also MASSIVELY improving upon LETS in the following areas:
 - Significantly more efficient with the database and other resources
 - Modern asynchronous Python architecture
 - Maintainable, modifiable codebase
+
+## Extras
+Alongside the main score server portion, USSR features multiple tools available within the CLI to assist you with your server!
+
+### PP System Estimation Tool
+![Result Example](https://i.imgur.com/nkd09L5.png)
+This tool aims to help you experiment with new PP system changes, displaying the effects it would have on a user's scores.
