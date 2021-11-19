@@ -73,21 +73,11 @@ async def unlock_achievement(user_id: int, ach_id: int):
 		"(%s, %s, %s)", (user_id, ach_id, int(time.time()))
     )
 
-async def update_rank(user_id: int, new_score: int, mode: Mode, c_mode: CustomModes):
-    """Updates redis leaderboard list by pushing new score into."""
-
-    suffix = c_mode.to_db_suffix()
-    mode_str = mode.to_db_str()
-    country = await sql.fetchcol("SELECT country FROM users_stats WHERE id = %s", (user_id,))
-    await redis.zadd(f"ripple:leaderboard{suffix}:{mode_str}", new_score, user_id)
-    if country and country.lower() != "xx":
-        await redis.zadd(f"ripple:leaderboard{suffix}:{mode_str}:{country.lower()}", new_score, user_id)
-
 async def edit_user(action: Actions, user_id: int, reason: str = "No reason given") -> None:
     """Edits the user in the server."""
 
     await priv.load_singular(user_id)
-    privs = priv.privileges.get(user_id)
+    privs = await priv.get_privilege(user_id)
 
     if action in (Actions.UNRESTRICT, Actions.UNBAN) and (privs.is_banned or privs.is_restricted):
         # Unrestrict procedure.
@@ -162,3 +152,39 @@ async def log_user_error(user_id: Optional[int], traceback: str, config: str,
         "osu_ver, osu_hash) VALUES (%s,%s,%s,%s,%s,%s)",
         (user_id, ts, traceback, config, osu_ver, osu_hash)
     )
+
+async def update_lb_pos(user_id: int, pp: int, mode: Mode, 
+                        c_mode: CustomModes) -> None:
+    """Updates the user's position on the global leaderboards.
+    
+    Args:
+        user_id (int): The database ID for the user.
+        pp (int): The user's new raw PP amount.
+        mode (Mode): The mode for which the raw PP amount was provided.
+        c_mode (CustomMode): The custom mode for which the raw pp amount was
+            provided.
+    """
+
+    key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}"
+    await redis.zadd(key, str(user_id), str(pp))
+
+async def update_country_lb_pos(user_id: int, pp: int, mode: Mode, c_mode: CustomModes,
+                                country: Optional[str] = None) -> None:
+    """Updates the user's leaderboard position on the leaderboards for their
+    country.
+    
+    Args:
+        user_id (int): The database ID for the user.
+        pp (int): The user's new raw PP amount.
+        mode (Mode): The mode for which the raw PP amount was provided.
+        c_mode (CustomMode): The custom mode for which the raw pp amount was
+            provided.
+        country (str): The Alpha2 code for the user's country. If set to None,
+            it will be fetched from the database.
+    """
+
+    if not country: country = await fetch_user_country(user_id)
+    if country.lower() == "xx" or not country: return
+
+    key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}:{country}"
+    await redis.zadd(key, str(user_id), str(pp))

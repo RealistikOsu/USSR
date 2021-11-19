@@ -1,4 +1,5 @@
 from consts.complete import Completed
+from consts.privileges import Privileges
 from consts.statuses import Status
 from consts.actions import Actions
 from logger import debug, error, info, warning
@@ -7,10 +8,17 @@ from objects.score import Score
 from objects.stats import Stats
 from globs import caches
 from globs import conn
-from helpers.user import update_rank, unlock_achievement, get_achievements, edit_user
+from helpers.user import (
+    update_rank,
+    unlock_achievement,
+    get_achievements,
+    edit_user,
+    update_country_lb_pos,
+    update_lb_pos,
+)
 from datetime import datetime
 from helpers.replays import write_replay
-from helpers.pep import check_online, stats_refresh
+from helpers.pep import check_online, stats_refresh, notify_new_score
 from helpers.anticheat import surpassed_cap_restrict
 from copy import copy
 from config import conf
@@ -35,6 +43,7 @@ async def score_submit_handler(req: Request) -> str:
 
     # Check if theyre online, if not, force the client to wait to log in.
     if not await check_online(s.user_id): return ""
+    privs = await caches.priv.get_privilege(s.user_id)
 
     if not s:
         error("Could not perform score sub! Check messages above!")
@@ -135,13 +144,19 @@ async def score_submit_handler(req: Request) -> str:
     info(f"User {s.username} has submitted a #{s.placement} place"
          f" on {s.bmap.song_name} +{s.mods.readable} ({round(s.pp, 2)}pp)")
 
+    
+    # Update our position on the global lbs.
+    if s.completed is Completed.BEST and privs & Privileges.USER_PUBLIC\
+        and old_stats.pp != stats.pp:
+        debug("Updating user's global and country lb positions.")
+        args = (s.user_id, stats.pp, s.mode, s.c_mode)
+        await update_lb_pos(*args)
+        await update_country_lb_pos(*args)
+        await stats.update_rank()
+
     # Trigger peppy stats update.
     await stats_refresh(s.user_id)
     panels = []
-
-    if s.passed and old_stats.pp != stats.pp:
-        await update_rank(s.user_id, stats.pp, s.mode, s.c_mode)
-        await stats.update_rank()
 
     # At the end, check achievements.
     new_achievements = []
@@ -157,6 +172,8 @@ async def score_submit_handler(req: Request) -> str:
     if s.completed == Completed.BEST and await surpassed_cap_restrict(s):
         await edit_user(Actions.RESTRICT, s.user_id, f"Surpassing PP cap as unverified! ({s.pp}pp)")
         return "error: ban"
+
+    await notify_new_score(s.id)
 
     # Create beatmap info panel.
     panels.append(

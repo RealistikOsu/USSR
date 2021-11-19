@@ -59,3 +59,12 @@ async def notify_ban(user_id: int) -> None:
     """Notifies pep.py of a restrict/ban/unban/unrestrict of a user."""
 
     await redis.publish("peppy:ban", user_id)
+
+async def notify_new_score(score_id: int) -> None:
+    """Notifies the API of a new score done by a user.
+    
+    Args:
+        score_id (int): The ID of the score.
+    """
+
+    await redis.publish("api:score_submission", score_id)

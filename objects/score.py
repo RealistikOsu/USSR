@@ -3,7 +3,7 @@ from helpers.discord import log_first_place
 from helpers.pep import announce
 from helpers.user import safe_name
 from typing import Optional
-from logger import debug, warning
+from logger import debug, error, warning
 from consts.modes import Mode
 from consts.mods import Mods
 from consts.c_modes import CustomModes
@@ -19,6 +19,7 @@ from py3rijndael import RijndaelCbc, ZeroPadding
 from config import conf
 from .leaderboard import GlobalLeaderboard
 import base64
+import traceback
 
 # PP Calculators
 from pp.main import select_calculator
@@ -257,7 +258,9 @@ class Score:
         
         # TODO: More calculators (custom for standard.)
         calc = select_calculator(self.mode, self.c_mode).from_score(self)
-        self.pp, self.sr = await calc.calculate()
+        try: self.pp, self.sr = await calc.calculate()
+        except Exception:
+            error("Could not calculate PP for score! Setting to 0. Error: " + traceback.format_exc())
         return self.pp
     
     # This gives me aids looking at it LOL. Copied from old Kisumi

@@ -1,5 +1,5 @@
 # The privilege cache to avoid per-request SQL queries.
-from typing import Dict
+from typing import Dict, Optional
 from globs.conn import sql
 from consts.privileges import Privileges
 
@@ -19,6 +19,20 @@ class PrivilegeCache:
         ranks_db = await sql.fetchall("SELECT id, privileges FROM users")
 
         self.privileges = {user_id: Privileges(priv) for user_id, priv in ranks_db}
+    
+    async def get_privilege(self, user_id: int) -> Optional[int]:
+        """Returns the privilege bitwise for a user if found. Else returns None.
+        
+        Args:
+            user_id (int): The database ID of the user to get the privilege of.
+        """
+
+        # Theyre already cached (should be the case 9/10 times).
+        if privs := self.privileges.get(user_id): return privs
+
+        # Try to load them. Return what we got.
+        await self.load_singular(user_id)
+        return self.privileges.get(user_id)
     
     async def load_singular(self, user_id: int) -> None:
         """Caches the privileges for a singular user and saves to memory.

@@ -77,6 +77,6 @@ async def ban_reload_pubsub(data: bytes):
     await priv.load_singular(user_id)
 
     # If they have been restricted, we clear all leaderboard with them in.
-    if not priv.privileges.get(user_id) & Privileges.USER_PUBLIC:
+    if not await priv.get_privilege(user_id) & Privileges.USER_PUBLIC:
         for leaderboard in leaderboards.get_all_items():
             await leaderboard.refresh()
