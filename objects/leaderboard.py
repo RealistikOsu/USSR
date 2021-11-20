@@ -423,4 +423,4 @@ class GlobalLeaderboard:
                 of the previous `Beatmap` object will be utilised.
         """
 
-        self.bmap = _try_bmap(md5 or self.bmap.md5)
+        self.bmap_fetch, self.bmap = await _try_bmap(md5 or self.bmap.md5)

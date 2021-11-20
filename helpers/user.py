@@ -166,7 +166,7 @@ async def update_lb_pos(user_id: int, pp: int, mode: Mode,
     """
 
     key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}"
-    await redis.zadd(key, str(user_id), str(pp))
+    await redis.zadd(key, pp, user_id)
 
 async def update_country_lb_pos(user_id: int, pp: int, mode: Mode, c_mode: CustomModes,
                                 country: Optional[str] = None) -> None:
@@ -187,4 +187,4 @@ async def update_country_lb_pos(user_id: int, pp: int, mode: Mode, c_mode: Custo
     if country.lower() == "xx" or not country: return
 
     key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}:{country}"
-    await redis.zadd(key, str(user_id), str(pp))
+    await redis.zadd(key, pp, user_id)
