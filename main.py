@@ -45,6 +45,7 @@ from redis_pubsub.rosu import (
 )
 from redis_pubsub.ussr import (
     drop_bmap_cache_pubsub,
+    refresh_leaderboard_pubsub,
 )
 
 # Must return True for success or else server wont start.
@@ -63,7 +64,8 @@ PUBSUB_REGISTER = (
     # RealistikOsu.
     (clan_update_pubsub, "rosu:clan_update"),
     # USSR
-    (drop_bmap_cache_pubsub, "ussr:bmap_decache")
+    (drop_bmap_cache_pubsub, "ussr:bmap_decache"),
+    (refresh_leaderboard_pubsub, "ussr:lb_refresh"),
 )
 
 async def create_redis_pubsub():

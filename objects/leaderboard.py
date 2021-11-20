@@ -413,3 +413,14 @@ class GlobalLeaderboard:
         if cache: self._pb_cache[user_id] = pb
 
         return st, pb
+    
+    async def refresh_beatmap(self, md5: Optional[str] = None) -> None:
+        """Refreshes the beatmap object for the leaderboard, fetching it
+        again using `_try_bmap`
+        
+        Args:
+            md5 (str): The MD5 of the new beatmap. If not provided, the MD5
+                of the previous `Beatmap` object will be utilised.
+        """
+
+        self.bmap = _try_bmap(md5 or self.bmap.md5)

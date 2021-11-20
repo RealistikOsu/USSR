@@ -9,7 +9,6 @@ from objects.stats import Stats
 from globs import caches
 from globs import conn
 from helpers.user import (
-    update_rank,
     unlock_achievement,
     get_achievements,
     edit_user,
@@ -149,7 +148,7 @@ async def score_submit_handler(req: Request) -> str:
     if s.completed is Completed.BEST and privs & Privileges.USER_PUBLIC\
         and old_stats.pp != stats.pp:
         debug("Updating user's global and country lb positions.")
-        args = (s.user_id, stats.pp, s.mode, s.c_mode)
+        args = (s.user_id, round(stats.pp), s.mode, s.c_mode)
         await update_lb_pos(*args)
         await update_country_lb_pos(*args)
         await stats.update_rank()
