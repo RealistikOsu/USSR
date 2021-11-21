@@ -52,7 +52,7 @@ async def check_online(user_id: int, ip: str = None) -> bool:
 
     key = f"peppy:sessions:{user_id}"
 
-    if ip: return redis.sismember(key, ip)
+    if ip: return await redis.sismember(key, ip)
     return await redis.exists(key)
 
 async def notify_ban(user_id: int) -> None:

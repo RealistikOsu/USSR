@@ -97,7 +97,7 @@ def server_start():
     """Handles a regular start of the server."""
 
     app = Application(
-        port= conf.http_port,
+        unix= conf.http_sock,
         logging= DEBUG,
         routes= [
             # osu web endpoints

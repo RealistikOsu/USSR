@@ -135,7 +135,7 @@ async def fetch_user_country(user_id: int) -> Optional[str]:
     """
 
     return await sql.fetchcol(
-        "SELECT country FROM users WHERE id = %s LIMIT 1",
+        "SELECT country FROM users_stats WHERE id = %s LIMIT 1",
         (user_id,)
     )
 

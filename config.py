@@ -91,7 +91,7 @@ class Config(ConfigReader):
     """The main class for the storage of config values.
     These values are read directly from the `config.json` file."""
 
-    http_port: int          = 5002
+    http_sock: str          = "/tmp/ussr.sock"
     sql_host: str           = "localhost"
     sql_user: str           = "root"
     sql_db: str             = "ripple"

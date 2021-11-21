@@ -21,6 +21,10 @@ All of this while also MASSIVELY improving upon LETS in the following areas:
 ## Extras
 Alongside the main score server portion, USSR features multiple tools available within the CLI to assist you with your server!
 
+## MySQL Database and Nginx Config
+Within the `extras` folder in the repo are the MySQL database required for the score server (and the RealistikOsu stack) alongside
+the recommended Nginx config. This is to provide everyone the best experience setting up and avoid any accidental missing tables.
+
 ### PP System Estimation Tool
 ![Result Example](https://i.imgur.com/nkd09L5.png)
 This tool aims to help you experiment with new PP system changes, displaying the effects it would have on a user's scores.
