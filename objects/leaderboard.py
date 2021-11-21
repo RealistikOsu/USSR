@@ -36,6 +36,7 @@ FROM
     {table} s
 INNER JOIN
     users a on s.userid = a.id
+    {extra_joins}
 WHERE
     {where_clauses}
 ORDER BY {order} DESC
@@ -151,7 +152,7 @@ class GlobalLeaderboard:
         return self._scores[user_id]
     
     # Made this a function to make inheritence easier.
-    def __fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+    def _fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
         """Returns the where conditions to be used within MySQL queries
         related to the leaderboard, alongside args meant to be safely formatted
         into the query."""
@@ -165,6 +166,26 @@ class GlobalLeaderboard:
         where_args = (self.bmap.md5,)
         return where_conds, where_args
     
+    def _construct_query(self, table: str, scoring: str, where_cond: str) -> str:
+        """Constructs the MySQL query to execute to fetch the current leaderboard
+        scores.
+        
+        Args:
+            table (str): The MySQL database table to fetch the score from.
+            scoring (str): The column that will be used for ordering and
+                appear in the scoring index.
+            where_cond (str): The string of the where conditions to be
+                formatted in.
+        """
+
+        return BASE_QUERY.format(
+            table= table,
+            scoring= scoring,
+            where_clauses= where_cond,
+            order= scoring,
+            extra_joins= "",
+        )
+    
     async def __fetch_scores(self) -> tuple[tuple[object, ...]]:
         """Fetches the score directly from the MySQL database based on the
         parameters of the Leaderboard object."""
@@ -172,15 +193,14 @@ class GlobalLeaderboard:
         table = self.c_mode.db_table
         scoring = "pp" if self.c_mode.uses_ppboard else "score"
 
-        where_conds, where_args = self.__fetch_where_conds()
+        where_conds, where_args = self._fetch_where_conds()
         where_cond_str = " AND ".join(where_conds)
 
         # No limit as we use it to fill `self.users`.
-        query = BASE_QUERY.format(
+        query = self._construct_query(
             table= table,
             scoring= scoring,
-            where_clauses= where_cond_str,
-            order= scoring,
+            where_cond= where_cond_str,
         )
 
         return await sql.fetchall(query, where_args)
@@ -240,14 +260,17 @@ class GlobalLeaderboard:
         return None
     
     @classmethod
-    async def from_db(_, bmap_md5: str, c_mode: CustomModes, mode: Mode,
-                      cache: bool = True) -> Optional["GlobalLeaderboard"]:
+    async def from_db(cls, bmap_md5: str, c_mode: CustomModes, mode: Mode,
+                      cache: bool = True, load: bool = True) -> Optional["GlobalLeaderboard"]:
         """Retrieves the leaderboard from the database.
         
         Args:
             bmap_md5 (str): The MD5 hash of the beatmap.
             c_mode (CustomModes): The custom mode of the leaderboard.
             mode (Mode): The mode of the leaderboard.
+            cache (bool): Whether after fetching, the Leaderboard should be
+                globally cached.
+            load (bool): Whether all of the scores should be loaded.
         """
 
         # Fetch the beatmap.
@@ -255,7 +278,7 @@ class GlobalLeaderboard:
         if not bmap: return None
 
         # Create object with some empty fields.
-        res = GlobalLeaderboard(
+        res = cls(
             mode= mode,
             c_mode= c_mode,
             _scores= {},
@@ -267,7 +290,7 @@ class GlobalLeaderboard:
             _pb_cache= {}
         )
 
-        await res.refresh()
+        if load: await res.refresh()
 
         if cache: res.cache()
         return res
@@ -405,6 +428,7 @@ class GlobalLeaderboard:
                 table= table,
                 where_clauses= where_cond_str,
                 order= "s.id",
+                extra_joins= "",
             ) + "LIMIT 1"
 
             score = await sql.fetchone(query, where_args)
@@ -424,3 +448,124 @@ class GlobalLeaderboard:
         """
 
         self.bmap_fetch, self.bmap = await _try_bmap(md5 or self.bmap.md5)
+
+@dataclass
+class CountryLeaderboard(GlobalLeaderboard):
+    """An object representing a country leaderboard."""
+
+    user_id: int = 0
+    
+    # Remove caching rn, although this would probably be the best candidate for
+    # non global lb caching.
+    @classmethod
+    def from_cache(_, _1, _2, _3) -> None: return
+    def cache(_) -> None: return
+
+    @classmethod
+    async def from_db(cls, bmap_md5: str, c_mode: CustomModes, mode: Mode,
+                      user_id: int, load: bool = True) -> Optional["GlobalLeaderboard"]:
+        """Creates an instance of `GlobalLeaderboard` using data from MySQL.
+        
+        Args:
+            bmap_md5 (str): The MD5 hash of the beatmap.
+            c_mode (CustomModes): The custom mode of the leaderboard.
+            mode (Mode): The mode of the leaderboard.
+            user_id (int): The database ID of the user who's country should be
+                used in the leaderboards.
+            load (bool): Whether the leaderboard scores should be fetched from the
+                MySQL database.
+        """
+
+        # Fetch the beatmap.
+        bmap_fetch, bmap = await _try_bmap(bmap_md5)
+        if not bmap: return None
+
+        # Create object with some empty fields.
+        res = cls(
+            mode= mode,
+            c_mode= c_mode,
+            _scores= {},
+            users= [],
+            total_scores= 0,
+            bmap= bmap,
+            bmap_fetch= bmap_fetch,
+            lb_fetch= FetchStatus.NONE,
+            _pb_cache= {},
+            user_id= user_id,
+        )
+
+        if load: await res.refresh()
+        return res
+    
+    def _construct_query(self, table: str, scoring: str, where_cond: str) -> str:
+        """Constructs the MySQL query to execute to fetch the current leaderboard
+        scores.
+        
+        Args:
+            table (str): The MySQL database table to fetch the score from.
+            scoring (str): The column that will be used for ordering and
+                appear in the scoring index.
+            where_cond (str): The string of the where conditions to be
+                formatted in.
+        """
+        return BASE_QUERY.format(
+            table= table,
+            scoring= scoring,
+            where_clauses= where_cond,
+            order= scoring,
+            extra_joins= "INNER JOIN users_stats st ON st.id = a.id",
+        )
+    
+    def _fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+        """Returns the where conditions to be used within MySQL queries
+        related to the leaderboard, alongside args meant to be safely formatted
+        into the query."""
+
+        where_conds = (
+            f"a.privileges & {Privileges.USER_PUBLIC.value}",
+            "s.beatmap_md5 = %s",
+            f"s.completed = {Completed.BEST.value}",
+            f"s.play_mode = {self.mode.value}",
+            "st.country = (SELECT country FROM users_stats WHERE id = %s)"
+        )
+        where_args = (self.bmap.md5, self.user_id,)
+        return where_conds, where_args
+
+class FriendLeaderboard(CountryLeaderboard):
+    """Leaderboard handling the leaderboard for user's friends. Inherits from
+    `CountryLeaderboard` due to it handling the userid and caching logic."""
+
+    def _construct_query(self, table: str, scoring: str, where_cond: str) -> str:
+        """Constructs the MySQL query to execute to fetch the current leaderboard
+        scores.
+        
+        Args:
+            table (str): The MySQL database table to fetch the score from.
+            scoring (str): The column that will be used for ordering and
+                appear in the scoring index.
+            where_cond (str): The string of the where conditions to be
+                formatted in.
+        """
+        return BASE_QUERY.format(
+            table= table,
+            scoring= scoring,
+            where_clauses= where_cond,
+            order= scoring,
+            extra_joins= "",
+        )
+    
+    def _fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+        """Returns the where conditions to be used within MySQL queries
+        related to the leaderboard, alongside args meant to be safely formatted
+        into the query."""
+
+        where_conds = (
+            f"a.privileges & {Privileges.USER_PUBLIC.value}",
+            "s.beatmap_md5 = %s",
+            f"s.completed = {Completed.BEST.value}",
+            f"s.play_mode = {self.mode.value}",
+            ("(a.id IN (SELECT user2 FROM users_relationships WHERE user1 = %s)"
+             "OR a.id = %s)")
+        )
+        where_args = (self.bmap.md5, self.user_id, self.user_id,)
+        return where_conds, where_args

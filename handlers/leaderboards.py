@@ -1,12 +1,18 @@
 # TODO: Cleanup this mess.
 from libs.time import Timer
-from logger import info, debug
+from logger import error, info, debug
 from typing import Optional
 from objects.beatmap import Beatmap
-from objects.leaderboard import GlobalLeaderboard, USER_ID_IDX, USERNAME_IDX
+from objects.leaderboard import (
+    GlobalLeaderboard,
+    CountryLeaderboard,
+    FriendLeaderboard,
+    USER_ID_IDX,
+    USERNAME_IDX
+)
 from globs import caches
 from lenhttp import Request
-from helpers.user import safe_name, fetch_user_country, edit_user
+from helpers.user import safe_name, edit_user
 from consts.actions import Actions
 from consts.mods import Mods
 from consts.modes import Mode
@@ -57,6 +63,18 @@ def __log_not_served(md5: str, reason: str) -> None:
 
     info(f"Leaderboard for MD5 {md5} could not be served ({reason})")
 
+def error_score(msg: str) -> str:
+    """Generates an error message as a score from the server bot."""
+
+    return f"999|{msg}|999999999|0|0|0|0|0|0|0|0|0|999|0|0|1"
+
+def error_lbs(msg: str) -> str:
+    """Displays an error to the user in a visual manner."""
+
+    return f"2|false\n\n\n\n\n" + "\n".join(
+        [error_score("Leaderboard Error!"), error_score(msg)]
+    )
+
 async def leaderboard_get_handler(req: Request) -> None:
     """Handles beatmap leaderboards."""
 
@@ -75,7 +93,7 @@ async def leaderboard_get_handler(req: Request) -> None:
     mods = Mods(int(req.get_args["mods"]))
     mode = Mode(int(req.get_args["m"]))
     s_ver = int(req.get_args["vv"])
-    b_filter = LeaderboardTypes(int(req.get_args["v"]))
+    lb_filter = LeaderboardTypes(int(req.get_args["v"]))
     set_id = int(req.get_args["i"])
     c_mode = CustomModes.from_mods(mods, mode)
 
@@ -92,8 +110,16 @@ async def leaderboard_get_handler(req: Request) -> None:
         return __status_header(caches.no_check_md5s[md5])
 
     # Fetch leaderboards.
-    # TODO: Other leaderboard types.
-    lb = await GlobalLeaderboard.from_md5(md5, c_mode, mode)
+    if lb_filter is LeaderboardTypes.GLOBAL:
+        lb = await GlobalLeaderboard.from_md5(md5, c_mode, mode)
+    elif lb_filter is LeaderboardTypes.COUNTRY:
+        lb = await CountryLeaderboard.from_db(md5, c_mode, mode, user_id)
+    elif lb_filter is LeaderboardTypes.FRIENDS:
+        lb = await FriendLeaderboard.from_db(md5, c_mode, mode, user_id)
+    else:
+        error(f"{username} ({user_id}) requested an unimplemented leaderboard type {lb_filter!r}!")
+        return error_lbs("Unimplemented leaderboard type!")
+
     if not lb:
         caches.add_nocheck_md5(md5, Status.NOT_SUBMITTED)
         __log_not_served(md5, "No leaderboard/beatmap found")
