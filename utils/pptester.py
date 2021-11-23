@@ -1,6 +1,7 @@
 # A tester to simulate and estimate the changes to a user caused by a pp
 # calculation change. I wrote this while incredibly bored so the code quality
 # is not the best.
+from cli_utils import get_loop, perform_startup_requirements
 from tabulate import tabulate
 from consts.c_modes import CustomModes
 from consts.modes import Mode
@@ -11,7 +12,8 @@ from objects.beatmap import Beatmap
 from objects.score import Score
 from colorama import Fore
 from progressbar import progressbar
-from logger import info
+from logger import error, info
+import sys
 
 def calc_weighed_pp(scores: tuple[float]) -> tuple[float, float]:
     """Calculates the weighted pp for a user's scores."""
@@ -114,16 +116,18 @@ class PPChangeCalc:
         sign = "+" if difference > 0 else ""
         colour = Fore.GREEN if difference > 0 else Fore.RED if difference < 0 else Fore.YELLOW
 
-        return (f"{self.username}'s (estimated) total PP change: {self.old_pp_values:.2f} -> {self.new_total_pp:.2f} "
+        return (f"{self.username}'s (estimated) total PP change: {self.old_total_pp:.2f} -> {self.new_total_pp:.2f} "
                 f"{colour}({sign}{difference}pp){Fore.RESET}")
         
     async def load_score_diff(self) -> None:
         """Loads the score diff results."""
 
         info("Loading scores and calculating PP for user....")
-        for score_id, _ in self.old_pp_values:
+        for score_id, _ in progressbar(self.old_pp_values):
             score = await Score.from_db(score_id, self.c_mode)
             self.score_diff.append(await PPChangeResult.from_score(score))
+        
+        self.new_total_pp = round(calc_weighed_pp([s.score.pp for s in self.score_diff]), 2)
     
     def display(self) -> None:
         """Displays the scores in a console table."""
@@ -152,9 +156,54 @@ class PPChangeCalc:
         print(DIVIDER)
         print(self.display_difference)
 
-async def run_example() -> None:
-    """Made for testing the simulator on my own account."""
+def invalid_args_err(info: str) -> None:
+    """Displays an error and closes the program."""
 
-    await PPChangeCalc.perform_full(
-        1000, Mode.STANDARD, CustomModes.VANILLA
+    error("Supplied incorrect arguments!\n" + info + "\nConsult the README.md "
+          "for documentation of proper usage!")
+    raise SystemExit(1)
+
+# Args: [userid] [mode] [c_mode]
+def parse_args() -> dict:
+    """Simple hardcoded CLI arg parser."""
+
+    args = sys.argv[1:]
+    arg_count = len(args)
+
+    if not args: invalid_args_err("No args specified!")
+
+    try:
+        user_id = int(args[0])
+        mode = Mode(int(args[1]))
+        c_mode = CustomModes(int(args[2]))
+    except ValueError:
+        invalid_args_err("Invalid argument types supplied!")
+    except IndexError:
+        invalid_args_err(f"Expected 3 command arguments to be supplied (received {arg_count})")
+    
+    return {
+        "user_id": user_id,
+        "mode": mode,
+        "c_mode": c_mode
+    }
+
+def main():
+    """Core functionality of the CLI."""
+
+    info("Loading PPTester...")
+
+    # Make sure server is prepared for operation.
+    loop = get_loop()
+    perform_startup_requirements()
+
+    # Parse cli data
+    data_parsed = parse_args()
+
+    # Perform our recalc and close.
+    loop.run_until_complete(
+        PPChangeCalc.perform_full(
+            **data_parsed
+        )
     )
+
+if __name__ == "__main__": main()
