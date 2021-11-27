@@ -4,10 +4,6 @@ from config import conf
 from redis_pubsub.router import pubsub_executor
 from pp.main import build_oppai, verify_oppai
 import traceback
-import argparse
-
-# Possible CLI stuff
-from utils.pptester import run_example
 
 # Uvloop is a significantly faster loop.
 try:
@@ -20,7 +16,7 @@ from globs.conn import connect_sql, connect_redis
 from globs.caches import initialise_cache
 
 # Load handlers.
-from handlers.direct import direct_get_handler, download_map, get_set_handler
+from handlers.direct import direct_get_handler #download_map, get_set_handler
 from handlers.leaderboards import leaderboard_get_handler
 from handlers.replays import get_replay_web_handler, get_full_replay_handler
 from handlers.screenshot import upload_image_handler
@@ -30,7 +26,8 @@ from handlers.misc import (
     lastfm_handler,
     getfriends_handler,
     osu_error_handler,
-    beatmap_rate_handler
+    beatmap_rate_handler,
+    get_seasonals_handler,
 )
 
 # Load redis pubsubs.
@@ -73,7 +70,7 @@ async def create_redis_pubsub():
 
     for coro, name in PUBSUB_REGISTER: await pubsub_executor(name, coro)
 
-async def perform_startup():
+async def perform_startup(redis: bool = True):
     """Runs all of the startup tasks, checking if they all succeed. If not,
     `SystemExit` will be raised."""
 
@@ -86,6 +83,7 @@ async def perform_startup():
         error("Error running startup task!" + traceback.format_exc())
         raise SystemExit(1)
     info("Doned.")
+    if not redis: return
     try:
         await create_redis_pubsub()
         info(f"Created {len(PUBSUB_REGISTER)} Redis PubSub listeners!")
@@ -103,8 +101,8 @@ def server_start():
             # osu web endpoints
             Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
             Endpoint("/web/osu-search.php", direct_get_handler),
-            Endpoint("/web/osu-search-set.php", get_set_handler),
-            Endpoint("/d/<map_id>", download_map),
+            # Endpoint("/web/osu-search-set.php", get_set_handler),
+            # Endpoint("/d/<map_id>", download_map),
             Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
             Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
             Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
@@ -112,6 +110,7 @@ def server_start():
             Endpoint("/web/osu-getfriends.php", getfriends_handler),
             Endpoint("/web/osu-error.php", osu_error_handler, ["POST"]),
             Endpoint("/web/osu-rate.php", beatmap_rate_handler),
+            Endpoint("/web/osu-getseasonal.php", get_seasonals_handler),
             # Ripple API endpoints
             Endpoint("/api/v1/status", status_handler),
             Endpoint("/api/v1/pp", pp_handler),

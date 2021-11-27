@@ -1,22 +1,18 @@
 # The USSR Recalculator Utils. This one will be quite slow ngl......
 # But it can reuse code and utils efficiently. You win some you lose some.
+from cli_utils import get_loop, perform_startup_requirements
 from typing import Generator
 from consts.c_modes import CustomModes
-from caches.username import BASE_QUERY
 from globs.conn import sql
-from dataclasses import dataclass
 from objects.score import Score
 from logger import debug, info, error
 from asyncio import Lock
 import traceback
+import sys
 
 TASK_COUNT = 4
 BASE_QUERY = "SELECT id FROM {table} WHERE {cond}"
 
-#@dataclass
-#class LWScore:
-#    """A low weight score class, sharing attribute names with the regular
-#    `Score` object. For memory efficiency."""
 
 async def recalc_pp(s: Score) -> None:
     """Recalculates PP for a score and saves it."""
@@ -43,7 +39,20 @@ class ScorePool:
 
         info(f"ScorePool fetched a total of {len(self.scores)} scores!")
     
-    async def get_scores(self) -> Generator[Score]:
+    async def fetch_loved_scores(self) -> None:
+        """Adds all completed scores on loved beatmaps."""
+
+        table = self.c_mode.db_table
+        scores_db = await sql.fetchall(
+            f"SELECT s.id FROM {table} s INNER JOIN beatmaps b ON b.beatmap_md5 = s.beatmap_md5 "
+            "WHERE s.completed >= 2 AND b.ranked = 5"
+        )
+
+        for score in scores_db: self.score_ids.append(score[0])
+
+        info(f"ScorePool fetched a total of {len(scores_db)} scores!")
+    
+    async def get_scores(self) -> Generator[Score, None, None]:
         """Generates score objects from score IDs in the object."""
 
         for score_id in self.score_ids:
@@ -56,16 +65,38 @@ class ScorePool:
 
         count = 0
         failed = 0
-        total = len(self.scores)
+        total = len(self.score_ids)
         async for score in self.get_scores():
+            count += 1
             try:
+                old_score_pp = score.pp
                 await recalc_pp(score)
-                count += 1
+                new_score_pp = score.pp
+
+                info(f"Score on {score.bmap.song_name} by {score.username} {old_score_pp:.2f}pp -> {new_score_pp:.2f}pp")
 
                 if count % 10 == 0:
-                    info(f"Calculated {count}/{total} scores.")
+                    info(f"Calculated {count}/{total} scores ({failed} failed).")
             except Exception:
                 failed += 1
                 err = traceback.format_exc()
                 error(f"Failed recalculating score {score.id} with err {err}.\n"
                       f"Total failed: {failed}")
+
+def main():
+    info("Starting USSR PP Recalculator...")
+    loop = get_loop()
+    perform_startup_requirements()
+    loop.run_until_complete(async_main())
+
+async def async_main():
+    # Hardcoding loved PP recalc lmfao.
+    calc = ScorePool(CustomModes.RELAX)
+
+    info("Loading scores...")
+    await calc.fetch_loved_scores()
+
+    info("Starting recalculation!")
+    await calc.perform_sequential()
+
+if __name__ == "__main__": main()

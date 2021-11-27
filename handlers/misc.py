@@ -2,6 +2,7 @@
 from functools import cache
 from lenhttp import Request
 from globs import caches
+from globs.conn import sql
 from helpers.pep import check_online
 from helpers.user import log_user_error, safe_name, get_friends
 from helpers.anticheat import get_flag_explanation, log_lastfm_flag
@@ -112,3 +113,17 @@ async def beatmap_rate_handler(req: Request) -> str:
         return f"{new_rating:.2f}"
     
     return "ok"
+
+async def get_seasonals_handler(req: Request):
+    """Handles `/web/osu-getseasonal.php`, returning a JSON list of seasonal
+    images links."""
+
+    info("Serving seasonal backgrounds!")
+    seasonal_db = await sql.fetchall(
+        "SELECT url FROM seasonal_bg WHERE enabled = 1"
+    )
+
+    return req.return_json(
+        200,
+        [s[0] for s in seasonal_db]
+    )

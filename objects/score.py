@@ -379,6 +379,7 @@ class Score:
         if self.placement == 1:
             await self.on_first_place()
         
+        # Insert to cache after score ID is assigned.
         if clear_lbs and self.completed is Completed.BEST \
             and self.bmap.has_leaderboard:
             self.insert_into_lb_cache()

@@ -1,7 +1,7 @@
 /*
 The RealistikOsu Database Structure.
 This is a Ripple based db schema around which USSR was designed.
-Dump: 21/11/21
+Dump: 27/11/21
 */
 
 CREATE TABLE `achievements` (
@@ -837,6 +837,16 @@ CREATE TABLE `ussr_achievements` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
+-- Table structure for table `seasonal_bg`
+--
+
+CREATE TABLE `seasonal_bg` (
+  `id` int(11) NOT NULL,
+  `enabled` tinyint(1) NOT NULL,
+  `url` varchar(256) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
 -- Indexes for dumped tables
 --
 
@@ -1105,6 +1115,10 @@ ALTER TABLE `user_clans`
 ALTER TABLE `ussr_achievements`
   ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `seasonal_bg`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `enabled` (`enabled`);
+
 --
 -- AUTO_INCREMENT for dumped tables
 --
@@ -1323,6 +1337,12 @@ ALTER TABLE `user_badges`
 -- AUTO_INCREMENT for table `user_clans`
 --
 ALTER TABLE `user_clans`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+COMMIT;
+
+-- AUTO_INCREMENT for table `seasonal_bg`
+--
+ALTER TABLE `seasonal_bg`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
