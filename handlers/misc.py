@@ -142,14 +142,14 @@ async def bancho_connect(req: Request) -> str:
     # update the last_active for the user.
     username = req.get_args["u"]
     password = req.get_args["h"]
-    user_id = caches.name.id_from_safe(safe_name(username))
+    user_id = await caches.name.id_from_safe(safe_name(username))
 
     if not await caches.password.check_password(user_id, password):
         return "error: pass"
     
     # TODO: Maybe some cache refreshes?
     info(f"{username} ({user_id}) has logged in!")
-    update_last_active(user_id)
+    await update_last_active(user_id)
 
     # Endpoint responds with the country of the user for cases where
     # bancho is offline and it cannot fetch it from there.
