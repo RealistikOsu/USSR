@@ -371,9 +371,6 @@ class Score:
 
         if calc_pp: await self.calc_pp() # We need this for the rest.
         if calc_completed: await self.calc_completed()
-        if clear_lbs and self.completed == Completed.BEST \
-            and self.bmap.has_leaderboard:
-            self.insert_into_lb_cache()
         if calc_place: await self.calc_placement()
 
         await self.__insert()
@@ -381,6 +378,10 @@ class Score:
         # Handle first place.
         if self.placement == 1:
             await self.on_first_place()
+        
+        if clear_lbs and self.completed is Completed.BEST \
+            and self.bmap.has_leaderboard:
+            self.insert_into_lb_cache()
 
     async def __insert(self) -> None:
         """Inserts the score directly into the database. Also assigns the
