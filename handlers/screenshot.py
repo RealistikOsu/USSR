@@ -27,18 +27,25 @@ SS_NAME_LEN = 8
 async def upload_image_handler(req: Request) -> str:
     """Handles screenshot uploads (POST /web/osu-screenshot.php)."""
 
-    if not await check_auth(req.post_args["u"], req.post_args["p"]):
+    username = req.post_args["u"]
+    password = req.post_args["p"]
+    if not await check_auth(username, password):
         return "no"
     
     # This is a particularly dangerous endpoint.
-    user_id = await name.id_from_safe(safe_name(req.post_args["u"]))
-    if not await check_online(user_id, req.headers["x-real-ip"]):
+    user_id = await name.id_from_safe(safe_name(username))
+    if not await check_online(user_id):
+        error(f"User {username} ({user_id}) tried to upload a screenshot while offline.")
         return ERR_RESP
     
-    if req.headers.get("user-agent") != "osu!": return ERR_RESP
+    if req.headers.get("user-agent") != "osu!":
+        error(f"User {username} ({user_id}) tried to upload a screenshot using a bot.")
+        return ERR_RESP
 
     # LETS style ratelimit.
-    if await is_ratelimit(req.headers["x-real-ip"]): return ERR_RESP
+    if await is_ratelimit(req.headers["x-real-ip"]):
+        error(f"User {username} ({user_id}) tried to upload a screenshot while ratelimited.")
+        return ERR_RESP
 
     # Working with files.
     try:
