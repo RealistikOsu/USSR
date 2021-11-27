@@ -188,3 +188,13 @@ async def update_country_lb_pos(user_id: int, pp: int, mode: Mode, c_mode: Custo
 
     key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}:{country}"
     await redis.zadd(key, pp, user_id)
+
+async def update_last_active(user_id: int) -> None:
+    """Sets the 'latest_activity' value for a user to the current timestamp."""
+
+    ts = get_timestamp()
+
+    await sql.execute(
+        "UPDATE users SET latest_activity = %s WHERE id = %s LIMIT 1",
+        (ts, user_id)
+    )

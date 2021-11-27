@@ -28,6 +28,7 @@ from handlers.misc import (
     osu_error_handler,
     beatmap_rate_handler,
     get_seasonals_handler,
+    bancho_connect,
 )
 
 # Load redis pubsubs.
@@ -111,6 +112,7 @@ def server_start():
             Endpoint("/web/osu-error.php", osu_error_handler, ["POST"]),
             Endpoint("/web/osu-rate.php", beatmap_rate_handler),
             Endpoint("/web/osu-getseasonal.php", get_seasonals_handler),
+            Endpoint("/web/bancho_connect.php", bancho_connect),
             # Ripple API endpoints
             Endpoint("/api/v1/status", status_handler),
             Endpoint("/api/v1/pp", pp_handler),

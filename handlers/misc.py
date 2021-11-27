@@ -4,7 +4,13 @@ from lenhttp import Request
 from globs import caches
 from globs.conn import sql
 from helpers.pep import check_online
-from helpers.user import log_user_error, safe_name, get_friends
+from helpers.user import (
+    log_user_error,
+    safe_name,
+    get_friends,
+    update_last_active,
+    fetch_user_country,
+)
 from helpers.anticheat import get_flag_explanation, log_lastfm_flag
 from helpers.beatmap import user_rated_bmap, add_bmap_rating
 from consts.anticheat import LastFMFlags
@@ -127,3 +133,24 @@ async def get_seasonals_handler(req: Request):
         200,
         [s[0] for s in seasonal_db]
     )
+
+async def bancho_connect(req: Request) -> str:
+    """Handles `/web/bancho_connect.php` as a basic form of login."""
+
+    # TODO: Be able to detect when the bancho is down and make sure the user
+    # is treated as online during online checks. Right now i just use this to
+    # update the last_active for the user.
+    username = req.get_args["u"]
+    password = req.get_args["h"]
+    user_id = caches.name.id_from_safe(safe_name(username))
+
+    if not await caches.password.check_password(user_id, password):
+        return "error: pass"
+    
+    # TODO: Maybe some cache refreshes?
+    info(f"{username} ({user_id}) has logged in!")
+    update_last_active(user_id)
+
+    # Endpoint responds with the country of the user for cases where
+    # bancho is offline and it cannot fetch it from there.
+    return await fetch_user_country(user_id)
