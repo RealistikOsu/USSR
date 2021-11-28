@@ -1,11 +1,12 @@
 # A cool discord helper (specifically with webhooks)
+import traceback
 from dhooks import Webhook, Embed, embed
 from config import conf
 import asyncio
 from consts.actions import Actions
 from typing import TYPE_CHECKING
 
-from logger import debug
+from logger import debug, error, info
 
 if TYPE_CHECKING:
     from objects.score import Score
@@ -14,13 +15,22 @@ if TYPE_CHECKING:
 admin_hook = Webhook.Async(conf.discord_admin_hook) if conf.discord_admin_hook else None
 first_hook = Webhook.Async(conf.discord_first_hook) if conf.discord_first_hook else None
 
+async def wrap_hook(hook: Webhook, embed: Embed) -> None:
+    """Handles sending the webhook to discord."""
+
+    info("Sending Discord webhook!")
+    try: await hook.send(embed= embed)
+    except Exception:
+        error("Failed sending Discord webhook with exception "
+              + traceback.format_exc())
+
 async def schedule_hook(hook: Webhook, embed: Embed):
     """Performs a hook execution in a non-blocking manner."""
 
     if not hook: return
 
     loop = asyncio.get_event_loop()
-    loop.create_task(hook.send(embed=embed))
+    loop.create_task(wrap_hook(hook, embed))
     debug("Scheduled the performing of a discord webhook!")
 
 EDIT_COL = "4360181"
