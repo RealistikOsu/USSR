@@ -48,8 +48,7 @@ async def upload_image_handler(req: Request) -> str:
         return ERR_RESP
 
     # Working with files.
-    try:
-        im = Image(req.files["ss"])
+    try: im = Image(req.files["ss"])
     except ValueError:
         error(f"Error loading screenshot from user {req.post_args['u']} "
                + traceback.format_exc())

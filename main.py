@@ -1,4 +1,12 @@
-from logger import error, info, warning, DEBUG
+from logger import (
+    error,
+    info,
+    warning,
+    DEBUG,
+    ensure_log_file,
+    check_log_file,
+    write_log_file,
+)
 from lenhttp import Application, Endpoint
 from config import conf
 from redis_pubsub.router import pubsub_executor
@@ -121,12 +129,15 @@ def server_start():
         ]
     )
 
+    write_log_file("Server started!")
+
     app.add_task(perform_startup)
     app.start()
 
 # tuples of checker and fixer functions.
 DEPENDENCIES = (
     (verify_oppai, build_oppai),
+    (check_log_file, ensure_log_file),
 )
 
 def ensure_dependencies():

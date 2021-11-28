@@ -55,7 +55,26 @@ def info(message: str):
     return log_message(message, "INFO", "\033[42m")
  
 def error(message: str):
+    # Log errors to file.
+    write_log_file(message)
     return log_message(message, "ERROR", "\033[41m")
 
 def warning(message: str):
     return log_message(message, "WARNING", "\033[44m")
+
+def check_log_file() -> bool:
+    """Checks if a valit log file exists that can be written to."""
+
+    return os.path.exists("err.log")
+
+def ensure_log_file():
+    """Ensures that a log file is present that can be written to."""
+
+    os.mknod("err.log")
+
+def write_log_file(msg: str, timestamp: bool = True):
+    """Appends a message to the log file."""
+
+    with open("err.log", "a+") as f:
+        if timestamp: f.write(f"[{formatted_date()}] {msg}\n")
+        else: f.write(msg)

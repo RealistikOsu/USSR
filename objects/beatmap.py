@@ -311,7 +311,8 @@ class Beatmap:
         try:
             found_beatmaps = await oapi.get_bmap_from_id(self.id)
         except Exception:
-            error("Failed to fetch update data from the osu!api. Will try later.")
+            error("Failed to fetch update data from the osu!api. Will try later. "
+                   + traceback.format_exc())
             return None
         if not found_beatmaps:
             debug(f"Beatmap {self.song_name} has been deleted from bancho! "
