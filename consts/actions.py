@@ -9,9 +9,9 @@ class Actions(IntFlag):
 
     @property
     def log_action(self):
-        return __actions[self]
+        return _actions[self]
 
-__actions = {
+_actions = {
     Actions.UNBAN: "unbanned",
     Actions.UNRESTRICT: "unrestricted",
     Actions.RESTRICT: "restricted",
