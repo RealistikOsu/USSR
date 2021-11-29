@@ -1,6 +1,7 @@
 # Common functions shared between utilities.
 # Hacky way to import main
 import sys
+from typing import Callable
 sys.path.append(".")
 import os
 os.chdir("../")
@@ -23,6 +24,20 @@ def perform_startup_requirements():
     if not loop: get_loop()
     ensure_dependencies()
     loop.run_until_complete(perform_startup(False))
+
+def spl_list(l: list, chk: int) -> list[list]:
+    """Splits the list `l` into `chk` chunks."""
+
+    return [l[i::chk] for i in range(chk)]
+
+async def perform_split_async(coro: Callable, l: list, tasks: int):
+    """Splits a list into `tasks` chunks, and creates `tasks` async tasks
+    of `coro` where the chunked `l` is the argument."""
+
+    lsts = spl_list(l, tasks)
+    loop = asyncio.get_event_loop()
+
+    for args in lsts: loop.create_task(coro(args))
 
 if __name__ == "__main__":
     raise ValueError(
