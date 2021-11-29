@@ -165,6 +165,8 @@ async def update_lb_pos(user_id: int, pp: int, mode: Mode,
             provided.
     """
 
+    # Do not add if pp = 0
+    if not pp: return
     key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}"
     await redis.zadd(key, pp, user_id)
 
@@ -183,6 +185,8 @@ async def update_country_lb_pos(user_id: int, pp: int, mode: Mode, c_mode: Custo
             it will be fetched from the database.
     """
 
+    # Do not add if pp = 0
+    if not pp: return
     if not country: country = await fetch_user_country(user_id)
     if country.lower() == "xx" or not country: return
 

@@ -160,9 +160,10 @@ class Stats:
         """
 
         max_combo_db = await sql.fetchcol(
-            "SELECT max_combo FROM {t} WHERE mode = {m} AND completed = 3 "
-            "ORDER BY max_combo DESC LIMIT 1"
-            .format(t= self.c_mode.db_table, m= self.mode.value)
+            "SELECT max_combo FROM {t} WHERE play_mode = {m} AND completed = 3 "
+            "AND userid = %s ORDER BY max_combo DESC LIMIT 1"
+            .format(t= self.c_mode.db_table, m= self.mode.value),
+            (self.user_id,)
         )
 
         if not max_combo_db: self.max_combo = 0
