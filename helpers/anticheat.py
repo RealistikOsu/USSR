@@ -22,7 +22,7 @@ async def surpassed_cap_restrict(score: 'Score') -> bool:
     """Checks if the user surpassed the PP cap for their mode and should
     be restricted."""
 
-    res = score.pp > get_pp_cap(score.mode)
+    res = score.pp > get_pp_cap(score.c_mode)
     if res:
         # TODO: Maybe cache it?
         is_verified = await sql.fetchcol(
