@@ -78,3 +78,11 @@ def write_log_file(msg: str, timestamp: bool = True):
     with open("err.log", "a+") as f:
         if timestamp: f.write(f"[{formatted_date()}] {msg}\n")
         else: f.write(msg)
+    
+custom_log(
+    message= "hi",
+    header= "i",
+    colour= Ansi.GREEN
+)
+
+custom_log("hi", "i", Ansi.GREEN)

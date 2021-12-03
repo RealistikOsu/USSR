@@ -166,8 +166,7 @@ class Stats:
             (self.user_id,)
         )
 
-        if not max_combo_db: self.max_combo = 0
-        else: self.max_combo = max_combo_db
+        self.max_combo = max_combo_db or 0
 
         return self.max_combo
     

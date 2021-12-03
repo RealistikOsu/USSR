@@ -10,10 +10,20 @@ class BinaryWriter:
     
     def write_uleb128(self, value: int) -> None:
         """Write a uleb128 value to the buffer."""
-        while value > 0x7F:
-            self.buffer.append(value | 0x80)
+        if value == 0:
+            return b"\x00"
+
+        ret = bytearray()
+        length = 0
+
+        while value > 0:
+            ret.append(value & 0b01111111)
             value >>= 7
-        self.buffer.append(value)
+            if value != 0:
+                ret[length] |= 0b10000000
+            length += 1
+
+        self.buffer.extend(ret)
     
     def write_u64_le(self, value: int) -> "BinaryWriter":
         """Write a 64-bit unsigned integer to the buffer."""

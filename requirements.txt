@@ -11,3 +11,4 @@ progressbar2 == 3.55.0
 # OPTIONALS which may improve speed but lower compatibility.
 orjson == 3.6.3
 uvloop == 0.16.0
+osupyparser == 0.2.0
