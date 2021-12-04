@@ -126,6 +126,8 @@ def server_start():
             Endpoint("/api/v1/pp", pp_handler),
             # Frontend Endpoints
             Endpoint("/web/replays/<score_id>", get_full_replay_handler),
+            Endpoint("/web/replays_relax/<score_id>", get_full_replay_handler),
+            Endpoint("/web/replays_auto/<score_id>", get_full_replay_handler),
         ]
     )
 
