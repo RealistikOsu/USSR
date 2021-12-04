@@ -16,15 +16,17 @@ import traceback
 # Uvloop is a significantly faster loop.
 try:
     import uvloop
+
     uvloop.install()
-except ImportError: pass
+except ImportError:
+    pass
 
 # Globals innit.
 from globs.conn import connect_sql, connect_redis
 from globs.caches import initialise_cache
 
 # Load handlers.
-from handlers.direct import direct_get_handler #download_map, get_set_handler
+from handlers.direct import direct_get_handler, download_map, get_set_handler
 from handlers.leaderboards import leaderboard_get_handler
 from handlers.replays import get_replay_web_handler, get_full_replay_handler
 from handlers.screenshot import upload_image_handler
@@ -41,7 +43,7 @@ from handlers.misc import (
 
 # Load redis pubsubs.
 from redis_pubsub.ripple import (
-    username_change_pubsub, 
+    username_change_pubsub,
     update_cached_privileges_pubsub,
     change_pass_pubsub,
     ban_reload_pubsub,
@@ -74,10 +76,13 @@ PUBSUB_REGISTER = (
     (refresh_leaderboard_pubsub, "ussr:lb_refresh"),
 )
 
+
 async def create_redis_pubsub():
     """Creates all the subscriptions for redis `publish` events."""
 
-    for coro, name in PUBSUB_REGISTER: await pubsub_executor(name, coro)
+    for coro, name in PUBSUB_REGISTER:
+        await pubsub_executor(name, coro)
+
 
 async def perform_startup(redis: bool = True):
     """Runs all of the startup tasks, checking if they all succeed. If not,
@@ -92,7 +97,8 @@ async def perform_startup(redis: bool = True):
         error("Error running startup task!" + traceback.format_exc())
         raise SystemExit(1)
     info("Doned.")
-    if not redis: return
+    if not redis:
+        return
     try:
         await create_redis_pubsub()
         info(f"Created {len(PUBSUB_REGISTER)} Redis PubSub listeners!")
@@ -100,21 +106,24 @@ async def perform_startup(redis: bool = True):
         error("Error creating Redis PubSub listeners! " + traceback.format_exc())
         raise SystemExit(1)
 
+
 def server_start():
     """Handles a regular start of the server."""
 
     app = Application(
-        unix= conf.http_sock,
-        logging= DEBUG,
-        routes= [
+        unix=conf.http_sock,
+        logging=DEBUG,
+        routes=[
             # osu web endpoints
             Endpoint("/web/osu-osz2-getscores.php", leaderboard_get_handler),
             Endpoint("/web/osu-search.php", direct_get_handler),
-            # Endpoint("/web/osu-search-set.php", get_set_handler),
-            # Endpoint("/d/<map_id>", download_map),
+            Endpoint("/web/osu-search-set.php", get_set_handler),
+            Endpoint("/d/<map_id>", download_map),
             Endpoint("/web/osu-getreplay.php", get_replay_web_handler),
             Endpoint("/web/osu-screenshot.php", upload_image_handler, ["POST"]),
-            Endpoint("/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]),
+            Endpoint(
+                "/web/osu-submit-modular-selector.php", score_submit_handler, ["POST"]
+            ),
             Endpoint("/web/lastfm.php", lastfm_handler),
             Endpoint("/web/osu-getfriends.php", getfriends_handler),
             Endpoint("/web/osu-error.php", osu_error_handler, ["POST"]),
@@ -126,7 +135,7 @@ def server_start():
             Endpoint("/api/v1/pp", pp_handler),
             # Frontend Endpoints
             Endpoint("/web/replays/<score_id>", get_full_replay_handler),
-        ]
+        ],
     )
 
     write_log_file("Server started!")
@@ -134,11 +143,13 @@ def server_start():
     app.add_task(perform_startup)
     app.start()
 
+
 # tuples of checker and fixer functions.
 DEPENDENCIES = (
     (verify_oppai, build_oppai),
     (check_log_file, ensure_log_file),
 )
+
 
 def ensure_dependencies():
     """Checks if all dependencies are met, and if not, attempts to fix them."""
@@ -152,6 +163,7 @@ def ensure_dependencies():
             except Exception:
                 error("Error fixing dependency!" + traceback.format_exc())
                 raise SystemExit(1)
+
 
 if __name__ == "__main__":
     ensure_dependencies()
