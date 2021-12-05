@@ -48,11 +48,7 @@ async def get_full_replay_handler(req: Request, score_id) -> bytearray:
     """Retuns a fully built replay with headers. Used for web."""
 
     score_id = int(score_id)
-    # Now this is retarded as we dont do score boundaries
-    if "relax" in req.path: c_mode = CustomModes.RELAX
-    elif "auto" in req.path: c_mode = CustomModes.AUTOPILOT
-    else: c_mode = CustomModes.VANILLA
-    
+    c_mode = CustomModes.from_score_id(score_id)
     score = await Score.from_db(score_id, c_mode)
     if not score: return await req.send(404, b"Score not foun!")
 

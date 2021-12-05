@@ -123,7 +123,7 @@ async def score_submit_handler(req: Request) -> str:
 
     if s.passed and s.bmap.has_leaderboard:
         if s.bmap.status == Status.RANKED: stats.ranked_score += add_score   
-        if (stats.max_combo or 0) < s.max_combo: stats.max_combo = s.max_combo
+        if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
         if s.completed == Completed.BEST and s.pp:
             debug("Performing PP recalculation.")
             await stats.recalc_pp_acc_full(s.pp)

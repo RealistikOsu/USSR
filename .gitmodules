@@ -1,6 +1,6 @@
 [submodule "pp/oppai-ap"]
 	path = pp/oppai-ap
-	url = https://github.com/Francesco149/oppai-ng
+	url = https://github.com/RealistikOsu/RealistikAP-PP
 [submodule "pp/oppai-rx"]
 	path = pp/oppai-rx
-	url = https://github.com/osuAkatsuki/akatsuki-pp
+	url = https://github.com/RealistikOsu/RealistikPP-RX
