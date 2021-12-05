@@ -27,6 +27,7 @@ class Stats:
 
     # Optimisation data.
     _required_recalc_pp: int = 0
+    _cur_bonus_pp: float = 0.0
 
     @classmethod
     async def from_sql(cls, user_id: int, mode: Mode, c_mode: CustomModes) -> Optional['Stats']:
@@ -122,6 +123,7 @@ class Stats:
 
         if self._required_recalc_pp and _run_pp is not None \
            and _run_pp < self._required_recalc_pp:
+            self.pp -= self._cur_bonus_pp
             self.pp += await self.__calc_bonus_pp() # Calculate the bonus.
             debug("Bypassed full PP and acc recalc for user: score didnt meet top 100.")
             return
@@ -192,7 +194,8 @@ class Stats:
             (self.user_id,)
         )
 
-        return 416.6667 * (1 - (0.9994 ** count))
+        self._cur_bonus_pp = 416.6667 * (1 - (0.9994 ** count))
+        return self._cur_bonus_pp
     
     async def save(self, refresh_cache: bool = True) -> None:
         """Saves the current stats to the MySQL database.

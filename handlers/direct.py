@@ -53,7 +53,6 @@ async def get_set_handler(req: Request) -> None:
 
     # Handle Auth..
     if not await caches.password.check_password(user_id, password) or not nick:
-        print(PASS_ERR)
         return PASS_ERR
 
     if "b" in req.get_args:

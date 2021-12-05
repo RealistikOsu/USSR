@@ -98,6 +98,7 @@ async def leaderboard_get_handler(req: Request) -> None:
     user_id = await caches.name.id_from_safe(safe_username)
 
     if not await caches.password.check_password(user_id, req.get_args["ha"]):
+        debug(f"{username} failed to authenticate!")
         return PASS_ERR
 
     # Grab request args.
