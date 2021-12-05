@@ -197,7 +197,7 @@ async def score_submit_handler(req: Request) -> str:
         __pair_panel("pp", "", "")
     )
 
-    url = req.path.split("/")[2]
+    url = f"{conf.srv_url}/beatmaps/{s.bmap.id}"
     if s.bmap.has_leaderboard:
         # Beatmap ranking panel.
         panels.append("|".join((

@@ -8,9 +8,10 @@ from consts.modes import Mode
 from logger import info, error
 from globs.conn import sql
 
-async def perform_stats_update(user_id: int):
+async def perform_stats_update(uid_tup: tuple[int, int]):
     """Performs the recalculation and saving of a singular user from stats."""
 
+    user_id, privs = uid_tup
     # Fetch country only once.
     country = await fetch_user_country(user_id)
 
@@ -37,8 +38,11 @@ async def perform_stats_update(user_id: int):
 
             # Save.
             await st.save()
-            await update_lb_pos(user_id, st.pp, mode, c_mode)
-            await update_country_lb_pos(user_id, st.pp, mode, c_mode, country)
+
+            # Only add unres players
+            if privs & 1:
+                await update_lb_pos(user_id, st.pp, mode, c_mode)
+                await update_country_lb_pos(user_id, st.pp, mode, c_mode, country)
 
             info(f"Recalculated stats for user {st.user_id}!\n"
                  f"| {old_pp:.2f}pp -> {st.pp:.2f} | {old_acc:.2f}% -> {st.accuracy:2f}% | {old_max_combo}x -> {st.max_combo}x")
@@ -55,7 +59,7 @@ async def main():
     info("Fetching a list of all users.")
 
     users_db = await sql.fetchall(
-        "SELECT id FROM users"
+        "SELECT id, privileges FROM users"
     )
     users_list = [user[0] for user in users_db]
 
