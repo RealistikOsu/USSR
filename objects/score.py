@@ -354,7 +354,7 @@ class Score:
         f" +{self.mods.readable} ({round(self.pp, 2)}pp)")
         # Announce it.
         await announce(msg)
-        await log_first_place(self, old_stats, new_stats)
+        await log_first_place(s=self, old_stats, new_stats)
     
     def insert_into_lb_cache(self) -> None:
         """Inserts the score into cached leaderboards if the leaderboards are
