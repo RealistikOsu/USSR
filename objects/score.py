@@ -10,6 +10,7 @@ from consts.c_modes import CustomModes
 from consts.complete import Completed
 from consts.privileges import Privileges
 from objects.beatmap import Beatmap
+from objects.stats import Stats
 from globs.conn import sql
 from globs import caches
 from libs.crypt import validate_md5
@@ -21,15 +22,17 @@ from .leaderboard import GlobalLeaderboard
 import base64
 import traceback
 
-async def log_first_place(s: 'Score', ppGained: float) -> None:
+async def log_first_place(s: 'Score', old_stats: 'Stats', new_stats: 'Stats') -> None:
     """Logs a user's first place to the first place webhook."""
+
+    ppGained = new_stats.pp - old_stats.pp
 
     # Heavily inspired by Ainu's webhook style.
     embed = Embed(color=0x0f97ff)
     embed.set_footer(text= "USSR Score Server")
     embed.set_provider(name= f"New #1 score set by {s.username}!")
     embed.add_field(name=f'Total pp: {s.pp:.2f}pp', value=f'Gained +{ppGained:.2f}pp' if ppGained > 0 else f'Lost {ppGained:.2f}pp')
-    embed.add_field(name=f'Actual rank: {rank placeholder}', value=f'[Download Link]({config["srvurl"]}/d/{s.bmap.set_id})')
+    embed.add_field(name=f'Actual rank: {new_stats.rank}', value=f'[Download Link]({config["srvurl"]}/d/{s.bmap.set_id})')
     embed.add_field(name=f'Played by: {s.username}', value=f"[Go to user's profile]{config['srvurl']}/u/{s.user_id})")
 
     embed.set_image(url= f"https://assets.ppy.sh/beatmaps/{s.bmap.set_id}/covers/cover.jpg")
