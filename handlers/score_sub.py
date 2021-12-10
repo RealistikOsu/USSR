@@ -105,7 +105,7 @@ async def score_submit_handler(req: Request) -> str:
         ) if prev_db else None
 
     debug("Submitting score...")
-    await s.submit()
+    await s.submit(old_stats=old_stats, new_stats=stats)
 
     debug("Incrementing bmap playcount.")
     await s.bmap.increment_playcount(s.passed)
