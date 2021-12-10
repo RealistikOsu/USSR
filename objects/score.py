@@ -185,8 +185,8 @@ class Score:
             return self.completed
         
         table = self.c_mode.db_table
-        scoring = "pp" if self.c_mode.uses_ppboard else "score"
-        val = self.pp if self.c_mode.uses_ppboard else self.score
+        scoring = "pp"
+        val = self.pp
 
         debug("Using MySQL to calculate Completed.")
 
