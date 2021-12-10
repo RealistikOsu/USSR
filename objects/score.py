@@ -322,7 +322,7 @@ class Score:
         self.accuracy = acc * 100
         return self.accuracy
     
-    async def on_first_place(self) -> None:
+    async def on_first_place(self, old_stats: 'Stats', new_stats: 'Stats') -> None:
         """Adds the score to the first_places table."""
 
         # Why did I design this system when i was stupid...
@@ -354,7 +354,7 @@ class Score:
         f" +{self.mods.readable} ({round(self.pp, 2)}pp)")
         # Announce it.
         await announce(msg)
-        await log_first_place(self)
+        await log_first_place(self, old_stats, new_stats)
     
     def insert_into_lb_cache(self) -> None:
         """Inserts the score into cached leaderboards if the leaderboards are
@@ -370,7 +370,8 @@ class Score:
         if lb is not None: lb.insert_user_score(self)
 
     async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
-                     calc_place: bool = True, calc_pp: bool = True) -> None:
+                     calc_place: bool = True, calc_pp: bool = True, 
+                     old_stats: 'Stats', new_stats: 'Stats') -> None:
         """Inserts the score into the database, performing other necessary
         calculations.
         
@@ -395,7 +396,7 @@ class Score:
 
         # Handle first place.
         if self.placement == 1:
-            await self.on_first_place()
+            await self.on_first_place(old_stats, new_stats)
         
         # Insert to cache after score ID is assigned.
         if clear_lbs and self.completed is Completed.BEST \
