@@ -4,7 +4,7 @@ from consts.privileges import Privileges
 from helpers.discord import log_user_edit
 from logger import warning, info
 from typing import Optional
-from globs.caches import priv
+from globs.caches import priv, name
 from globs.conn import redis, sql
 from consts.modes import Mode
 from consts.actions import Actions
@@ -104,7 +104,8 @@ async def edit_user(action: Actions, user_id: int, reason: str = "No reason give
         # Do lbs cleanups in redis.
         await remove_user_from_leaderboards(user_id)
     
-    await log_user_edit(user_id, "<username>", action, reason)
+    username = await name.name_from_id(user_id)
+    await log_user_edit(user_id, username, action, reason)
         
     # Lastly reload perms.
     await priv.load_singular(user_id)
