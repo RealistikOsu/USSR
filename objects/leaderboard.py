@@ -569,3 +569,59 @@ class FriendLeaderboard(CountryLeaderboard):
         )
         where_args = (self.bmap.md5, self.user_id, self.user_id,)
         return where_conds, where_args
+
+@dataclass
+class ModLeaderboard(GlobalLeaderboard):
+    """Leaderboard handling the leaderboard for current selected mods."""
+
+    mods: int = 0
+
+    @classmethod
+    async def from_db(cls, bmap_md5: str, c_mode: CustomModes, mode: Mode,
+                      mods: int, load: bool = True) -> Optional["GlobalLeaderboard"]:
+        """Creates an instance of `GlobalLeaderboard` using data from MySQL.
+        
+        Args:
+            bmap_md5 (str): The MD5 hash of the beatmap.
+            c_mode (CustomModes): The custom mode of the leaderboard.
+            mode (Mode): The mode of the leaderboard.
+            mods (int): The score mods which should be used in the leaderboards.
+            load (bool): Whether the leaderboard scores should be fetched from the
+                MySQL database.
+        """
+
+        # Fetch the beatmap.
+        bmap_fetch, bmap = await _try_bmap(bmap_md5)
+        if not bmap: return None
+
+        # Create object with some empty fields.
+        res = cls(
+            mode= mode,
+            c_mode= c_mode,
+            _scores= {},
+            users= [],
+            total_scores= 0,
+            bmap= bmap,
+            bmap_fetch= bmap_fetch,
+            lb_fetch= FetchStatus.NONE,
+            _pb_cache= {},
+            mods= mods
+        )
+
+        if load: await res.refresh() 
+        return res
+
+    def _fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+        """Returns the where conditions to be used within MySQL queries
+        related to the leaderboard, alongside args meant to be safely formatted
+        into the query."""
+
+        where_conds = (
+            f"a.privileges & {Privileges.USER_PUBLIC.value}",
+            "s.beatmap_md5 = %s",
+            f"s.completed = {Completed.BEST.value}",
+            f"s.play_mode = {self.mode.value}",
+            "s.mods = %s"
+        )
+        where_args = (self.bmap.md5, self.mods)
+        return where_conds, where_args
