@@ -199,18 +199,3 @@ async def log_user_edit(user_id: int, username: str, action: Actions, reason: st
 
     await schedule_hook(admin_hook, embed)
 
-async def log_first_place(s: 'Score') -> None:
-    """Logs a user's first place to the first place webhook."""
-
-    # Heavily inspired by Ainu's webhook style.
-    embed = Embed(color=0x0f97ff)
-    embed.set_footer(text= "USSR Score Server")
-    embed.set_provider(name= f"New #1 score set by {s.username}!")
-    embed.description = (
-        f"[{s.c_mode.acronym}] {s.username} achieved a #1 score on "
-        f"**{s.bmap.song_name}** +{s.mods.readable} ({s.pp:.2f})"
-    )
-
-    embed.set_image(url= f"https://assets.ppy.sh/beatmaps/{s.bmap.set_id}/covers/cover.jpg")
-
-    await schedule_hook(first_hook, embed)

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from helpers.discord import log_first_place
+from helpers.discord import Embed
 from helpers.pep import announce
 from helpers.user import safe_name
 from typing import Optional
@@ -10,6 +10,7 @@ from consts.c_modes import CustomModes
 from consts.complete import Completed
 from consts.privileges import Privileges
 from objects.beatmap import Beatmap
+from objects.stats import Stats
 from globs.conn import sql
 from globs import caches
 from libs.crypt import validate_md5
@@ -20,6 +21,23 @@ from config import conf
 from .leaderboard import GlobalLeaderboard
 import base64
 import traceback
+
+async def log_first_place(s: 'Score', old_stats: 'Stats', new_stats: 'Stats') -> None:
+    """Logs a user's first place to the first place webhook."""
+
+    ppGained = new_stats.pp - old_stats.pp
+
+    # Heavily inspired by Ainu's webhook style.
+    embed = Embed(color=0x0f97ff)
+    embed.set_footer(text= "USSR Score Server")
+    embed.set_provider(name= f"New #1 score set by {s.username}!")
+    embed.add_field(name=f'Total pp: {s.pp:.2f}pp', value=f'Gained +{ppGained:.2f}pp' if ppGained > 0 else f'Lost {ppGained:.2f}pp')
+    embed.add_field(name=f'Actual rank: {new_stats.rank}', value=f'[Download Link]({conf.srv_url}/d/{s.bmap.set_id})')
+    embed.add_field(name=f'Played by: {s.username}', value=f"[Go to user's profile]{conf.srv_url}/u/{s.user_id})")
+
+    embed.set_image(url= f"https://assets.ppy.sh/beatmaps/{s.bmap.set_id}/covers/cover.jpg")
+
+    await schedule_hook(first_hook, embed)
 
 # PP Calculators
 from pp.main import select_calculator
@@ -304,7 +322,7 @@ class Score:
         self.accuracy = acc * 100
         return self.accuracy
     
-    async def on_first_place(self) -> None:
+    async def on_first_place(self, old_stats: 'Stats', new_stats: 'Stats') -> None:
         """Adds the score to the first_places table."""
 
         # Why did I design this system when i was stupid...
@@ -336,7 +354,7 @@ class Score:
         f" +{self.mods.readable} ({round(self.pp, 2)}pp)")
         # Announce it.
         await announce(msg)
-        await log_first_place(self)
+        await log_first_place(s=self, old_stats, new_stats)
     
     def insert_into_lb_cache(self) -> None:
         """Inserts the score into cached leaderboards if the leaderboards are
@@ -353,7 +371,8 @@ class Score:
 
     async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
                      calc_place: bool = True, calc_pp: bool = True,
-                     restricted: bool = False) -> None:
+                     restricted: bool = False, old_stats: 'Stats', new_stats: 'Stats') -> None:
+
         """Inserts the score into the database, performing other necessary
         calculations.
         
@@ -380,7 +399,8 @@ class Score:
 
         # Handle first place.
         if self.placement == 1 and not restricted:
-            await self.on_first_place()
+            await self.on_first_place(old_stats, new_stats)
+
         
         # Insert to cache after score ID is assigned.
         if clear_lbs and self.completed is Completed.BEST \

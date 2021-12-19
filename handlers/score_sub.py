@@ -105,8 +105,10 @@ async def score_submit_handler(req: Request) -> str:
         ) if prev_db else None
 
     debug("Submitting score...")
+
     await s.submit(
-        restricted= privs & Privileges.USER_PUBLIC == 0
+        restricted= privs & Privileges.USER_PUBLIC == 0,
+        old_stats=old_stats, new_stats=stats
     )
 
     debug("Incrementing bmap playcount.")
