@@ -203,8 +203,8 @@ class Score:
             return self.completed
         
         table = self.c_mode.db_table
-        scoring = "pp" if self.c_mode.uses_ppboard else "score"
-        val = self.pp if self.c_mode.uses_ppboard else self.score
+        scoring = "pp"
+        val = self.pp
 
         debug("Using MySQL to calculate Completed.")
 
@@ -370,8 +370,9 @@ class Score:
         if lb is not None: lb.insert_user_score(self)
 
     async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
-                     calc_place: bool = True, calc_pp: bool = True, 
-                     old_stats: 'Stats', new_stats: 'Stats') -> None:
+                     calc_place: bool = True, calc_pp: bool = True,
+                     restricted: bool = False, old_stats: 'Stats', new_stats: 'Stats') -> None:
+
         """Inserts the score into the database, performing other necessary
         calculations.
         
@@ -386,6 +387,8 @@ class Score:
                 allow so).
             calc_pp (bool): Whether the PP for the score should be recalculated
                 from scratch.
+            restricted (bool): Whether the user is restricted or not. If true,
+                `on_first_place` and `insert_into_lb_cache` will NOT be called
         """
 
         if calc_pp: await self.calc_pp() # We need this for the rest.
@@ -395,12 +398,13 @@ class Score:
         await self.__insert()
 
         # Handle first place.
-        if self.placement == 1:
+        if self.placement == 1 and not restricted:
             await self.on_first_place(old_stats, new_stats)
+
         
         # Insert to cache after score ID is assigned.
         if clear_lbs and self.completed is Completed.BEST \
-            and self.bmap.has_leaderboard:
+            and self.bmap.has_leaderboard and not restricted:
             self.insert_into_lb_cache()
 
     async def __insert(self) -> None:
