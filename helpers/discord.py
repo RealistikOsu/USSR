@@ -9,6 +9,7 @@ from logger import debug, error, info
 
 if TYPE_CHECKING:
     from objects.score import Score
+    from objects.stats import Stats
 
 # This portion is based off cmyui's discord hooks code
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/discord/webhook.py
@@ -199,3 +200,19 @@ async def log_user_edit(user_id: int, username: str, action: Actions, reason: st
 
     await schedule_hook(admin_hook, embed)
 
+async def log_first_place(s: 'Score', old_stats: 'Stats', new_stats: 'Stats') -> None:
+    """Logs a user's first place to the first place webhook."""
+
+    pp_gained = new_stats.pp - old_stats.pp
+
+    # Heavily inspired by Ainu's webhook style.
+    embed = Embed(color=0x0f97ff)
+    embed.set_footer(text= "USSR Score Server")
+    embed.set_author(name= f"New #1 score set by {s.username}!")
+    embed.add_field(name=f'Total pp: {s.pp:.2f}pp', value=f'Gained +{pp_gained:.2f}pp' if pp_gained >= 0 else f'Lost {pp_gained:.2f}pp')
+    embed.add_field(name=f'Actual rank: {new_stats.rank}', value=f'[Download Link]({conf.srv_url}/d/{s.bmap.set_id})')
+    embed.add_field(name=f'Played by: {s.username}', value=f"[Go to user's profile]({conf.srv_url}/u/{s.user_id})")
+
+    embed.set_image(url= f"https://assets.ppy.sh/beatmaps/{s.bmap.set_id}/covers/cover.jpg")
+
+    await schedule_hook(first_hook, embed)

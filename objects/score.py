@@ -19,25 +19,9 @@ from lenhttp import Request
 from py3rijndael import RijndaelCbc, ZeroPadding
 from config import conf
 from .leaderboard import GlobalLeaderboard
+from helpers.discord import log_first_place
 import base64
 import traceback
-
-async def log_first_place(s: 'Score', old_stats: 'Stats', new_stats: 'Stats') -> None:
-    """Logs a user's first place to the first place webhook."""
-
-    ppGained = new_stats.pp - old_stats.pp
-
-    # Heavily inspired by Ainu's webhook style.
-    embed = Embed(color=0x0f97ff)
-    embed.set_footer(text= "USSR Score Server")
-    embed.set_provider(name= f"New #1 score set by {s.username}!")
-    embed.add_field(name=f'Total pp: {s.pp:.2f}pp', value=f'Gained +{ppGained:.2f}pp' if ppGained > 0 else f'Lost {ppGained:.2f}pp')
-    embed.add_field(name=f'Actual rank: {new_stats.rank}', value=f'[Download Link]({conf.srv_url}/d/{s.bmap.set_id})')
-    embed.add_field(name=f'Played by: {s.username}', value=f"[Go to user's profile]{conf.srv_url}/u/{s.user_id})")
-
-    embed.set_image(url= f"https://assets.ppy.sh/beatmaps/{s.bmap.set_id}/covers/cover.jpg")
-
-    await schedule_hook(first_hook, embed)
 
 # PP Calculators
 from pp.main import select_calculator
@@ -354,7 +338,7 @@ class Score:
         f" +{self.mods.readable} ({round(self.pp, 2)}pp)")
         # Announce it.
         await announce(msg)
-        await log_first_place(s=self, old_stats, new_stats)
+        await log_first_place(self, old_stats, new_stats)
     
     def insert_into_lb_cache(self) -> None:
         """Inserts the score into cached leaderboards if the leaderboards are
@@ -369,9 +353,10 @@ class Score:
         lb = GlobalLeaderboard.from_cache(self.bmap.md5, self.c_mode, self.mode)
         if lb is not None: lb.insert_user_score(self)
 
-    async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
+    async def submit(self, old_stats: 'Stats', new_stats: 'Stats',
+                     clear_lbs: bool = True, calc_completed: bool = True,
                      calc_place: bool = True, calc_pp: bool = True,
-                     restricted: bool = False, old_stats: 'Stats', new_stats: 'Stats') -> None:
+                     restricted: bool = False) -> None:
 
         """Inserts the score into the database, performing other necessary
         calculations.
