@@ -131,6 +131,7 @@ def server_start():
             Endpoint("/web/osu-rate.php", beatmap_rate_handler),
             Endpoint("/web/osu-getseasonal.php", get_seasonals_handler),
             Endpoint("/web/bancho_connect.php", bancho_connect),
+            Endpoint("/difficulty-rating", difficulty_rating, ["POST"]),
             # Ripple API endpoints
             Endpoint("/api/v1/status", status_handler),
             Endpoint("/api/v1/pp", pp_handler),
