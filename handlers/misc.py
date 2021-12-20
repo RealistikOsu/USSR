@@ -154,3 +154,9 @@ async def bancho_connect(req: Request) -> str:
     # Endpoint responds with the country of the user for cases where
     # bancho is offline and it cannot fetch it from there.
     return await fetch_user_country(user_id)
+
+async def difficulty_rating(req: Request) -> float:
+    """Handles `/difficulty-rating`for accurate bancho SR"""
+
+    req.add_header("Location", "https://osu.ppy.sh/difficulty-rating")
+    return(307, b"")
