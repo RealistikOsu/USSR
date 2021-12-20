@@ -132,6 +132,8 @@ async def leaderboard_get_handler(req: Request) -> None:
         lb = await CountryLeaderboard.from_db(md5, c_mode, mode, user_id)
     elif lb_filter is LeaderboardTypes.FRIENDS:
         lb = await FriendLeaderboard.from_db(md5, c_mode, mode, user_id)
+    elif lb_filter is LeaderboardTypes.MOD:
+        lb = await ModLeaderboard.from_db(md5, c_mode, mode, mods.value)
     else:
         error(
             f"{username} ({user_id}) requested an unimplemented leaderboard type {lb_filter!r}!"

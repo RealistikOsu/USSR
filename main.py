@@ -11,6 +11,7 @@ from lenhttp import Application, Endpoint
 from config import conf
 from redis_pubsub.router import pubsub_executor
 from pp.main import build_oppai, verify_oppai
+from os import system
 import traceback
 
 # Uvloop is a significantly faster loop.
@@ -87,7 +88,8 @@ async def create_redis_pubsub():
 async def perform_startup(redis: bool = True):
     """Runs all of the startup tasks, checking if they all succeed. If not,
     `SystemExit` will be raised."""
-
+    
+    system("clear")
     info("Running startup tasks...")
     try:
         if not all([await c() for c in STARTUP_TASKS]):
@@ -96,7 +98,6 @@ async def perform_startup(redis: bool = True):
     except Exception:
         error("Error running startup task!" + traceback.format_exc())
         raise SystemExit(1)
-    info("Doned.")
     if not redis:
         return
     try:
@@ -105,7 +106,7 @@ async def perform_startup(redis: bool = True):
     except Exception:
         error("Error creating Redis PubSub listeners! " + traceback.format_exc())
         raise SystemExit(1)
-
+    info("Done")
 
 def server_start():
     """Handles a regular start of the server."""
@@ -130,6 +131,7 @@ def server_start():
             Endpoint("/web/osu-rate.php", beatmap_rate_handler),
             Endpoint("/web/osu-getseasonal.php", get_seasonals_handler),
             Endpoint("/web/bancho_connect.php", bancho_connect),
+            Endpoint("/difficulty-rating", difficulty_rating, ["POST"]),
             # Ripple API endpoints
             Endpoint("/api/v1/status", status_handler),
             Endpoint("/api/v1/pp", pp_handler),
