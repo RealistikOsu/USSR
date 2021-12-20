@@ -104,7 +104,6 @@ async def leaderboard_get_handler(req: Request) -> None:
     # Grab request args.
     md5 = req.get_args["c"]
     mods = Mods(int(req.get_args["mods"]))
-    score_mods = int(req.get_args["mods"])
     mode = Mode(int(req.get_args["m"]))
     s_ver = int(req.get_args["vv"])
     lb_filter = LeaderboardTypes(int(req.get_args["v"]))
@@ -132,9 +131,9 @@ async def leaderboard_get_handler(req: Request) -> None:
     elif lb_filter is LeaderboardTypes.COUNTRY:
         lb = await CountryLeaderboard.from_db(md5, c_mode, mode, user_id)
     elif lb_filter is LeaderboardTypes.FRIENDS:
-        lb = await FriendLeaderboard.from_db(md5, c_mode, mode, user_id)\
+        lb = await FriendLeaderboard.from_db(md5, c_mode, mode, user_id)
     elif lb_filter is LeaderboardTypes.MOD:
-        lb = await ModLeaderboard.from_db(md5, c_mode, mode, score_mods)
+        lb = await ModLeaderboard.from_db(md5, c_mode, mode, mods.value)
     else:
         error(
             f"{username} ({user_id}) requested an unimplemented leaderboard type {lb_filter!r}!"
