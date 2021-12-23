@@ -1,19 +1,18 @@
 # TODO: Cleanup
-import traceback
-import requests
-from random import randint, shuffle
-from lenhttp import Request
-from globs import caches
-from logger import error, info
-from conn.web_client import simple_get_json, simple_get
-from consts.statuses import Status
+from conn.web_client import simple_get_json
+from constants.statuses import Status
 from helpers.user import safe_name
-from config import conf
+from logger import error, info
+from globals import caches
+from config import config
+import traceback
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse, RedirectResponse
 
 # Constants.
 PASS_ERR = b"error: pass"
-USING_CHIMU_V1 = "https://api.chimu.moe/v1" == conf.direct_api_url
-URI_SEARCH = f"{conf.direct_api_url}/search"
+USING_CHIMU_V1 = "https://api.chimu.moe/v1" == config.DIRECT_URL
+URI_SEARCH = f"{config.DIRECT_URL}/search"
 CHIMU_SPELL = "SetId" if USING_CHIMU_V1 else "SetID"
 BASE_HEADER = (
     "{{{ChimuSpell}}}.osz|{{Artist}}|{{Title}}|{{Creator}}|{{RankedStatus}}|10.0|"
@@ -22,7 +21,7 @@ BASE_HEADER = (
 CHILD_HEADER = "[{DiffName} ⭐{DifficultyRating:.2f}] {{CS: {CS} / OD: {OD} / AR: {AR} / HP: {HP}}}@{Mode}"
 
 
-def __format_search_response(diffs: dict, bmap: dict):
+def _format_search_response(diffs: dict, bmap: dict):
     """Formats the beatmapset dictionary to full direct response."""
 
     base_str = BASE_HEADER.format(**bmap, Video=int(bmap["HasVideo"]))
@@ -33,70 +32,69 @@ def __format_search_response(diffs: dict, bmap: dict):
 async def download_map(req: Request, map_id: str):
     """Handles osu!direct map download route"""
 
-    domain = conf.direct_api_url.split("/")[2]
+    domain = config.DIRECT_URL.split("/")[2]
     beatmap_id = int(map_id.removesuffix("n"))
     no_vid = "n" == map_id[-1]
 
     url = f"https://{domain}/d/{beatmap_id}"
     if USING_CHIMU_V1:
-        url = f"{conf.direct_api_url}/download/{beatmap_id}?n={int(no_vid)}"
-    req.add_header("Location", url)
-    return (302, b"")
+        url = f"{config.DIRECT_URL}/download/{beatmap_id}?n={int(no_vid)}"
+    return RedirectResponse(url, status_code=302)
 
 
 async def get_set_handler(req: Request) -> None:
     """Handles a osu!direct pop-up link response."""
 
-    nick = req.get_args.get("u", "")
-    password = req.get_args.get("h", "")
+    nick = req.query_params.get("u", "")
+    password = req.query_params.get("h", "")
     user_id = await caches.name.id_from_safe(safe_name(nick))
 
     # Handle Auth..
     if not await caches.password.check_password(user_id, password) or not nick:
-        return PASS_ERR
+        return PlainTextResponse(PASS_ERR)
 
-    if "b" in req.get_args:
-        bmap_id = req.get_args.get("b")
+    if "b" in req.query_params:
+        bmap_id = req.query_params.get("b")
 
         bmap_resp = await simple_get_json(
-            f"{conf.direct_api_url}/{'map' if USING_CHIMU_V1 else 'b'}/{bmap_id}"
+            f"{config.DIRECT_URL}/{'map' if USING_CHIMU_V1 else 'b'}/{bmap_id}"
         )
         if not bmap_resp or (USING_CHIMU_V1 and int(bmap_resp.get("code", "404")) != 0):
-            return b""
+            return PlainTextResponse()
         bmap_set = (
             bmap_resp["data"]["ParentSetId"]
             if USING_CHIMU_V1
             else bmap_resp["ParentSetID"]
         )
 
-    elif "s" in req.get_args:
-        bmap_set = req.get_args.get("s")
+    elif "s" in req.query_params:
+        bmap_set = req.query_params.get("s")
 
     bmap_set_resp = await simple_get_json(
-        f"{conf.direct_api_url}/{'set' if USING_CHIMU_V1 else 's'}/{bmap_set}"
+        f"{config.DIRECT_URL}/{'set' if USING_CHIMU_V1 else 's'}/{bmap_set}"
     )
     if not bmap_set_resp or (USING_CHIMU_V1 and int(bmap_resp.get("code", "404")) != 0):
-        return b""  # THIS SHOULD NEVER HAPPEN.
+        return PlainTextResponse()
 
     json_data = bmap_set_resp["data"] if USING_CHIMU_V1 else bmap_set_resp
-    return __format_search_response({}, json_data).encode()
+    return PlainTextResponse(_format_search_response({}, json_data))
 
 
 async def direct_get_handler(req: Request) -> None:
     """Handles osu!direct panels response."""
 
     # Get all keys.
-    nickname = req.get_args.get("u", "")
-    password = req.get_args.get("h", "")
-    status = Status.from_direct(int(req.get_args.get("r", "0")))
-    query = req.get_args.get("q", "").replace("+", " ")
-    offset = int(req.get_args.get("p", "0")) * 100
-    mode = int(req.get_args.get("m", "-1"))
+    nickname = req.query_params.get("u", "")
+    password = req.query_params.get("h", "")
+    status = Status.from_direct(int(req.query_params.get("r", "0")))
+    query = req.query_params.get("q", "").replace("+", " ")
+    offset = int(req.query_params.get("p", "0")) * 100
+    mode = int(req.query_params.get("m", "-1"))
     user_id = await caches.name.id_from_safe(safe_name(nickname))
 
     # Handle Auth..
     if not await caches.password.check_password(user_id, password) or not nickname:
-        return PASS_ERR
+        return PlainTextResponse(PASS_ERR)
 
     mirror_params = {"amount": 100, "offset": offset}
     if status is not None:
@@ -113,10 +111,10 @@ async def direct_get_handler(req: Request) -> None:
         res = await simple_get_json(URI_SEARCH, mirror_params)
     except Exception:
         error(f"Error with direct search: {traceback.format_exc()}")
-        return b"-1\nError has occured when fetching direct listing!"
+        return PlainTextResponse("-1\nError has occured when fetching direct listing!")
 
     if not res or (USING_CHIMU_V1 and int(res.get("code", "404")) != 0):
-        return b"0"
+        return PlainTextResponse("0")
 
     bmaps = res["data"] if USING_CHIMU_V1 else res
     response = [f"{'101' if len(bmaps) == 100 else len(bmaps)}"]
@@ -127,6 +125,6 @@ async def direct_get_handler(req: Request) -> None:
         sorted_diffs = sorted(
             bmap["ChildrenBeatmaps"], key=lambda b: b["DifficultyRating"]
         )
-        response.append(__format_search_response(sorted_diffs, bmap))
+        response.append(_format_search_response(sorted_diffs, bmap))
 
-    return ("\n".join(response)).encode()
+    return PlainTextResponse("\n".join(response))

@@ -1,6 +1,6 @@
 # Helps coordinating stuff between pep.py and the USSR.
-from globs.caches import name
-from globs.conn import redis
+from globals.caches import name
+from globals.connections import redis
 try: from orjson import dumps as j_dump
 except ImportError: from json import dumps as j_dump
 

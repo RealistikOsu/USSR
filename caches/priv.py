@@ -1,7 +1,7 @@
 # The privilege cache to avoid per-request SQL queries.
 from typing import Dict, Optional
-from globs.conn import sql
-from consts.privileges import Privileges
+from globals.connections import sql
+from constants.privileges import Privileges
 
 class PrivilegeCache:
     """Stores the privileges of all users in memory for rapid lookups."""

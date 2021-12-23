@@ -32,12 +32,17 @@ def spl_list(l: list, chk: int) -> list[list]:
 
 async def perform_split_async(coro: Callable, l: list, tasks: int):
     """Splits a list into `tasks` chunks, and creates `tasks` async tasks
-    of `coro` where the chunked `l` is the argument."""
+    of `coro` where the chunked `l` is the argument. Waits for all tasks
+    to then finish."""
 
     lsts = spl_list(l, tasks)
     loop = asyncio.get_event_loop()
+    tasks = []
 
-    for args in lsts: loop.create_task(coro(args))
+    for args in lsts: tasks.append(loop.create_task(coro(args)))
+    # Now wait for all tasks to finish.
+    for task in tasks: await task
+
 
 if __name__ == "__main__":
     raise ValueError(

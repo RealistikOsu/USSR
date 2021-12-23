@@ -3,10 +3,10 @@
 from cli_utils import perform_startup_requirements, get_loop, perform_split_async
 from objects.stats import Stats
 from helpers.user import update_lb_pos, update_country_lb_pos, fetch_user_country
-from consts.c_modes import CustomModes
-from consts.modes import Mode
+from constants.c_modes import CustomModes
+from constants.modes import Mode
 from logger import info, error
-from globs.conn import sql
+from globals.connections import sql
 
 async def perform_stats_update(uid_tup: tuple[int, int]):
     """Performs the recalculation and saving of a singular user from stats."""
@@ -61,11 +61,10 @@ async def main():
     users_db = await sql.fetchall(
         "SELECT id, privileges FROM users"
     )
-    users_list = [user[0] for user in users_db]
 
     info("Starting the stars recalculation of the whole server...")
     
-    await perform_split_async(recalc_chk, users_list, 16)
+    await perform_split_async(recalc_chk, users_db, 16)
     
 
 if __name__ == "__main__":

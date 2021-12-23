@@ -1,6 +1,6 @@
 # The USSR pubsub router.
 from aioredis import Channel
-from globs.conn import redis
+from globals.connections import redis
 from typing import Callable
 import asyncio
 

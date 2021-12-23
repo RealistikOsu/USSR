@@ -57,7 +57,7 @@ class CalculatorPeace:
 
         path = await fetch_osu_file(self.bmap_id)
 
-        b = Beatmap(path)
+        b = Beatmap(str(path))
         c = Calculator(
             mode= self.mode,
             mods= self.mods,

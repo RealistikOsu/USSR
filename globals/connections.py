@@ -1,12 +1,12 @@
 # Globals related to db connections etc.
+from config import config
 from conn.mysql import MySQLPool
 from logger import error
-from config import conf
 from helpers.osuapi import OsuApiManager
 import traceback
 import aioredis
 
-__slots__ = ("sql", "loop")
+__slots__ = ("sql", "redis", "oapi")
 
 sql = MySQLPool()
 redis = aioredis.Redis(None)
@@ -21,10 +21,10 @@ async def connect_sql() -> bool:
 
     try:
         await sql.connect(
-            host= conf.sql_host,
-            user= conf.sql_user,
-            database= conf.sql_db,
-            password= conf.sql_password,
+            host= config.SQL_HOST,
+            user= config.SQL_USER,
+            database= config.SQL_DB,
+            password= config.SQL_PASS,
         )
         return True
     except Exception:

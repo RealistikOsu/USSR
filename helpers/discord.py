@@ -1,15 +1,15 @@
 # A cool discord helper (specifically with webhooks)
 import traceback
-from config import conf
+from config import config
 import asyncio
-from consts.actions import Actions
-from typing import TYPE_CHECKING, Optional
+from constants.actions import Actions
+from typing import Optional, TYPE_CHECKING
 from conn.web_client import simple_post_json
 from logger import debug, error, info
 
 if TYPE_CHECKING:
-    from objects.score import Score
     from objects.stats import Stats
+    from objects.score import Score
 
 # This portion is based off cmyui's discord hooks code
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/discord/webhook.py
@@ -160,8 +160,8 @@ class Webhook:
         debug(f"Webhook response: {res}")
 
 # Hooks
-admin_hook = conf.discord_admin_hook if conf.discord_admin_hook else None
-first_hook = conf.discord_first_hook if conf.discord_first_hook else None
+admin_hook = a_hook if (a_hook := config.DISCORD_ADMIN_HOOK) else None
+first_hook = one_hook if (one_hook := config.DISCORD_FIRST_PLACE) else None
 
 async def wrap_hook(hook: str, embed: Embed) -> None:
     """Handles sending the webhook to discord."""
@@ -208,10 +208,10 @@ async def log_first_place(s: 'Score', old_stats: 'Stats', new_stats: 'Stats') ->
     # Heavily inspired by Ainu's webhook style.
     embed = Embed(color=0x0f97ff)
     embed.set_footer(text= "USSR Score Server")
-    embed.set_author(name= f"New #1 score set by {s.username}!")
-    embed.add_field(name=f'Total pp: {s.pp:.2f}pp', value=f'Gained +{pp_gained:.2f}pp' if pp_gained >= 0 else f'Lost {pp_gained:.2f}pp')
-    embed.add_field(name=f'Actual rank: {new_stats.rank}', value=f'[Download Link]({conf.srv_url}/d/{s.bmap.set_id})')
-    embed.add_field(name=f'Played by: {s.username}', value=f"[Go to user's profile]({conf.srv_url}/u/{s.user_id})")
+    embed.set_author(name= f"[{s.c_mode.acronym}] New #1 score set by {s.username}!")
+    embed.add_field(name=f'Score pp: {s.pp:.2f}pp', value=f'Gained: {pp_gained:.2f}pp' if pp_gained >= 0 else f'Lost: {pp_gained:.2f}pp')
+    embed.add_field(name=f'Global Rank: {new_stats.rank}', value=f'[__[Download Map]({config.SRV_URL}/d/{s.bmap.set_id})__]')
+    embed.add_field(name=f'Played by: {s.username}', value=f"[__[User Profile]({config.SRV_URL}/u/{s.user_id})__]")
 
     embed.set_image(url= f"https://assets.ppy.sh/beatmaps/{s.bmap.set_id}/covers/cover.jpg")
 

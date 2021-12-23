@@ -1,6 +1,6 @@
 # The clan cache to avoid weird joins.
 from typing import Dict, Optional
-from globs.conn import sql
+from globals.connections import sql
 
 # The clan cache is taken from https://github.com/RealistikOsu/lets/blob/master/helpers/clan_helper.py
 # I wrote it myself for the RealistikOsu lets and this is just an async port.

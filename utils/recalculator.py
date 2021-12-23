@@ -2,13 +2,12 @@
 # But it can reuse code and utils efficiently. You win some you lose some.
 from cli_utils import get_loop, perform_startup_requirements
 from typing import Generator
-from consts.c_modes import CustomModes
-from globs.conn import sql
+from constants.c_modes import CustomModes
+from globals.connections import sql
 from objects.score import Score
 from logger import debug, info, error
 from asyncio import Lock
 import traceback
-import sys
 
 TASK_COUNT = 4
 BASE_QUERY = "SELECT id FROM {table} WHERE {cond}"

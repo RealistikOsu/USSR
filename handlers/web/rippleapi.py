@@ -1,17 +1,18 @@
 # Implementation of the ripple api for compatibility purposes.
-from lenhttp import Request
-from consts.modes import Mode
-from consts.c_modes import CustomModes
-from consts.mods import Mods
+from starlette.requests import Request
+from starlette.responses import Response, JSONResponse
+from constants.modes import Mode
+from constants.c_modes import CustomModes
+from constants.mods import Mods
 from helpers.beatmap import bmap_md5_from_id
 from logger import info
 from pp.main import select_calculator
 from objects.beatmap import Beatmap
 
-async def status_handler(request: Request):
+async def status_handler(request: Request) -> Response:
     """Handles the `/api/v1/status` with a constant response."""
 
-    return request.return_json(200, {
+    return JSONResponse({
         "status": 200,
         "server_status": 1,
     })
@@ -21,24 +22,25 @@ TILLERINO_PERCENTAGES = (
 )
 
 # PP Calculation. TODO: Ratelimit.
-async def pp_handler(request: Request):
+async def pp_handler(request: Request) -> Response:
     """Handles the `/api/v1/pp` api."""
 
-    beatmap_id = request.get_args.get("b")
-    if not beatmap_id: return request.return_json(400, {
-        "status": 400,
-        "message": "Missing b GET argument."
-    })
+    beatmap_id = request.query_params.get("b")
+    if not beatmap_id: 
+        return JSONResponse({
+            "status": 400,
+            "message": "Missing b GET argument."
+        }, 400)
 
-    mods = int(request.get_args.get("m", 0))
+    mods = int(request.query_params.get("m", 0))
     mods = Mods(mods)
 
-    mode = int(request.get_args.get("g", 0))
+    mode = int(request.query_params.get("g", 0))
     mode = Mode(mode)
 
-    acc_str = request.get_args.get("a")
+    acc_str = request.query_params.get("a")
     accuracy = float(acc_str) if acc_str else None
-    combo = int(request.get_args.get("max_combo", 0))
+    combo = int(request.query_params.get("max_combo", 0))
     c_mode = CustomModes.from_mods(mods, mode)
     do_tillerino = accuracy is None
 
@@ -47,10 +49,11 @@ async def pp_handler(request: Request):
 
     # Get beatmap.
     bmap_md5 = await bmap_md5_from_id(beatmap_id)
-    if not bmap_md5: return request.return_json(400, {
-        "status": 400,
-        "message": "Invalid/non-existent beatmap id."
-    })
+    if not bmap_md5: 
+        return JSONResponse({
+            "status": 400,
+            "message": "Invalid/non-existent beatmap id."
+        }, 400)
 
     bmap = await Beatmap.from_md5(bmap_md5)
 
@@ -76,7 +79,7 @@ async def pp_handler(request: Request):
     info(f"Handled PP Calculation API Request for {bmap.song_name}!")
     
     # Final Response!
-    return request.return_json(200, {
+    return JSONResponse({
         "status": 200,
         "message": "ok",
         "song_name": bmap.song_name,

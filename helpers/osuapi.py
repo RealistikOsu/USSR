@@ -1,13 +1,12 @@
 # A manager for the osu! api.
 from typing import Union
-from config import conf
+from config import config
 from libs.time import Timer
 from conn.web_client import simple_get_json
 import random
-
 from logger import debug
 
-BASE_URL = "http://old.ppy.sh/api/{}"
+BASE_URL = "http://old.ppy.sh/api/"
 
 class OsuApiManager:
     """A manager for communcations between the osu!api v1 and the USSR."""
@@ -21,7 +20,7 @@ class OsuApiManager:
         """
 
         self.base_url = base_url
-        self.key_pool = conf.oapi_key_pool
+        self.key_pool = config.API_KEYS_POOL
     
     def get_key(self) -> str:
         """A sort of load balancer between the keys to make sure the usage
@@ -29,19 +28,6 @@ class OsuApiManager:
 
         # ADVANCED LOAD BALANCER.
         return random.choice(self.key_pool)
-    
-    def __create_url(self, endpoint: str) -> str:
-        """Creates a url for the request to be made to, using the `base_url` and
-        `endpoint`.
-        
-        Args:
-            endpoint (str): The osu!api endpoint url.
-        
-        Returns:
-            str: The url to be used for the request.
-        """
-
-        return self.base_url.format(endpoint)
     
     async def make_request(self, endpoint: str, args: dict, 
                            require_key: bool = True) -> Union[list, dict]:
@@ -63,10 +49,10 @@ class OsuApiManager:
         t = Timer()
         t.start()
 
-        url = self.__create_url(endpoint)
-        if require_key: args["k"] = self.get_key()
+        if require_key: 
+            args["k"] = self.get_key()
 
-        res = await simple_get_json(url, args)
+        res = await simple_get_json(BASE_URL + endpoint, args)
         debug(f"osu!api request to {endpoint} took {t.time_str()} seconds.")
         return res
     

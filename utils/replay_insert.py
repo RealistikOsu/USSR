@@ -3,21 +3,21 @@
 # will not get submitted.
 import sys
 from cli_utils import perform_startup_requirements, get_loop
-from globs import caches
+from globals import caches
 import traceback
 from libs.time import get_timestamp
 from objects.stats import Stats
 from objects.score import Score
 from logger import error, info
 from helpers.user import safe_name
-from globs.conn import sql
-from consts.c_modes import CustomModes
-from consts.modes import Mode
-from consts.mods import Mods
-from consts.actions import Actions
-from consts.complete import Completed
-from consts.privileges import Privileges
-from consts.statuses import Status
+from globals.connections import sql
+from constants.c_modes import CustomModes
+from constants.modes import Mode
+from constants.mods import Mods
+from constants.actions import Actions
+from constants.complete import Completed
+from constants.privileges import Privileges
+from constants.statuses import Status
 from objects.beatmap import Beatmap
 from osupyparser import ReplayFile
 from helpers.user import update_country_lb_pos, update_lb_pos, edit_user

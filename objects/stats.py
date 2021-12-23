@@ -1,12 +1,12 @@
 from dataclasses import dataclass
-from consts.modes import Mode
-from consts.c_modes import CustomModes
+from constants.modes import Mode
+from constants.c_modes import CustomModes
 from typing import Optional
-from globs.conn import sql
+from globals.connections import sql
 from helpers.user import get_rank_redis
 from helpers.pep import stats_refresh
 from logger import debug
-from globs.caches import stats_cache
+from globals.caches import stats_cache
 
 @dataclass
 class Stats:
@@ -139,15 +139,17 @@ class Stats:
 
         t_acc = 0.0
         t_pp = 0.0
+        lst_idx = 0 # Sometimes there is a weird bug where idx gets out of scope.
 
         for idx, (s_acc, s_pp) in enumerate(scores_db):
             t_pp += s_pp * (0.95 ** idx)
             t_acc += s_acc * (0.95 ** idx) # TLDR: accuracy is scaled too!
+            lst_idx = idx
 
         # Big brain optimisation to stop this being uselessly ran.
-        if idx == 99: self._required_recalc_pp = s_pp
+        if lst_idx == 99: self._required_recalc_pp = s_pp
   
-        self.accuracy = (t_acc * (100.0 / (20 * (1 - 0.95 ** (idx + 1))))) / 100
+        self.accuracy = (t_acc * (100.0 / (20 * (1 - 0.95 ** (lst_idx + 1))))) / 100
         self.pp = t_pp + await self.__calc_bonus_pp()
 
         return self.accuracy, self.pp

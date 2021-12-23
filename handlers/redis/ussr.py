@@ -1,8 +1,8 @@
 # USSR New Redis impl.
-from globs.caches import beatmaps
+from globals.caches import beatmaps
 from objects.leaderboard import GlobalLeaderboard
-from consts.modes import Mode
-from consts.c_modes import CustomModes
+from constants.modes import Mode
+from constants.c_modes import CustomModes
 from logger import info
 
 async def drop_bmap_cache_pubsub(data: bytes) -> None:

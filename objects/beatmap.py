@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from libs.time import get_timestamp
 from typing import Optional
-from consts.modes import Mode
-from consts.statuses import Status
-from globs.caches import beatmaps, add_nocheck_md5
-from globs.conn import sql, oapi
+from constants.modes import Mode
+from constants.statuses import Status
+from globals.caches import beatmaps, add_nocheck_md5
+from globals.connections import sql, oapi
 from logger import debug, error, info
 from helpers.beatmap import delete_osu_file
 import traceback

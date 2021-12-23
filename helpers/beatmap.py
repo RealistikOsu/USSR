@@ -1,10 +1,16 @@
 # Helpers for general beatmap functions.
 from logger import debug, error
 from conn.web_client import simple_get
-from globs.conn import sql
+from aiopath import AsyncPath as Path
+from globals.connections import sql
 from typing import Optional
-from config import conf
+from config import config
 import os
+
+if config.DATA_DIR[0] == "/" or config.DATA_DIR[1] == ":":
+    DIR_MAPS = Path(config.DATA_DIR) / "maps"
+else:
+    DIR_MAPS = os.getcwd() / Path(config.DATA_DIR) / "maps"
 
 async def bmap_md5_from_id(bmap_id: int) -> Optional[str]:
     """Attempts to fetch the beatmap MD5 hash for a map stored in the database.
@@ -56,8 +62,8 @@ async def fetch_osu_file(bmap_id: int) -> str:
     Returns path to the osu file.
     """
 
-    path = conf.dir_maps + f"/{bmap_id}.osu"
-    if os.path.exists(path):
+    path = DIR_MAPS / f"{bmap_id}.osu"
+    if await path.exists():
         debug(f"osu beatmap file for beatmap {bmap_id} is already cached!")
         return path
     
@@ -67,17 +73,17 @@ async def fetch_osu_file(bmap_id: int) -> str:
         return error(f"Invalid beatmap .osu response! PP calculation will fail!")
 
     # Write to file.
-    with open(path, "w") as f: f.write(m_str)
+    await path.write_text(m_str)
     debug(f"Beatmap cached to {path}!")
     return path
 
-def delete_osu_file(bmap_id: int):
+async def delete_osu_file(bmap_id: int):
     """Ensures an `.osu` beatmap file is completely deleted from cache."""
 
-    path = conf.dir_maps + f"/{bmap_id}.osu"
+    path = DIR_MAPS / f"{bmap_id}.osu"
 
-    try: os.remove(path)
-    except FileNotFoundError: pass
+    try: await path.unlink()
+    except Exception: pass
 
 async def user_rated_bmap(user_id: int, bmap_md5: str) -> bool:
     """Check if a user has already submitted a rating for a beatmap.

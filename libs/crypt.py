@@ -81,4 +81,4 @@ def ts_to_utc_ticks(ts: int) -> int:
     C#'s `DateTime.ToUniversalTime().Ticks`.
     """
 
-    return ts * 10_000_000 + 0x89F7FF5F7B58000
+    return int(ts * 1e7) + 0x89F7FF5F7B58000

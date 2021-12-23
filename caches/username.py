@@ -1,7 +1,7 @@
 # Ruri mode but it helps us do less joins (can be expensive in big cases) and
 # assists with name -> ID lookups and vice-versa
 from typing import Dict, Optional
-from globs.conn import sql
+from globals.connections import sql
 
 BASE_QUERY = "SELECT id, username, username_safe FROM users "
 

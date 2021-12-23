@@ -1,13 +1,15 @@
 # Support for ripple's pubsub handlers. These are featured in **all** ripple
 # based servers.
-from consts.privileges import Privileges
-from globs.caches import name, priv, password, leaderboards
+from constants.privileges import Privileges
+from globals.caches import name, priv, password, leaderboards
 
 try: from orjson import loads as j_load
 except ImportError: from json import loads as j_load
 
-async def __update_singular(md5: str) -> None:
+async def _update_singular(md5: str) -> None:
     """Updates a singular map using data from the osu API."""
+    ...
+
 
 async def beatmap_update_pubsub(data: bytes) -> None:
     """Handler for the pubsub event `lets:beatmap_updates`.
@@ -32,6 +34,7 @@ async def beatmap_update_pubsub(data: bytes) -> None:
 
     # Parse JSON formatted data.
     j_data = j_load(data)
+    ...
 
 async def username_change_pubsub(data: bytes):
     """

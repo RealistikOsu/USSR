@@ -1,44 +1,42 @@
 # TODO: Cleanup this mess.
 from libs.time import Timer
 from logger import error, info, debug
-from typing import Optional
 from objects.beatmap import Beatmap
 from objects.leaderboard import (
     GlobalLeaderboard,
     CountryLeaderboard,
     FriendLeaderboard,
+    ModLeaderboard,
     USER_ID_IDX,
     USERNAME_IDX,
 )
-from globs import caches
-from lenhttp import Request
+from globals import caches
+from starlette.requests import Request
+from starlette.responses import Response, PlainTextResponse
 from helpers.user import safe_name, edit_user
-from consts.actions import Actions
-from consts.mods import Mods
-from consts.modes import Mode
-from consts.c_modes import CustomModes
-from consts.privileges import Privileges
-from consts.complete import Completed
-from consts.statuses import FetchStatus, LeaderboardTypes, Status
-from globs.conn import sql
+from constants.actions import Actions
+from constants.mods import Mods
+from constants.modes import Mode
+from constants.c_modes import CustomModes
+from constants.statuses import LeaderboardTypes, Status
 from libs.crypt import validate_md5
 
 # Maybe make constants?
-BASIC_ERR = b"error: no"
-PASS_ERR = b"error: pass"
+BASIC_ERR = "error: no"
+PASS_ERR = "error: pass"
 
 
-def __status_header(st: Status) -> str:
+def _status_header(st: Status) -> str:
     """Returns a beatmap header featuring only the status."""
 
     return f"{st.value}|false"
 
 
-def __beatmap_header(bmap: Beatmap, score_count: int = 0) -> str:
+def _beatmap_header(bmap: Beatmap, score_count: int = 0) -> str:
     """Creates a response header for a beatmap."""
 
     if not bmap.has_leaderboard:
-        return __status_header(bmap.status)
+        return _status_header(bmap.status)
 
     return (
         f"{bmap.status.value}|false|{bmap.id}|{bmap.set_id}|{score_count}\n"
@@ -46,7 +44,7 @@ def __beatmap_header(bmap: Beatmap, score_count: int = 0) -> str:
     )
 
 
-def __format_score(score: tuple, place: int, get_clans: bool = True) -> str:
+def _format_score(score: tuple, place: int, get_clans: bool = True) -> str:
     """Formats a Database score tuple into a string format understood by the
     client."""
 
@@ -63,7 +61,7 @@ def __format_score(score: tuple, place: int, get_clans: bool = True) -> str:
     )
 
 
-def __log_not_served(md5: str, reason: str) -> None:
+def _log_not_served(md5: str, reason: str) -> None:
     """Prints a log into console about the leaderboard not being served.
     Args:
         md5 (str): The md5 has of the beatmap.
@@ -86,44 +84,44 @@ def error_lbs(msg: str) -> str:
         [error_score("Leaderboard Error!"), error_score(msg)]
     )
 
-
-async def leaderboard_get_handler(req: Request) -> None:
+async def leaderboard_get_handler(req: Request) -> Response:
     """Handles beatmap leaderboards."""
 
     t = Timer().start()
 
     # Handle authentication.
-    username = req.get_args["us"]
+    username = req.query_params["us"]
     safe_username = safe_name(username)
     user_id = await caches.name.id_from_safe(safe_username)
 
-    if not await caches.password.check_password(user_id, req.get_args["ha"]):
+    if not await caches.password.check_password(user_id, req.query_params["ha"]):
         debug(f"{username} failed to authenticate!")
-        return PASS_ERR
+        return PlainTextResponse(PASS_ERR)
 
     # Grab request args.
-    md5 = req.get_args["c"]
-    mods = Mods(int(req.get_args["mods"]))
-    mode = Mode(int(req.get_args["m"]))
-    s_ver = int(req.get_args["vv"])
-    lb_filter = LeaderboardTypes(int(req.get_args["v"]))
-    set_id = int(req.get_args["i"])
+    md5 = req.query_params["c"]
+    mods = Mods(int(req.query_params["mods"]))
+    mode = Mode(int(req.query_params["m"]))
+    s_ver = int(req.query_params["vv"])
+    lb_filter = LeaderboardTypes(int(req.query_params["v"]))
+    set_id = int(req.query_params["i"])
     c_mode = CustomModes.from_mods(mods, mode)
 
     # Simple checks to catch out cheaters and tripwires.
     if not validate_md5(md5):
-        return BASIC_ERR
+        return PlainTextResponse(BASIC_ERR)
+
     if s_ver != 4:
         # Restrict them for outdated client.
         await edit_user(
             Actions.RESTRICT, user_id, "Bypassing client version protections."
         )
-        return BASIC_ERR
+        return PlainTextResponse(BASIC_ERR)
 
     # Check if we can avoid any lookups.
     if md5 in caches.no_check_md5s:
-        __log_not_served(md5, "Known Non-Existent Map")
-        return __status_header(caches.no_check_md5s[md5])
+        _log_not_served(md5, "Known Non-Existent Map")
+        return PlainTextResponse(_status_header(caches.no_check_md5s[md5]))
 
     # Fetch leaderboards.
     if lb_filter is LeaderboardTypes.GLOBAL:
@@ -138,12 +136,12 @@ async def leaderboard_get_handler(req: Request) -> None:
         error(
             f"{username} ({user_id}) requested an unimplemented leaderboard type {lb_filter!r}!"
         )
-        return error_lbs("Unimplemented leaderboard type!")
+        return PlainTextResponse(error_lbs("Unimplemented leaderboard type!"))
 
     if not lb:
         caches.add_nocheck_md5(md5, Status.NOT_SUBMITTED)
-        __log_not_served(md5, "No leaderboard/beatmap found")
-        return __status_header(Status.NOT_SUBMITTED)
+        _log_not_served(md5, "No leaderboard/beatmap found")
+        return PlainTextResponse(_status_header(Status.NOT_SUBMITTED))
 
     # Personal best calculation.
     pb_fetch, pb_res = await lb.get_user_pb(user_id)
@@ -151,10 +149,10 @@ async def leaderboard_get_handler(req: Request) -> None:
     # Build Response.
     res = "\n".join(
         [
-            __beatmap_header(lb.bmap, lb.total_scores),
-            "" if not pb_res else __format_score(pb_res.score, pb_res.placement, False),
+            _beatmap_header(lb.bmap, lb.total_scores),
+            "" if not pb_res else _format_score(pb_res.score, pb_res.placement, False),
             "\n".join(
-                __format_score(score, idx + 1, score[USER_ID_IDX] != user_id)
+                _format_score(score, idx + 1, score[USER_ID_IDX] != user_id)
                 for idx, score in enumerate(lb.scores)
             ),
         ]
@@ -165,4 +163,4 @@ async def leaderboard_get_handler(req: Request) -> None:
         f"PB {pb_fetch.console_text} | Served the {lb.c_mode.name} leaderboard for "
         f"{lb.bmap.song_name} to {username} in {t.time_str()}"
     )
-    return res
+    return PlainTextResponse(res)

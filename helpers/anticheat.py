@@ -1,24 +1,21 @@
 # Anticheat related helper functions.
-from config import conf
-from consts.c_modes import CustomModes
-from typing import TYPE_CHECKING
-from globs.conn import sql
-from consts.anticheat import LastFMFlags
+from config import config
+from constants.c_modes import CustomModes
+from globals.connections import sql
+from constants.anticheat import LastFMFlags
 from libs.time import get_timestamp
-
-if TYPE_CHECKING:
-    from objects.score import Score
+from objects.score import Score
 
 _caps = {
-    CustomModes.VANILLA: conf.pp_cap_vn,
-    CustomModes.RELAX: conf.pp_cap_rx,
-    CustomModes.AUTOPILOT: conf.pp_cap_ap,
+    CustomModes.VANILLA: config.PP_CAP_VN,
+    CustomModes.RELAX: config.PP_CAP_RX,
+    CustomModes.AUTOPILOT: config.PP_CAP_AP,
 }
 
 def get_pp_cap(mode: CustomModes) -> int:
     return _caps[mode]
 
-async def surpassed_cap_restrict(score: 'Score') -> bool:
+async def surpassed_cap_restrict(score: Score) -> bool:
     """Checks if the user surpassed the PP cap for their mode and should
     be restricted."""
 
@@ -27,7 +24,7 @@ async def surpassed_cap_restrict(score: 'Score') -> bool:
         # TODO: Maybe cache it?
         is_verified = await sql.fetchcol(
             "SELECT 1 FROM user_badges WHERE user = %s AND "
-            f"badge = {conf.srv_ver_badge_id} LIMIT 1",
+            f"badge = {config.SRV_VERIFIED_BADGE} LIMIT 1",
             (score.user_id,)
         )
         res = not is_verified

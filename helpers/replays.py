@@ -1,40 +1,45 @@
-from consts.c_modes import CustomModes
-from typing import Optional
-from config import conf
-from logger import debug
-from objects.score import Score
 from libs.crypt import hash_md5, ts_to_utc_ticks
+from constants.c_modes import CustomModes
+from aiopath import AsyncPath as Path
 from libs.bin import BinaryWriter
+from objects.score import Score
+from typing import Optional
+from config import config
+from logger import debug
 import os
 
-def get_replay_path(score_id: int, c_mode: CustomModes) -> str:
+if config.DATA_DIR[0] == "/" or config.DATA_DIR[1] == ":":
+    DATA_DIR = Path(config.DATA_DIR)
+else:
+    DATA_DIR = os.getcwd() / Path(config.DATA_DIR)
+
+def get_replay_path(score_id: int, c_mode: CustomModes) -> Path:
     """Gets the path of a replay with the given ID."""
 
     suffix = c_mode.to_db_suffix()
-    return conf.dir_replays + f"{suffix}/replay_{score_id}.osr"
+    return DATA_DIR / f"replays{suffix}/replay_{score_id}.osr"
 
 async def read_replay(score_id: int, c_mode: CustomModes) -> Optional[bytes]:
     """Reads a replay with the ID from the fs."""
 
     path = get_replay_path(score_id, c_mode)
     # Check if it exists.
-    if not os.path.exists(path): return
-    # TODO: Async file reading.
-    with open(path, "rb") as f:
-        return f.read()
+    if not await path.exists():
+        return
+
+    return await path.read_bytes()
 
 async def write_replay(score_id: int, rp: bytes, c_mode: CustomModes) -> None:
     """Writes the replay to storage."""
 
     path = get_replay_path(score_id, c_mode)
 
-    with open(path, "wb") as f:
-        f.write(rp)
+    await path.write_bytes(rp)
 
 # Variables used in the headers.
 OSU_VERSION = 20211103
 
-def build_full_replay(s: Score) -> Optional[BinaryWriter]:
+async def build_full_replay(s: Score) -> Optional[BinaryWriter]:
     """Builds a full osu! replay featuring headers for download on the web.
     
     Args:
@@ -47,12 +52,11 @@ def build_full_replay(s: Score) -> Optional[BinaryWriter]:
 
     path = get_replay_path(s.id, s.c_mode)
 
-    if not os.path.exists(path):
+    if not await path.exists():
         debug(f"Replay {s.id}.osr does not exist.")
         return
 
-    with open(path, "rb") as f: rp = f.read()
-    
+    rp = await path.read_bytes()
     # What the fuck.
     replay_md5 = hash_md5(
         '{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}'.format(
@@ -80,9 +84,10 @@ def build_full_replay(s: Score) -> Optional[BinaryWriter]:
         .write_u8_le(s.full_combo)
         .write_i32_le(s.mods.value)
         .write_u8_le(0)
-        .write_i64_le(ts_to_utc_ticks(s.timestamp)) # FIXME: This results in incorrect dates.
+        .write_i64_le(ts_to_utc_ticks(s.timestamp))
         .write_i32_le(len(rp))
         .write_raw(rp)
-        .write_i64_le(s.id))
+        .write_i64_le(s.id)
+    )
     return replay
 

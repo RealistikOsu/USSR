@@ -1,14 +1,14 @@
 # Helps with users LOL
 import time
-from consts.privileges import Privileges
+from constants.privileges import Privileges
 from helpers.discord import log_user_edit
-from logger import warning, info
+from logger import info
 from typing import Optional
-from globs.caches import priv, name
-from globs.conn import redis, sql
-from consts.modes import Mode
-from consts.actions import Actions
-from consts.c_modes import CustomModes
+from globals.caches import priv, name
+from globals.connections import redis, sql
+from constants.modes import Mode
+from constants.actions import Actions
+from constants.c_modes import CustomModes
 from .pep import notify_ban
 from libs.time import get_timestamp
 
@@ -74,7 +74,7 @@ async def unlock_achievement(user_id: int, ach_id: int):
     )
 
 async def edit_user(action: Actions, user_id: int, reason: str = "No reason given") -> None:
-    """Edits the user in the server."""
+    """Edits the user on the server."""
 
     await priv.load_singular(user_id)
     privs = await priv.get_privilege(user_id)

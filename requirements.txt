@@ -8,6 +8,7 @@ py3rijndael == 0.3.3
 colorama == 0.4.4
 tabulate == 0.8.9
 progressbar2 == 3.55.0
+aiopath == 0.6.10
 # OPTIONALS which may improve speed but lower compatibility.
 orjson == 3.6.3
 uvloop == 0.16.0

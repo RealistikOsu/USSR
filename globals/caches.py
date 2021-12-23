@@ -1,18 +1,18 @@
-from consts.c_modes import CustomModes
-from consts.modes import Mode
+from constants.c_modes import CustomModes
+from constants.modes import Mode
 from caches.clan import ClanCache
 from caches.bcrypt import BCryptCache
 from caches.priv import PrivilegeCache
 from caches.username import UsernameCache
 from caches.lru_cache import Cache
 from logger import debug, info
-from . import conn
+from . import connections
 from objects.achievement import Achievement
 #from helpers.user import safe_name
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from consts.statuses import Status
+    from constants.statuses import Status
 
 # Specialised Caches
 name = UsernameCache()
@@ -68,7 +68,7 @@ async def achievements_load() -> bool:
 
     # For fella who wants to use our new achievements system. You need database with content to fetch
     # you can use cmyuis gulag one as our system was based on it. 
-    achs = await conn.sql.fetchall("SELECT * FROM ussr_achievements")
+    achs = await connections.sql.fetchall("SELECT * FROM ussr_achievements")
     for ach in achs:
         condition = eval(f"lambda score, mode_vn, stats: {ach[4]}")
         achievements.append(Achievement(

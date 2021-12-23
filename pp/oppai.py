@@ -607,7 +607,7 @@ class BaseOppaiCalculator:
         path = await fetch_osu_file(self.bmap_id)
 
         self.__configure()
-        self._lib.calculate(path)
+        self._lib.calculate(str(path))
 
         res = self._lib.get_pp(), self._lib.get_sr()
         self._lib.free_static_lib()

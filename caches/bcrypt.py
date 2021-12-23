@@ -1,7 +1,7 @@
 # BCrypt password cache to accelerate password verification (~300ms acceleration)
 from libs.crypt import verify_bcrypt
 from typing import Dict, Optional
-from globs.conn import sql
+from globals.connections import sql
 
 async def _fetch_bcrypt(user_id: int) -> Optional[str]:
     """Fetches the BCrypt hashed password from SQL."""

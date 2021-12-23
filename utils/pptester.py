@@ -3,10 +3,10 @@
 # is not the best.
 from cli_utils import get_loop, perform_startup_requirements
 from tabulate import tabulate
-from consts.c_modes import CustomModes
-from consts.modes import Mode
-from globs.conn import sql
-from globs.caches import name
+from constants.c_modes import CustomModes
+from constants.modes import Mode
+from globals.connections import sql
+from globals.caches import name
 from dataclasses import dataclass
 from objects.beatmap import Beatmap
 from objects.score import Score

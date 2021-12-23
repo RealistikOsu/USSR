@@ -1,5 +1,5 @@
-from consts.c_modes import CustomModes
-from consts.modes import Mode
+from constants.c_modes import CustomModes
+from constants.modes import Mode
 from typing import TYPE_CHECKING, Type
 from logger import error, info
 import os

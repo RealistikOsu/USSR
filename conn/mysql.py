@@ -4,7 +4,6 @@ from typing import (
     Union
 )
 import aiomysql
-import asyncio
 
 class MySQLPool:
     """The wrapper around the `aiomysql` module. It allows for

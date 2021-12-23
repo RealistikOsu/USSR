@@ -3,13 +3,13 @@ from dataclasses import dataclass
 
 from logger import debug
 from .beatmap import Beatmap
-from globs.conn import sql
-from globs.caches import leaderboards, add_nocheck_md5
-from consts.c_modes import CustomModes
-from consts.modes import Mode
-from consts.statuses import FetchStatus
-from consts.privileges import Privileges
-from consts.complete import Completed
+from globals.connections import sql
+from globals.caches import leaderboards, add_nocheck_md5
+from constants.c_modes import CustomModes
+from constants.modes import Mode
+from constants.statuses import FetchStatus
+from constants.privileges import Privileges
+from constants.complete import Completed
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:

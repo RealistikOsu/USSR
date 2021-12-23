@@ -1,25 +1,21 @@
 from dataclasses import dataclass
-from helpers.discord import Embed
 from helpers.pep import announce
 from helpers.user import safe_name
 from typing import Optional
 from logger import debug, error, warning
-from consts.modes import Mode
-from consts.mods import Mods
-from consts.c_modes import CustomModes
-from consts.complete import Completed
-from consts.privileges import Privileges
+from constants.modes import Mode
+from constants.mods import Mods
+from constants.c_modes import CustomModes
+from constants.complete import Completed
+from constants.privileges import Privileges
 from objects.beatmap import Beatmap
-from objects.stats import Stats
-from globs.conn import sql
-from globs import caches
+from globals.connections import sql
+from globals import caches
 from libs.crypt import validate_md5
 from libs.time import get_timestamp
-from lenhttp import Request
 from py3rijndael import RijndaelCbc, ZeroPadding
-from config import conf
+from config import config
 from .leaderboard import GlobalLeaderboard
-from helpers.discord import log_first_place
 import base64
 import traceback
 
@@ -92,18 +88,18 @@ class Score:
         return self.id != 0
     
     @classmethod
-    async def from_score_sub(self, req: Request) -> Optional['Score']:
+    async def from_score_sub(self, post_args: dict) -> Optional['Score']:
         """Creates an instance of `Score` from data provided in a score
         submit request."""
 
         aes = RijndaelCbc(
-            key= "osu!-scoreburgr---------" + req.post_args["osuver"],
-            iv= base64.b64decode(req.post_args["iv"]).decode("latin_1"),
+            key= "osu!-scoreburgr---------" + post_args["osuver"],
+            iv= base64.b64decode(post_args["iv"]).decode("latin_1"),
             padding= ZeroPadding(32),
             block_size= 32,
         )
         score_data = aes.decrypt(
-            base64.b64decode(req.post_args["score"]).decode("latin_1")
+            base64.b64decode(post_args.getlist("score")[0]).decode("latin_1")
         ).decode().split(":")
 
         # Set data from the score sub.
@@ -132,7 +128,7 @@ class Score:
             int(score_data[10]),
             score_data[11] == "True",
             score_data[14] == "True",
-            req.post_args.get("x") == "1",
+            post_args.get("x") == "1",
             mods,
             CustomModes.from_mods(mods, mode),
             int(score_data[3]),
@@ -306,7 +302,7 @@ class Score:
         self.accuracy = acc * 100
         return self.accuracy
     
-    async def on_first_place(self, old_stats: 'Stats', new_stats: 'Stats') -> None:
+    async def on_first_place(self) -> None:
         """Adds the score to the first_places table."""
 
         # Why did I design this system when i was stupid...
@@ -332,13 +328,13 @@ class Score:
         debug("First place added.")
 
         # TODO: Move somewhere else.
-        msg = (f"[{self.c_mode.acronym}] User [{conf.srv_url}/u/{self.user_id} "
+        msg = (f"[{self.c_mode.acronym}] User [{config.SRV_URL}/u/{self.user_id} "
         f"{self.username}] has submitted a #1 place on "
-        f"[{conf.srv_url}/beatmaps/{self.bmap.id} {self.bmap.song_name}]"
+        f"[{config.SRV_URL}/beatmaps/{self.bmap.id} {self.bmap.song_name}]"
         f" +{self.mods.readable} ({round(self.pp, 2)}pp)")
         # Announce it.
         await announce(msg)
-        await log_first_place(self, old_stats, new_stats)
+        # await log_first_place(self, old_stats, new_stats)
     
     def insert_into_lb_cache(self) -> None:
         """Inserts the score into cached leaderboards if the leaderboards are
@@ -353,8 +349,7 @@ class Score:
         lb = GlobalLeaderboard.from_cache(self.bmap.md5, self.c_mode, self.mode)
         if lb is not None: lb.insert_user_score(self)
 
-    async def submit(self, old_stats: 'Stats', new_stats: 'Stats',
-                     clear_lbs: bool = True, calc_completed: bool = True,
+    async def submit(self, clear_lbs: bool = True, calc_completed: bool = True,
                      calc_place: bool = True, calc_pp: bool = True,
                      restricted: bool = False) -> None:
 
@@ -384,7 +379,7 @@ class Score:
 
         # Handle first place.
         if self.placement == 1 and not restricted:
-            await self.on_first_place(old_stats, new_stats)
+            await self.on_first_place()
 
         
         # Insert to cache after score ID is assigned.
