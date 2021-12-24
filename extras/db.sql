@@ -1461,7 +1461,7 @@ INSERT INTO `ussr_achievements` (`id`, `file`, `name`, `desc`, `cond`) VALUES
 (95, 'all-intro-halftime', 'Slowboat', 'You got there. Eventually.', '(score.mods & 256 != 0) and score.passed'),
 (96, 'all-intro-spunout', 'Burned Out', 'One cannot always spin to win.', '(score.mods & 4096 != 0) and score.passed');
 
-INSERT INTO `users` (`id`, `osuver`, `username`, `username_safe`, `ban_datetime`, `password_md5`, `salt`, `email`, `register_datetime`, `rank`, `allowed`, `latest_activity`, `silence_end`, `silence_reason`, `password_version`, `privileges`, `donor_expire`, `flags`, `achievements_version`, `achievements_0`, `achievements_1`, `notes`, `frozen`, `freezedate`, `firstloginafterfrozen`, `bypass_hwid`, `ban_reason`) VALUES (NULL, NULL, 'RealistikBot', 'realistikbot', '0', 'ferdiuhgerggerger', '', 'rel@es.to', '1578160000', '4', '1', '1578160000', '0', '', '1', '942669823', '2147483647', '0', '0', '1', '1', 'Why are you running?', '0', '0', '0', '0', '')
+INSERT INTO `users` (`id`, `osuver`, `username`, `username_safe`, `ban_datetime`, `password_md5`, `salt`, `email`, `register_datetime`, `rank`, `allowed`, `latest_activity`, `silence_end`, `silence_reason`, `password_version`, `privileges`, `donor_expire`, `flags`, `achievements_version`, `achievements_0`, `achievements_1`, `notes`, `frozen`, `freezedate`, `firstloginafterfrozen`, `bypass_hwid`, `ban_reason`) VALUES (NULL, NULL, 'RealistikBot', 'realistikbot', '0', 'ferdiuhgerggerger', '', 'rel@es.to', '1578160000', '4', '1', '1578160000', '0', '', '1', '942669823', '2147483647', '0', '0', '1', '1', 'Why are you running?', '0', '0', '0', '0', '');
 
 -- These aren't really used...
 INSERT INTO `bancho_settings` (`id`, `name`, `value_int`, `value_string`) VALUES
