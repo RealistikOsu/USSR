@@ -1,7 +1,7 @@
 /*
 The RealistikOsu Database Structure.
 This is a Ripple based db schema around which USSR was designed.
-Dump: 27/11/21
+Dump: 24/12/21
 */
 
 CREATE TABLE `achievements` (
@@ -1277,13 +1277,13 @@ ALTER TABLE `scores`
 -- AUTO_INCREMENT for table `scores_ap`
 --
 ALTER TABLE `scores_ap`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT=2000000000;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2000000000;
 
 --
 -- AUTO_INCREMENT for table `scores_relax`
 --
 ALTER TABLE `scores_relax`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT=1073741824;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1073741824;
 
 --
 -- AUTO_INCREMENT for table `system_settings`
@@ -1463,3 +1463,13 @@ INSERT INTO `ussr_achievements` (`id`, `file`, `name`, `desc`, `cond`) VALUES
 
 INSERT INTO `users` (`id`, `osuver`, `username`, `username_safe`, `ban_datetime`, `password_md5`, `salt`, `email`, `register_datetime`, `rank`, `allowed`, `latest_activity`, `silence_end`, `silence_reason`, `password_version`, `privileges`, `donor_expire`, `flags`, `achievements_version`, `achievements_0`, `achievements_1`, `notes`, `frozen`, `freezedate`, `firstloginafterfrozen`, `bypass_hwid`, `ban_reason`) VALUES (NULL, NULL, 'RealistikBot', 'realistikbot', '0', 'ferdiuhgerggerger', '', 'rel@es.to', '1578160000', '4', '1', '1578160000', '0', '', '1', '942669823', '2147483647', '0', '0', '1', '1', 'Why are you running?', '0', '0', '0', '0', '')
 
+-- These aren't really used...
+INSERT INTO `bancho_settings` (`id`, `name`, `value_int`, `value_string`) VALUES
+(1, 'bancho_maintenance', 0, ''),
+(2, 'free_direct', 0, ''),
+(3, 'menu_icon', 1, 'https://ussr.pl/static/logos/logo1.png | https://ussr.pl'),
+(4, 'login_messages', 1, ''),
+(5, 'restricted_joke', 0, 'You\'re banned from the server.'),
+(6, 'login_notification', 1, 'You have connected to RealistikOsu!'),
+(7, 'osu_versions', 0, ''),
+(8, 'osu_md5s', 0, '');
