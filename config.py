@@ -28,17 +28,16 @@ class ConfigReader:
         for var_name, key_type in cls.__annotations__.items():
 
             # We are checking for a possible default value (in case its a new field)
-            var_name = var_name.lower()
             default = getattr(cls, var_name, None)
 
-            # Read the key.
-            key_val = cls.read_json(cls, var_name, default)
+            # Read the key. json is lower case so we have to transform
+            key_val = cls.read_json(cls, var_name.lower(), default)
 
             # Force it to be the sepcified type.
             key_val = key_type(key_val)
 
             # Set the attribute.
-            setattr(cls, var_name.upper(), key_val)
+            setattr(cls, var_name, key_val)
 
         if cls.updated:
             cls.on_finish_update(cls, cls.updated_keys)

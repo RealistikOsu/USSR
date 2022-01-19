@@ -113,10 +113,7 @@ async def leaderboard_get_handler(req: Request) -> Response:
 
     if s_ver != 4:
         # Restrict them for outdated client.
-        await edit_user(
-            Actions.RESTRICT, user_id, "Bypassing client version protections."
-        )
-        return PlainTextResponse(BASIC_ERR)
+        await edit_user(Actions.RESTRICT, user_id, "Bypassing client version protections.")
 
     # Check if we can avoid any lookups.
     if md5 in caches.no_check_md5s:

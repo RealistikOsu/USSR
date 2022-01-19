@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from libs.time import get_timestamp
+from config import config
 from typing import Optional
 from constants.modes import Mode
 from constants.statuses import Status

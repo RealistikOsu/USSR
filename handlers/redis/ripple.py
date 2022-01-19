@@ -1,6 +1,7 @@
 # Support for ripple's pubsub handlers. These are featured in **all** ripple
 # based servers.
 from constants.privileges import Privileges
+from logger import info
 from globals.caches import name, priv, password, leaderboards
 
 try: from orjson import loads as j_load
@@ -48,6 +49,13 @@ async def username_change_pubsub(data: bytes):
     user_id = int(j_data["userID"])
 
     await name.load_from_id(user_id)
+    new_name = await name.name_from_id(user_id)
+
+    for leaderboard in leaderboards.get_all_items():
+        if leaderboard.user_in_top(user_id):
+            leaderboard.update_username(user_id, new_name)
+
+    info(f"Handled username change for user ID {user_id} -> {new_name}")
 
 async def update_cached_privileges_pubsub(data: bytes):
     """
@@ -65,16 +73,15 @@ async def change_pass_pubsub(data: bytes):
     """
 
     j_data = j_load(data)
-    user_id = int(j_data["userID"])
+    user_id = int(j_data["user_id"])
 
-    await password.drop_cache_individual(user_id)
+    password.drop_cache_individual(user_id)
 
 async def ban_reload_pubsub(data: bytes):
     """
     Handles the Redis pubsub event `peppy:ban`.
     It reloads the privileges stored in the cache.
     """
-
 
     user_id = int(data.decode())
     await priv.load_singular(user_id)

@@ -154,7 +154,7 @@ def server_start():
             Route("/web/osu-osz2-getscores.php", leaderboard_get_handler),
             Route("/web/osu-search.php", direct_get_handler),
             Route("/web/osu-search-set.php", get_set_handler),
-            Route("/d/{map_id:int}", download_map),
+            Route("/d/{map_id:str}", download_map),
             Route("/web/osu-getreplay.php", get_replay_web_handler),
             Route("/web/osu-screenshot.php", upload_image_handler, methods= ["POST"]),
             Route(
@@ -176,7 +176,7 @@ def server_start():
     )
 
     write_log_file("Server started!")
-    uvicorn.run(app, host= "0.0.0.0", port= config.PORT)
+    uvicorn.run(app, port= config.PORT, access_log= False, log_level= "error")
 
 
 if __name__ == "__main__":

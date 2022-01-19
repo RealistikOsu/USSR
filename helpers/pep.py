@@ -22,7 +22,7 @@ async def bot_message(user_id: int, message: str) -> None:
     """Sends a bot message to the user."""
     
     msg = j_dump({
-        "username": await name.name_from_id(user_id),
+        "to": await name.name_from_id(user_id),
         "message": message
     })
     await redis.publish("peppy:bot_msg", msg)
@@ -31,10 +31,10 @@ async def channel_message(chan: str, msg: str) -> None:
     """Sends a bot message to a specific in-game channel."""
 
     msg = j_dump({
-        "username": chan,
+        "to": chan,
         "message": msg,
     })
-    await redis.publish("peppy:channel_msg", msg)
+    await redis.publish("peppy:bot_msg", msg)
 
 async def announce(message: str) -> None:
     """Sends a message in the announcements channel."""

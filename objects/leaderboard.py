@@ -116,6 +116,13 @@ class GlobalLeaderboard:
         """A property returning all of the scores stored in the object."""
         return self._scores.values()
 
+    def update_username(self, user_id: int, new_name: str) -> None:
+        """Updates cache user name."""
+        s = list(self._scores[user_id])
+        del self._scores[user_id]
+        s[USERNAME_IDX] = new_name
+        self._scores[user_id] = tuple(s)
+
     def user_in_top(self, user_id: int) -> bool:
         """Checks if a user with the given `user_id` has their score in the top
         `SIZE_LIMIT` scores.

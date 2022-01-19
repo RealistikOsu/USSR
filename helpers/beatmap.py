@@ -69,7 +69,7 @@ async def fetch_osu_file(bmap_id: int) -> str:
     
     debug(f"Downloading `.osu` file for beatmap {bmap_id} to {path} ...")
     m_str = await simple_get(OSU_DL_DIR.format(id= bmap_id))
-    if not m_str:
+    if not m_str or "<html>" in m_str:":
         return error(f"Invalid beatmap .osu response! PP calculation will fail!")
 
     # Write to file.

@@ -65,15 +65,12 @@ async def score_submit_handler(req: Request) -> Response:
     # Anticheat checks.
     if not req.headers.get("Token") and not config.CUSTOM_CLIENTS:
         await edit_user(Actions.RESTRICT, s.user_id, "Tampering with osu!auth")
-        return PlainTextResponse("error: ban")
     
     if req.headers.get("User-Agent") != "osu!":
         await edit_user(Actions.RESTRICT, s.user_id, "Score submitter.")
-        return PlainTextResponse("error: ban")
     
     if s.mods.conflict():
         await edit_user(Actions.RESTRICT, s.user_id, "Illegal mod combo (score submitter).")
-        return PlainTextResponse("error: ban")
     # TODO: version check.
 
     dupe_check = await connections.sql.fetchcol( # Try to fetch as much similar score as we can.
@@ -109,9 +106,9 @@ async def score_submit_handler(req: Request) -> Response:
 
     debug("Submitting score...")
 
+
     await s.submit(
         restricted= privs & Privileges.USER_PUBLIC == 0
-        #old_stats=old_stats, new_stats=stats
     )
 
     debug("Incrementing bmap playcount.")
@@ -142,7 +139,6 @@ async def score_submit_handler(req: Request) -> Response:
     if replay and replay != b"\r\n" and not s.passed:
         await edit_user(Actions.RESTRICT, s.user_id, "Score submit without replay "
                                                      "(always should contain it).")
-        return PlainTextResponse("error: ban")
     
     if s.passed:
         debug("Writing replay.")
@@ -171,7 +167,7 @@ async def score_submit_handler(req: Request) -> Response:
     
     # At the end, check achievements.
     new_achievements = []
-    if s.passed and s.bmap.has_leaderboard:
+    if s.passed and s.bmap.has_leaderboard and not privs & Privileges.USER_PUBLIC == 0:
         db_achievements = await get_achievements(s.user_id)
         for ach in caches.achievements:
             if ach.id in db_achievements: continue
@@ -180,9 +176,8 @@ async def score_submit_handler(req: Request) -> Response:
                 new_achievements.append(ach.full_name)
     
     # More anticheat checks.
-    if s.completed == Completed.BEST and await surpassed_cap_restrict(s):
+    if s.completed == Completed.BEST and (s.bmap.status in (Status.RANKED, Status.QUALIFIED) and await surpassed_cap_restrict(s)):
         await edit_user(Actions.RESTRICT, s.user_id, f"Surpassing PP cap as unverified! ({s.pp:.2f}pp)")
-        return PlainTextResponse("error: ban")
 
     await notify_new_score(s.id)
 

@@ -29,9 +29,10 @@ def _format_search_response(diffs: dict, bmap: dict):
     return base_str + ",".join(CHILD_HEADER.format(**diff) for diff in diffs)
 
 
-async def download_map(req: Request, map_id: str):
+async def download_map(req: Request):
     """Handles osu!direct map download route"""
 
+    map_id = req.path_params['map_id']
     domain = config.DIRECT_URL.split("/")[2]
     beatmap_id = int(map_id.removesuffix("n"))
     no_vid = "n" == map_id[-1]
