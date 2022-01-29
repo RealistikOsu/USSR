@@ -191,7 +191,7 @@ async def update_country_lb_pos(user_id: int, pp: int, mode: Mode, c_mode: Custo
     if not country: country = await fetch_user_country(user_id)
     if country.lower() == "xx" or not country: return
 
-    key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}:{country}"
+    key = f"ripple:leaderboard{c_mode.to_db_suffix()}:{mode.to_db_str()}:{country.lower()}"
     await redis.zadd(key, pp, user_id)
 
 async def update_last_active(user_id: int) -> None:
