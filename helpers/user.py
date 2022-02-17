@@ -57,6 +57,19 @@ async def incr_replays_watched(user_id: int, mode: Mode) -> None:
         "WHERE id = %s LIMIT 1").format(suffix), (user_id,)
     )
 
+async def increment_playtime(user_id: int, play_time: int, mode: Mode, c_mode: CustomModes) -> None:
+    """Increments the replays watched statistic for the user on a given mode."""
+
+    suffix = mode.to_db_str()
+    table = "users_stats"
+    if c_mode.value == 1:
+        table = "rx_stats"
+    elif c_mode.value == 2:
+        table = "ap_stats"
+    await sql.execute(
+        ("UPDATE {table} SET playtime_{suffix} = playtime_{suffix} + %s WHERE id = %s").format(suffix=suffix, table=table), (play_time, user_id,)
+    )
+
 async def get_achievements(user_id: int):
     """Gets all user unlocked achievements from sql."""
     return [ach[0] for ach in await sql.fetchall("SELECT achievement_id FROM users_achievements WHERE user_id = %s", (user_id,))]

@@ -10,6 +10,20 @@ class Mode(IntEnum):
         """Converts a mod enum to a `str` used in the database."""
 
         return _mode_str_conv[self.value]
+    
+    # Not sure if this is the right usage...
+    @staticmethod
+    def all() -> tuple["Mode", ...]:
+        """Retuns a tuple of all modes."""
+
+        return _all_modes
+    
+_all_modes = (
+    Mode.STANDARD,
+    Mode.TAIKO,
+    Mode.CATCH,
+    Mode.MANIA,
+)
 
 _mode_str_conv = {
     Mode.STANDARD: "std",

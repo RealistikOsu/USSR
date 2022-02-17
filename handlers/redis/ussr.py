@@ -2,6 +2,7 @@
 from globals.caches import beatmaps
 from objects.leaderboard import GlobalLeaderboard
 from objects.score import Score
+from objects.stats import Stats
 from constants.modes import Mode
 from constants.c_modes import CustomModes
 from logger import info, error
@@ -42,7 +43,7 @@ async def refresh_leaderboard_pubsub(data: bytes) -> None:
     
     info(f"Redis Pubsub: Refreshed leaderboards and beatmap for {md5}!")
 
-async def recalc_pp(data: bytes) -> None:
+async def recalc_pp_pubsub(data: bytes) -> None:
     """
     Handles the `ussr:recalc_pp` pubsub.
     Data:
@@ -64,5 +65,26 @@ async def recalc_pp(data: bytes) -> None:
     await score.save_pp()
     info(f"Redis Pubsub: Recalculated PP for score {score_id}")
 
+async def recalc_user_pubsub(data: bytes) -> None:
+    """
+    Handles the `ussr:recalc_user` pubsub.
+    Data:
+        user_id
+
+    Recalculates the total user PP and max combo for all modes and c_modes
+    and saves it within the database.
+    """
+
+    user_id = int(data.decode())
+
+    for c_mode in CustomModes.all():
+        for mode in c_mode.compatible_modes:
+            st = await Stats.from_id(user_id, mode, c_mode)
+            assert st is not None
+
+            await st.calc_max_combo()
+            await st.recalc_pp_acc_full()
+    
+    info(f"Redis Pubsub: Recalculated the statistics for user {user_id}")
 
 # TODO: Add verify handler.

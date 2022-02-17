@@ -15,6 +15,7 @@ from helpers.user import (
     edit_user,
     update_country_lb_pos,
     update_lb_pos,
+    increment_playtime
 )
 from datetime import datetime
 from helpers.replays import write_replay
@@ -113,7 +114,7 @@ async def score_submit_handler(req: Request) -> Response:
 
     debug("Incrementing bmap playcount.")
     await s.bmap.increment_playcount(s.passed)
-
+    await increment_playtime(s.user_id, s.noncomputed_playtime, s.mode, s.c_mode)
 
     # Stat updates
     debug("Updating stats.")

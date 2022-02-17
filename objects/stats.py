@@ -192,8 +192,8 @@ class Stats:
         count = await sql.fetchcol(
             "SELECT COUNT(*) FROM {t} s RIGHT JOIN beatmaps b ON s.beatmap_md5 = "
             "b.beatmap_md5 WHERE b.ranked IN (2, 3) AND " # Max limit is 25397 to get max bonus pp.
-            "s.completed = 3 AND s.userid = %s LIMIT 25397".format(t= self.c_mode.db_table),
-            (self.user_id,)
+            "s.completed = 3 AND s.play_mode = %s AND s.userid = %s LIMIT 25397".format(t= self.c_mode.db_table),
+            (self.mode.value, self.user_id,)
         )
 
         self._cur_bonus_pp = 416.6667 * (1 - (0.9994 ** count))

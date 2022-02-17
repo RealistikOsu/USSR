@@ -71,6 +71,8 @@ from handlers.redis.rosu import (
 from handlers.redis.ussr import (
     drop_bmap_cache_pubsub,
     refresh_leaderboard_pubsub,
+    recalc_pp_pubsub,
+    recalc_user_pubsub,
 )
 
 # Must return True for success or else server wont start.
@@ -97,6 +99,8 @@ PUBSUB_REGISTER = (
     # USSR
     (drop_bmap_cache_pubsub, "ussr:bmap_decache"),
     (refresh_leaderboard_pubsub, "ussr:lb_refresh"),
+    (recalc_pp_pubsub, "ussr:recalc_pp"),
+    (recalc_user_pubsub, "ussr:recalc_user"),
 )
 
 def ensure_dependencies():
