@@ -2,13 +2,14 @@
 from os.path import isdir
 from os import makedirs
 
+from config import config
 
 REQUIRED_FOLDERS = [
-    ".data/",
-    ".data/replays/",
-    ".data/replays_relax/",
-    ".data/replays_ap/",
-    ".data/maps/",
+    config.DATA_DIR,
+    f"{config.DATA_DIR}/replays/",
+    f"{config.DATA_DIR}/replays_relax/",
+    f"{config.DATA_DIR}/replays_ap/",
+    f"{config.DATA_DIR}/maps/",
 ]
 
 
