@@ -1,4 +1,5 @@
 """Created a full dedicated file for 2 poor functions, i know."""
+from genericpath import exists
 from os.path import isdir
 from os import makedirs
 
@@ -15,6 +16,8 @@ REQUIRED_FOLDERS = [
 
 def verify_required_folders() -> bool:
     """Verifies that all required folders for USSR to work properly"""
+    if not exists(REQUIRED_FOLDERS[0]):
+        return False
     for folder in REQUIRED_FOLDERS:
         if isdir(folder):
             continue
