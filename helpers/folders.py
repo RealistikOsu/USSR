@@ -1,14 +1,14 @@
 """Created a full dedicated file for 2 poor functions, i know."""
 from os.path import isdir
-from os import mkdir
+from os import makedirs
 
 
 REQUIRED_FOLDERS = [
     ".data/",
-    ".data/replays",
-    ".data/replays_relax",
-    ".data/replays_ap",
-    ".data/maps",
+    ".data/replays/",
+    ".data/replays_relax/",
+    ".data/replays_ap/",
+    ".data/maps/",
 ]
 
 
@@ -24,4 +24,4 @@ def verify_required_folders() -> bool:
 
 def ensure_required_folders():
     for folder in REQUIRED_FOLDERS:
-        mkdir(folder)
+        makedirs(folder,exist_ok=True)
