@@ -74,6 +74,10 @@ from handlers.redis.ussr import (
     recalc_pp_pubsub,
     recalc_user_pubsub,
 )
+from helpers.folders import (
+    verify_required_folders,
+    ensure_required_folders,
+)
 
 # Must return True for success or else server wont start.
 STARTUP_TASKS = (
@@ -86,6 +90,7 @@ STARTUP_TASKS = (
 DEPENDENCIES = (
     (verify_oppai, build_oppai),
     (check_log_file, ensure_log_file),
+    (verify_required_folders, ensure_required_folders)
 )
 
 PUBSUB_REGISTER = (
