@@ -37,7 +37,7 @@ async def download_map(req: Request):
     beatmap_id = int(map_id.removesuffix("n"))
     no_vid = "n" == map_id[-1]
 
-    url = f"https://{domain}/d/{beatmap_id}"
+    url = f"https://{domain}/d/{beatmap_id}{'n' if no_vid else ''}"
     if USING_CHIMU_V1:
         url = f"{config.DIRECT_URL}/download/{beatmap_id}?n={int(no_vid)}"
     return RedirectResponse(url, status_code=302)
@@ -111,8 +111,8 @@ async def direct_get_handler(req: Request) -> None:
     try:
         res = await simple_get_json(URI_SEARCH, mirror_params)
     except Exception:
-        error(f"Error with direct search: {traceback.format_exc()}")
-        return PlainTextResponse("-1\nError has occured when fetching direct listing!")
+        error(f"Error with direct search ({URI_SEARCH}): {traceback.format_exc()}")
+        return PlainTextResponse("-1\nAn error has occured when fetching direct listing!")
 
     if not res or (USING_CHIMU_V1 and int(res.get("code", "404")) != 0):
         return PlainTextResponse("0")

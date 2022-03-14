@@ -71,6 +71,7 @@ async def upload_image_handler(req: Request) -> Response:
 
     # Get a random name for the file that does not overlap.
     while True:
+        info("Generating a new screenshot name...")
         path = SS_PATH / (f_name := f"{gen_rand_str(SS_NAME_LEN)}.{ext}")
         if not await path.exists():
             break

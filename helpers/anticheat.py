@@ -1,5 +1,6 @@
 # Anticheat related helper functions.
 from config import config
+from constants.statuses import Status
 from constants.c_modes import CustomModes
 from globals.connections import sql
 from constants.anticheat import LastFMFlags
@@ -18,6 +19,8 @@ def get_pp_cap(mode: CustomModes) -> int:
 async def surpassed_cap_restrict(score: Score) -> bool:
     """Checks if the user surpassed the PP cap for their mode and should
     be restricted."""
+    if score.bmap.status == Status.LOVED:
+        return False
 
     res = score.pp > get_pp_cap(score.c_mode)
     if res:
@@ -81,6 +84,7 @@ def get_flag_explanation(flag: LastFMFlags) -> list[str]:
             if not text_append:
                 text_append = f"Undocumented Flag: {LastFMFlags(cur_bit)!r}"
             res.append(text_append)
+        cur_bit <<= 1
     
     return res
 
