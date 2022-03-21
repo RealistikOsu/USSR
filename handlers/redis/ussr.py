@@ -83,7 +83,9 @@ async def recalc_user_pubsub(data: bytes) -> None:
             assert st is not None
 
             await st.calc_max_combo()
-            await st.recalc_pp_acc_full()
+            await st.calc_pp_acc_full()
+            await st.calc_playcount()
+            await st.save()
     
     info(f"Redis Pubsub: Recalculated the statistics for user {user_id}")
 

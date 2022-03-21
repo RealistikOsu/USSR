@@ -34,7 +34,7 @@ async def perform_stats_update(uid_tup: tuple[int, int]):
 
             # Recalc.
             await st.calc_max_combo()
-            await st.recalc_pp_acc_full()
+            await st.calc_pp_acc_full()
 
             # Save.
             await st.save()

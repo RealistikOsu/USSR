@@ -131,7 +131,7 @@ async def score_submit_handler(req: Request) -> Response:
         if stats.max_combo < s.max_combo: stats.max_combo = s.max_combo
         if s.completed == Completed.BEST and s.pp:
             debug("Performing PP recalculation.")
-            await stats.recalc_pp_acc_full(s.pp)
+            await stats.calc_pp_acc_full(s.pp)
     debug("Saving stats")
     await stats.save()
 

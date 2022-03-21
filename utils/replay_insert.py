@@ -133,7 +133,7 @@ async def insert_replay_data(replay_path: str):
             stats.max_combo = s.max_combo
         if s.completed == Completed.BEST and s.pp:
             info("Performing PP recalculation..")
-            await stats.recalc_pp_acc_full(s.pp)
+            await stats.calc_pp_acc_full(s.pp)
     info("Saving stats..")
     await stats.save()
 

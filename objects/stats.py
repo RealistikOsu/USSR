@@ -103,7 +103,7 @@ class Stats:
             (self.c_mode, self.mode, self.user_id), self
         )
     
-    async def recalc_pp_acc_full(self, _run_pp: int = None) -> tuple[float, float]:
+    async def calc_pp_acc_full(self, _run_pp: int = None) -> tuple[float, float]:
         """Recalculates the full PP amount and average accuract for a user
         from scratch, using their top 100 scores. Sets the values in object
         and returns a tuple of pp and acc.
@@ -173,6 +173,22 @@ class Stats:
         self.max_combo = max_combo_db or 0
 
         return self.max_combo
+
+    async def calc_playcount(self) -> int:
+        """Calculates the user's playcount for the given mode + c_mode combo.
+
+        Note:
+            Does not update the value stored in the database. For that, use
+            `Stats.save()`.
+        """
+
+        self.playcount = await sql.fetchcol(
+            f"SELECT COUNT(*) FROM {self.c_mode.db_table} WHERE play_mode = %s "
+            "AND userid = %s",
+            (self.mode.value, self.user_id)
+        )
+
+        return self.playcount
     
     async def update_rank(self) -> int:
         """Updates the user's rank using data from redis. Returns the rank
