@@ -39,7 +39,7 @@ def _beatmap_header(bmap: Beatmap, score_count: int = 0) -> str:
         return _status_header(bmap.status)
 
     return (
-        f"{bmap.status.value}|false|{bmap.id}|{bmap.set_id}|{score_count}\n"
+        f"{bmap.status.value}|false|{bmap.id}|{bmap.set_id}|{score_count}|0||\n"
         f"0\n{bmap.song_name}\n{bmap.rating}"
     )
 
