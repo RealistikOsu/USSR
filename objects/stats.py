@@ -3,7 +3,11 @@ from constants.modes import Mode
 from constants.c_modes import CustomModes
 from typing import Optional
 from globals.connections import sql
-from helpers.user import get_rank_redis
+from helpers.user import (
+    get_rank_redis,
+    update_country_lb_pos,
+    update_lb_pos,
+)
 from helpers.pep import stats_refresh
 from logger import debug
 from globals.caches import stats_cache
@@ -233,6 +237,27 @@ class Stats:
         )
 
         if refresh_cache: await stats_refresh(self.user_id)
+    
+    async def update_redis_ranks(self, country: Optional[str] = None) -> None:
+        """Updates ordering of players in redis according to the stats object's
+        PP values.
+        
+        Args:
+            country (Optional[int]): The two letter country code for the user.
+                If not provided, the user's country code will be fetched directly
+                from the MySQL database (perf loss).
+        
+        Note:
+            It is recommended to run `Stats.update_rank()` following this to
+            get the user's newest rank as it is likely to have changed due to
+            the execution of this method.
+        """
+
+        args = (self.user_id, int(self.pp), self.mode, self.c_mode)
+
+        #await update_country_lb_pos()
+        await update_lb_pos(*args)
+        await update_country_lb_pos(*args, country)
 
 _fetch_ord = (
     Stats.from_cache,

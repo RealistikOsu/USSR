@@ -153,9 +153,7 @@ async def score_submit_handler(req: Request) -> Response:
     if s.completed is Completed.BEST and privs & Privileges.USER_PUBLIC\
         and old_stats.pp != stats.pp:
         debug("Updating user's global and country lb positions.")
-        args = (s.user_id, round(stats.pp), s.mode, s.c_mode)
-        await update_lb_pos(*args)
-        await update_country_lb_pos(*args)
+        await stats.update_redis_ranks()
         await stats.update_rank()
 
     # Trigger peppy stats update.

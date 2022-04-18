@@ -85,6 +85,7 @@ async def recalc_user_pubsub(data: bytes) -> None:
             await st.calc_max_combo()
             await st.calc_pp_acc_full()
             await st.calc_playcount()
+            await st.update_redis_ranks()
             await st.save()
     
     info(f"Redis Pubsub: Recalculated the statistics for user {user_id}")
