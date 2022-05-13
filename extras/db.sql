@@ -277,6 +277,8 @@ CREATE TABLE `first_places` (
   `300_count` int(11) NOT NULL,
   `100_count` int(11) NOT NULL,
   `50_count` int(11) NOT NULL,
+  `ckatus_count` INT(11) NOT NULL;
+  `cgekis_count` INT(11) NOT NULL;
   `miss_count` int(11) NOT NULL,
   `timestamp` int(11) NOT NULL,
   `mode` tinyint(4) NOT NULL,
