@@ -1,7 +1,7 @@
 /*
 The RealistikOsu Database Structure.
 This is a Ripple based db schema around which USSR was designed.
-Dump: 24/12/21
+Dump: 17/5/22
 */
 
 CREATE TABLE `achievements` (
@@ -847,6 +847,14 @@ CREATE TABLE `seasonal_bg` (
   `enabled` tinyint(1) NOT NULL,
   `url` varchar(256) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE user_pinned (
+    userid int NOT NULL,
+    scoreid int NOT NULL UNIQUE,
+    pin_date VARCHAR(30) NOT NULL DEFAULT '0'
+);
+
+ALTER TABLE `user_pinned` ADD INDEX(`userid`); 
 
 --
 -- Indexes for dumped tables
