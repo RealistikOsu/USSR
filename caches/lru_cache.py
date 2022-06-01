@@ -1,7 +1,3 @@
-# This is an old class taken from GDPyS (made by me) serving as a lru cache.
-# The code is not the best and is in need of a rewrite but it works well for
-# now and is time tested.
-from email.generator import Generator
 from libs.time import get_timestamp
 from typing import (
     Optional,
@@ -9,6 +5,7 @@ from typing import (
     Union,
     TypeVar,
     Generic,
+    Generator,
 )
 
 CACHE_KEY = Union[int, str, tuple]
