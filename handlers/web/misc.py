@@ -90,7 +90,7 @@ async def osu_error_handler(req: Request) -> Response:
     username = post_args.get("u", "<unknown>")
 
     info(f"{username} ({user_id}) has experienced a client exception! Logging to the database.")
-    await log_user_error(user_id, post_args.get("traceback", ""), post_args["config"],
+    await log_user_error(user_id, post_args.get("stacktrace", ""), post_args["config"],
                         post_args["version"], post_args["exehash"])
 
     # TODO: Scan config for malicious entries (maybe cheat client config options) and password auth.
