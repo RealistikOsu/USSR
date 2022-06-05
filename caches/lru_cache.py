@@ -1,11 +1,9 @@
-from libs.time import get_timestamp
 from typing import (
     Optional,
-    TypedDict,
     Union,
     TypeVar,
     Generic,
-    Generator,
+    ValuesView
 )
 
 CACHE_KEY = Union[int, str, tuple]
@@ -83,7 +81,7 @@ class LRUCache(Generic[T]):
         except KeyError:
             return False
     
-    def get_all_items(self) -> Generator[T, None, None]:
+    def get_all_items(self) -> ValuesView[T]:
         """Returns a generator over all items in the cache."""
 
         return self._cache.values()

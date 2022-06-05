@@ -13,8 +13,6 @@ from helpers.user import (
     unlock_achievement,
     get_achievements,
     edit_user,
-    update_country_lb_pos,
-    update_lb_pos,
     increment_playtime
 )
 from datetime import datetime

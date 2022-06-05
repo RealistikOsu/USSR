@@ -1,5 +1,4 @@
 # Rather small endpoints that don't deserve their own file.
-from functools import cache
 from starlette.requests import Request
 from starlette.responses import Response, PlainTextResponse, JSONResponse
 from globals import caches
@@ -96,7 +95,7 @@ async def osu_error_handler(req: Request) -> Response:
     # TODO: Scan config for malicious entries (maybe cheat client config options) and password auth.
     return PlainTextResponse("")
 
-async def beatmap_rate_handler(req: Request) -> str:
+async def beatmap_rate_handler(req: Request) -> Response:
     """Handles the beatmap rating procedure.
     Handles `/web/osu-rate.php`
     """

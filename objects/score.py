@@ -16,6 +16,7 @@ from libs.time import get_timestamp
 from py3rijndael import RijndaelCbc, ZeroPadding
 from config import config
 from .leaderboard import GlobalLeaderboard
+from starlette.datastructures import FormData
 import base64
 import traceback
 
@@ -111,13 +112,13 @@ class Score:
         return value
     
     @classmethod
-    async def from_score_sub(self, post_args: dict) -> Optional['Score']:
+    async def from_score_sub(cls, post_args: FormData) -> Optional['Score']:
         """Creates an instance of `Score` from data provided in a score
         submit request."""
 
         aes = RijndaelCbc(
-            key= "osu!-scoreburgr---------" + post_args["osuver"],
-            iv= base64.b64decode(post_args["iv"]).decode("latin_1"),
+            key= ("osu!-scoreburgr---------" + post_args["osuver"]).encode(),
+            iv= base64.b64decode(post_args["iv"]).decode("latin_1").encode(),
             padding= ZeroPadding(32),
             block_size= 32,
         )
@@ -145,7 +146,7 @@ class Score:
         mods = Mods(int(score_data[13]))
         mode = Mode(int(score_data[15]))
 
-        s = Score(
+        s = cls(
             0, bmap, user_id,
             int(score_data[9]),
             int(score_data[10]),

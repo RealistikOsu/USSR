@@ -32,7 +32,7 @@ class Privileges(IntFlag):
     @property
     def is_restricted(self) -> bool:
         """Checks if user is restricted."""
-        return (self & Privileges.USER_NORMAL) and not (self & Privileges.USER_PUBLIC)
+        return (self & Privileges.USER_NORMAL | Privileges.USER_PUBLIC) == Privileges.USER_NORMAL
     
     @property
     def is_banned(self) -> bool:
@@ -49,5 +49,4 @@ class Privileges(IntFlag):
                 `True` being returned.
         """
 
-        # Looks weird but fastest way to turn into bool.
-        return not not self & priv
+        return self & priv != 0
