@@ -11,7 +11,6 @@ class Mode(IntEnum):
 
         return _mode_str_conv[self]
     
-    # Not sure if this is the right usage...
     @staticmethod
     def all() -> tuple["Mode", "Mode", "Mode", "Mode"]:
         """Retuns a tuple of all modes."""
