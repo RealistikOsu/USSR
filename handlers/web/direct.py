@@ -43,7 +43,7 @@ async def download_map(req: Request):
     return RedirectResponse(url, status_code=302)
 
 
-async def get_set_handler(req: Request) -> None:
+async def get_set_handler(req: Request):
     """Handles a osu!direct pop-up link response."""
 
     nick = req.query_params.get("u", "")
@@ -81,7 +81,7 @@ async def get_set_handler(req: Request) -> None:
     return PlainTextResponse(_format_search_response({}, json_data))
 
 
-async def direct_get_handler(req: Request) -> None:
+async def direct_get_handler(req: Request):
     """Handles osu!direct panels response."""
 
     # Get all keys.

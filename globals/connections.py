@@ -9,7 +9,7 @@ import aioredis
 __slots__ = ("sql", "redis", "oapi")
 
 sql = MySQLPool()
-redis = aioredis.Redis(None)
+redis = aioredis.Redis()
 oapi = OsuApiManager()
 
 # Startup tasks.
