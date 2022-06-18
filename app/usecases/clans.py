@@ -19,6 +19,7 @@ async def get_clan(user_id: int) -> str:
     )
 
     if not clan_tag:
+        CLANS[user_id] = ""
         return ""
 
     CLANS[user_id] = clan_tag

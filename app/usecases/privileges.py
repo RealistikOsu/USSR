@@ -20,6 +20,7 @@ async def get_privilege(user_id: int) -> Privileges:
     )
 
     if not db_privilege:
+        PRIVILEGES[user_id] = Privileges(2)
         return Privileges(2)  # assume restricted? xd
 
     privilege = Privileges(db_privilege)

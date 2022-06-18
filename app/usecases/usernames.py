@@ -19,6 +19,7 @@ async def get_username(user_id: int) -> str:
     )
 
     if not username:
+        USERNAMES[user_id] = ""
         return ""  # xd
 
     USERNAMES[user_id] = username

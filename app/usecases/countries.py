@@ -19,6 +19,7 @@ async def get_country(user_id: int) -> str:
     )
 
     if not country:
+        COUNTRIES[user_id] = "XX"
         return "XX"  # xd
 
     COUNTRIES[user_id] = country
