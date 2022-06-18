@@ -2,7 +2,7 @@
 Ultimate Score Server for RealistikOsu (well not just us but it makes the acronym work.)
 *Also I wonder how long this name will last*.
 
-![Speed FLex](https://i.imgur.com/31fYbHP.png)
+![Speed Flex](https://i.tsunyoku.xyz/raw_uploads/b4fdb5a5-8a58-45d4-9fd0-19e6531ac5c5)
 
 
 ## What is this?
