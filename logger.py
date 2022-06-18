@@ -1,8 +1,10 @@
-from functools import cache
-from enum import IntEnum
+from __future__ import annotations
+
+import os
 import sys
 import time
-import os
+from enum import IntEnum
+from functools import cache
 
 DEBUG = "debug" in sys.argv
 __all__ = (
@@ -47,7 +49,7 @@ def _log(content: str, action: str, colour: Ansi = Ansi.WHITE):
     timestamp = formatted_date()
     sys.stdout.write(  # This is mess but it forms in really cool log.
         f"\x1b[90m[{timestamp} - {colour!r}\033[1"
-        f"m{action}\033[0m\x1b[90m]: \x1b[94m{content}\x1b[0m\n"
+        f"m{action}\033[0m\x1b[90m]: \x1b[94m{content}\x1b[0m\n",
     )
 
 

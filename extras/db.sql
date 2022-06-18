@@ -854,7 +854,7 @@ CREATE TABLE user_pinned (
     pin_date VARCHAR(30) NOT NULL DEFAULT '0'
 );
 
-ALTER TABLE `user_pinned` ADD INDEX(`userid`); 
+ALTER TABLE `user_pinned` ADD INDEX(`userid`);
 
 --
 -- Indexes for dumped tables
