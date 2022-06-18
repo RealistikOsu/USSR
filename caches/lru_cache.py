@@ -1,13 +1,21 @@
 # This is an old class taken from GDPyS (made by me) serving as a lru cache.
 # The code is not the best and is in need of a rewrite but it works well for
 # now and is time tested.
+from __future__ import annotations
+
+from typing import Optional
+from typing import TypedDict
+from typing import Union
+
 from libs.time import get_timestamp
-from typing import Optional, TypedDict, Union
+
 CACHE_KEY = Union[int, str, tuple]
+
 
 class CachedObject(TypedDict):
     expire: int
     object: object
+
 
 class Cache:  # generic class
     """A key-value store implementing LRU eviction."""

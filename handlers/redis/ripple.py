@@ -1,11 +1,19 @@
 # Support for ripple's pubsub handlers. These are featured in **all** ripple
 # based servers.
-from constants.privileges import Privileges
-from logger import info
-from globals.caches import name, priv, password, leaderboards
+from __future__ import annotations
 
-try: from orjson import loads as j_load
-except ImportError: from json import loads as j_load
+from constants.privileges import Privileges
+from globals.caches import leaderboards
+from globals.caches import name
+from globals.caches import password
+from globals.caches import priv
+from logger import info
+
+try:
+    from orjson import loads as j_load
+except ImportError:
+    from json import loads as j_load
+
 
 async def _update_singular(md5: str) -> None:
     """Updates a singular map using data from the osu API."""
@@ -14,7 +22,7 @@ async def _update_singular(md5: str) -> None:
 
 async def beatmap_update_pubsub(data: bytes) -> None:
     """Handler for the pubsub event `lets:beatmap_updates`.
-    
+
     Forces a beatmap to be updated straight form the osu!api.
 
     Message:
@@ -37,6 +45,7 @@ async def beatmap_update_pubsub(data: bytes) -> None:
     j_data = j_load(data)
     ...
 
+
 async def username_change_pubsub(data: bytes):
     """
     Handles the Redis pubsub event `peppy:change_username`.
@@ -57,6 +66,7 @@ async def username_change_pubsub(data: bytes):
 
     info(f"Handled username change for user ID {user_id} -> {new_name}")
 
+
 async def update_cached_privileges_pubsub(data: bytes):
     """
     Handles the Redis pubsub event `peppy:update_cached_stats`.
@@ -65,6 +75,7 @@ async def update_cached_privileges_pubsub(data: bytes):
 
     user_id = int(data.decode())
     await priv.load_singular(user_id)
+
 
 async def change_pass_pubsub(data: bytes):
     """
@@ -76,6 +87,7 @@ async def change_pass_pubsub(data: bytes):
     user_id = int(j_data["user_id"])
 
     password.drop_cache_individual(user_id)
+
 
 async def ban_reload_pubsub(data: bytes):
     """

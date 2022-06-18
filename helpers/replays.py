@@ -1,23 +1,30 @@
-from libs.crypt import hash_md5, ts_to_utc_ticks
-from constants.c_modes import CustomModes
-from aiopath import AsyncPath as Path
-from libs.bin import BinaryWriter
-from objects.score import Score
-from typing import Optional
-from config import config
-from logger import debug
+from __future__ import annotations
+
 import os
+from typing import Optional
+
+from aiopath import AsyncPath as Path
+
+from config import config
+from constants.c_modes import CustomModes
+from libs.bin import BinaryWriter
+from libs.crypt import hash_md5
+from libs.crypt import ts_to_utc_ticks
+from logger import debug
+from objects.score import Score
 
 if config.DATA_DIR[0] == "/" or config.DATA_DIR[1] == ":":
     DATA_DIR = Path(config.DATA_DIR)
 else:
     DATA_DIR = os.getcwd() / Path(config.DATA_DIR)
 
+
 def get_replay_path(score_id: int, c_mode: CustomModes) -> Path:
     """Gets the path of a replay with the given ID."""
 
     suffix = c_mode.to_db_suffix()
     return DATA_DIR / f"replays{suffix}/replay_{score_id}.osr"
+
 
 async def read_replay(score_id: int, c_mode: CustomModes) -> Optional[bytes]:
     """Reads a replay with the ID from the fs."""
@@ -29,6 +36,7 @@ async def read_replay(score_id: int, c_mode: CustomModes) -> Optional[bytes]:
 
     return await path.read_bytes()
 
+
 async def write_replay(score_id: int, rp: bytes, c_mode: CustomModes) -> None:
     """Writes the replay to storage."""
 
@@ -36,12 +44,14 @@ async def write_replay(score_id: int, rp: bytes, c_mode: CustomModes) -> None:
 
     await path.write_bytes(rp)
 
+
 # Variables used in the headers.
 OSU_VERSION = 20211103
 
+
 async def build_full_replay(s: Score) -> Optional[BinaryWriter]:
     """Builds a full osu! replay featuring headers for download on the web.
-    
+
     Args:
         score_id: The score ID corresponding to the replay.
         c_mode: The custom mode the score was set on.
@@ -59,15 +69,26 @@ async def build_full_replay(s: Score) -> Optional[BinaryWriter]:
     rp = await path.read_bytes()
     # What the fuck.
     replay_md5 = hash_md5(
-        '{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}'.format(
-            s.count_100 + s.count_300, s.count_50, s.count_geki, s.count_katu,
-            s.count_miss, s.bmap.md5, s.max_combo, "true" if s.full_combo else "false",
-            s.username, s.score, 0, s.mods.value, "true"
-        )
+        "{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}".format(
+            s.count_100 + s.count_300,
+            s.count_50,
+            s.count_geki,
+            s.count_katu,
+            s.count_miss,
+            s.bmap.md5,
+            s.max_combo,
+            "true" if s.full_combo else "false",
+            s.username,
+            s.score,
+            0,
+            s.mods.value,
+            "true",
+        ),
     )
 
     # Build the replay header.
-    replay = (BinaryWriter()
+    replay = (
+        BinaryWriter()
         .write_u8_le(s.mode.value)
         .write_i32_le(OSU_VERSION)
         .write_osu_string(s.bmap.md5)
@@ -90,4 +111,3 @@ async def build_full_replay(s: Score) -> Optional[BinaryWriter]:
         .write_i64_le(s.id)
     )
     return replay
-

@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 from libs.files import JsonFile
-from logger import info, debug
+from logger import debug
+from logger import info
 
 __name__ = "ConfigModule"
 __author__ = "RealistikDash"
 __version__ = "v2.0.0"
+
 
 class ConfigReader:
     """A parent class meant for the easy management, updating and the creation
@@ -18,7 +22,7 @@ class ConfigReader:
 
         # An object around the configuration file.
         self.json: JsonFile = JsonFile("config.json")
-    
+
     def __init_subclass__(cls, stop_on_update: bool = False):
         """Sets and reads the config child class."""
 
@@ -41,25 +45,27 @@ class ConfigReader:
 
         if cls.updated:
             cls.on_finish_update(cls, cls.updated_keys)
-    
+
     def on_finish_update(self, keys_updated: list):
         """Called when the config has just been updated.
         This is meant to be overridden."""
 
-        info("The config has just been updated! Please edit according to your preferences!")
+        info(
+            "The config has just been updated! Please edit according to your preferences!",
+        )
         debug("Keys added: " + ", ".join(keys_updated))
         raise SystemExit(0)
-    
-    def read_json(self, key: str, default = None):
+
+    def read_json(self, key: str, default=None):
         """Reads a value directly from the json file and returns
         if. If the value is not already in the JSON file, it adds
         it and sets it as `default`.
-        
+
         Args:
             key (str): The JSON key to fetch the value of.
             default (any): The value for the key to be set to if the
                 value is not set.
-                
+
         Returns:
             Value of the key.
         """
@@ -82,31 +88,34 @@ class ConfigReader:
 
             # Return default
             return default
-        
+
         # It exists, just return it.
         return self.json.file[key]
+
 
 # TODO: Notifications for config updates.
 class Config(ConfigReader):
     """The main class for the storage of config values.
     These values are read directly from the `config.json` file."""
 
-    PORT: int                = 2137
-    SQL_HOST: str            = "localhost"
-    SQL_USER: str            = "root"
-    SQL_DB: str              = "ripple"
-    SQL_PASS: str            = "db password"
-    DATA_DIR: str            = ".data"
-    DIRECT_URL: str          = "https://api.chimu.moe/"
-    API_KEYS_POOL: list      = ["keys here"]
-    CUSTOM_CLIENTS: bool     = False # Allow custom clients on
-    SRV_URL: str             = "https://ussr.pl"
-    SRV_NAME: str            = "RealistikOsu"
-    SRV_VERIFIED_BADGE: int  = 1005
+    PORT: int = 2137
+    SQL_HOST: str = "localhost"
+    SQL_USER: str = "root"
+    SQL_DB: str = "ripple"
+    SQL_PASS: str = "db password"
+    DATA_DIR: str = ".data"
+    DIRECT_URL: str = "https://api.chimu.moe/"
+    API_KEYS_POOL: list = ["keys here"]
+    CUSTOM_CLIENTS: bool = False  # Allow custom clients on
+    SRV_URL: str = "https://ussr.pl"
+    SRV_NAME: str = "RealistikOsu"
+    SRV_VERIFIED_BADGE: int = 1005
     DISCORD_FIRST_PLACE: str = ""
-    DISCORD_ADMIN_HOOK: str  = ""
-    PP_CAP_VN: int           = 700
-    PP_CAP_RX: int           = 1200
-    PP_CAP_AP: int           = 1200
+    DISCORD_ADMIN_HOOK: str = ""
+    PP_CAP_VN: int = 700
+    PP_CAP_RX: int = 1200
+    PP_CAP_AP: int = 1200
+    WS_WRITE_KEY: str = ""
+
 
 config = Config()

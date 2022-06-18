@@ -1,25 +1,31 @@
 # TODO: Cleanup this mess.
-from libs.time import Timer
-from logger import error, info, debug
-from objects.beatmap import Beatmap
-from objects.leaderboard import (
-    GlobalLeaderboard,
-    CountryLeaderboard,
-    FriendLeaderboard,
-    ModLeaderboard,
-    USER_ID_IDX,
-    USERNAME_IDX,
-)
-from globals import caches
+from __future__ import annotations
+
 from starlette.requests import Request
-from starlette.responses import Response, PlainTextResponse
-from helpers.user import safe_name, edit_user
+from starlette.responses import PlainTextResponse
+from starlette.responses import Response
+
 from constants.actions import Actions
-from constants.mods import Mods
-from constants.modes import Mode
 from constants.c_modes import CustomModes
-from constants.statuses import LeaderboardTypes, Status
+from constants.modes import Mode
+from constants.mods import Mods
+from constants.statuses import LeaderboardTypes
+from constants.statuses import Status
+from globals import caches
+from helpers.user import edit_user
+from helpers.user import safe_name
 from libs.crypt import validate_md5
+from libs.time import Timer
+from logger import debug
+from logger import error
+from logger import info
+from objects.beatmap import Beatmap
+from objects.leaderboard import CountryLeaderboard
+from objects.leaderboard import FriendLeaderboard
+from objects.leaderboard import GlobalLeaderboard
+from objects.leaderboard import ModLeaderboard
+from objects.leaderboard import USER_ID_IDX
+from objects.leaderboard import USERNAME_IDX
 
 # Maybe make constants?
 BASIC_ERR = "error: no"
@@ -81,8 +87,9 @@ def error_lbs(msg: str) -> str:
     """Displays an error to the user in a visual manner."""
 
     return f"2|false\n\n\n\n\n" + "\n".join(
-        [error_score("Leaderboard Error!"), error_score(msg)]
+        [error_score("Leaderboard Error!"), error_score(msg)],
     )
+
 
 async def leaderboard_get_handler(req: Request) -> Response:
     """Handles beatmap leaderboards."""
@@ -113,7 +120,11 @@ async def leaderboard_get_handler(req: Request) -> Response:
 
     if s_ver != 4:
         # Restrict them for outdated client.
-        await edit_user(Actions.RESTRICT, user_id, "Bypassing client version protections.")
+        await edit_user(
+            Actions.RESTRICT,
+            user_id,
+            "Bypassing client version protections.",
+        )
 
     # Check if we can avoid any lookups.
     if md5 in caches.no_check_md5s:
@@ -131,7 +142,7 @@ async def leaderboard_get_handler(req: Request) -> Response:
         lb = await ModLeaderboard.from_db(md5, c_mode, mode, mods.value)
     else:
         error(
-            f"{username} ({user_id}) requested an unimplemented leaderboard type {lb_filter!r}!"
+            f"{username} ({user_id}) requested an unimplemented leaderboard type {lb_filter!r}!",
         )
         return PlainTextResponse(error_lbs("Unimplemented leaderboard type!"))
 
@@ -152,12 +163,12 @@ async def leaderboard_get_handler(req: Request) -> Response:
                 _format_score(score, idx + 1, score[USER_ID_IDX] != user_id)
                 for idx, score in enumerate(lb.scores)
             ),
-        ]
+        ],
     )
 
     info(
         f"Beatmap {lb.bmap_fetch.console_text} / Leaderboard {lb.lb_fetch.console_text} / "
         f"PB {pb_fetch.console_text} | Served the {lb.c_mode.name} leaderboard for "
-        f"{lb.bmap.song_name} to {username} in {t.time_str()}"
+        f"{lb.bmap.song_name} to {username} in {t.time_str()}",
     )
     return PlainTextResponse(res)

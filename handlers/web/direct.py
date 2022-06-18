@@ -1,13 +1,19 @@
 # TODO: Cleanup
+from __future__ import annotations
+
+import traceback
+
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
+from starlette.responses import RedirectResponse
+
+from config import config
 from conn.web_client import simple_get_json
 from constants.statuses import Status
-from helpers.user import safe_name
-from logger import error, info
 from globals import caches
-from config import config
-import traceback
-from starlette.requests import Request
-from starlette.responses import PlainTextResponse, RedirectResponse
+from helpers.user import safe_name
+from logger import error
+from logger import info
 
 # Constants.
 PASS_ERR = b"error: pass"
@@ -32,7 +38,7 @@ def _format_search_response(diffs: dict, bmap: dict):
 async def download_map(req: Request):
     """Handles osu!direct map download route"""
 
-    map_id = req.path_params['map_id']
+    map_id = req.path_params["map_id"]
     domain = config.DIRECT_URL.split("/")[2]
     beatmap_id = int(map_id.removesuffix("n"))
     no_vid = "n" == map_id[-1]
@@ -58,7 +64,7 @@ async def get_set_handler(req: Request) -> None:
         bmap_id = req.query_params.get("b")
 
         bmap_resp = await simple_get_json(
-            f"{config.DIRECT_URL}/{'map' if USING_CHIMU_V1 else 'b'}/{bmap_id}"
+            f"{config.DIRECT_URL}/{'map' if USING_CHIMU_V1 else 'b'}/{bmap_id}",
         )
         if not bmap_resp or (USING_CHIMU_V1 and int(bmap_resp.get("code", "404")) != 0):
             return PlainTextResponse()
@@ -72,7 +78,7 @@ async def get_set_handler(req: Request) -> None:
         bmap_set = req.query_params.get("s")
 
     bmap_set_resp = await simple_get_json(
-        f"{config.DIRECT_URL}/{'set' if USING_CHIMU_V1 else 's'}/{bmap_set}"
+        f"{config.DIRECT_URL}/{'set' if USING_CHIMU_V1 else 's'}/{bmap_set}",
     )
     if not bmap_set_resp or (USING_CHIMU_V1 and int(bmap_resp.get("code", "404")) != 0):
         return PlainTextResponse()
@@ -112,7 +118,9 @@ async def direct_get_handler(req: Request) -> None:
         res = await simple_get_json(URI_SEARCH, mirror_params)
     except Exception:
         error(f"Error with direct search ({URI_SEARCH}): {traceback.format_exc()}")
-        return PlainTextResponse("-1\nAn error has occured when fetching direct listing!")
+        return PlainTextResponse(
+            "-1\nAn error has occured when fetching direct listing!",
+        )
 
     if not res or (USING_CHIMU_V1 and int(res.get("code", "404")) != 0):
         return PlainTextResponse("0")
@@ -124,7 +132,8 @@ async def direct_get_handler(req: Request) -> None:
             continue
 
         sorted_diffs = sorted(
-            bmap["ChildrenBeatmaps"], key=lambda b: b["DifficultyRating"]
+            bmap["ChildrenBeatmaps"],
+            key=lambda b: b["DifficultyRating"],
         )
         response.append(_format_search_response(sorted_diffs, bmap))
 

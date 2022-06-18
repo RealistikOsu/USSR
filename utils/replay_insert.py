@@ -1,30 +1,39 @@
 # Parses data from replay and inserts it to database
 # NOTE: An emergency tool for situations where score
 # will not get submitted.
+from __future__ import annotations
+
 import sys
-from cli_utils import perform_startup_requirements, get_loop
-from globals import caches
 import traceback
-from libs.time import get_timestamp
-from objects.stats import Stats
-from objects.score import Score
-from logger import error, info
-from helpers.user import safe_name
-from globals.connections import sql
+
+from cli_utils import get_loop
+from cli_utils import perform_startup_requirements
+from osupyparser import ReplayFile
+
+from constants.actions import Actions
 from constants.c_modes import CustomModes
+from constants.complete import Completed
 from constants.modes import Mode
 from constants.mods import Mods
-from constants.actions import Actions
-from constants.complete import Completed
 from constants.privileges import Privileges
 from constants.statuses import Status
-from objects.beatmap import Beatmap
-from osupyparser import ReplayFile
-from helpers.user import update_country_lb_pos, update_lb_pos, edit_user
-from helpers.replays import write_replay
-from libs.bin import BinaryWriter
+from globals import caches
+from globals.connections import sql
 from helpers.anticheat import surpassed_cap_restrict
-from helpers.pep import stats_refresh, notify_new_score
+from helpers.pep import notify_new_score
+from helpers.pep import stats_refresh
+from helpers.replays import write_replay
+from helpers.user import edit_user
+from helpers.user import safe_name
+from helpers.user import update_country_lb_pos
+from helpers.user import update_lb_pos
+from libs.bin import BinaryWriter
+from libs.time import get_timestamp
+from logger import error
+from logger import info
+from objects.beatmap import Beatmap
+from objects.score import Score
+from objects.stats import Stats
 
 
 async def insert_replay_data(replay_path: str):
@@ -85,7 +94,9 @@ async def insert_replay_data(replay_path: str):
 
     if s.mods.conflict():
         await edit_user(
-            Actions.RESTRICT, s.user_id, "Illegal mod combo (score submitter)."
+            Actions.RESTRICT,
+            s.user_id,
+            "Illegal mod combo (score submitter).",
         )
         error(f"Restricted user for 'Illegal mod combo (score submitter).'")
         raise SystemExit(1)
@@ -164,7 +175,9 @@ async def insert_replay_data(replay_path: str):
         data = stream.read()
 
     lzma_off = int.from_bytes(  # Read int16
-        data[current_off : current_off + 4], "little", signed=True
+        data[current_off : current_off + 4],
+        "little",
+        signed=True,
     )
     replay_raw_data = data[current_off + 4 : current_off + 4 + lzma_off]
     await write_replay(s.id, replay_raw_data, s.c_mode)
@@ -183,7 +196,9 @@ async def insert_replay_data(replay_path: str):
     # More anticheat checks.
     if s.completed == Completed.BEST and await surpassed_cap_restrict(s):
         await edit_user(
-            Actions.RESTRICT, s.user_id, f"Surpassing PP cap as unverified! ({s.pp}pp)"
+            Actions.RESTRICT,
+            s.user_id,
+            f"Surpassing PP cap as unverified! ({s.pp}pp)",
         )
         error(f"Restricted user for 'Surpassing PP cap as unverified! ({s.pp}pp)'")
         raise SystemExit(1)
@@ -196,7 +211,7 @@ def invalid_args_err(info: str) -> None:
 
     error(
         "Supplied incorrect arguments!\n" + info + "\nConsult the README.md "
-        "for documentation of proper usage!"
+        "for documentation of proper usage!",
     )
     raise SystemExit(1)
 
@@ -216,7 +231,7 @@ def parse_args() -> dict:
         invalid_args_err("Invalid argument types supplied!")
     except IndexError:
         invalid_args_err(
-            f"Expected 1 command arguments to be supplied (received {arg_count})"
+            f"Expected 1 command arguments to be supplied (received {arg_count})",
         )
 
     return {"replay_path": replay_path}

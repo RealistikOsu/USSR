@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import os
-from config import config
 import traceback
+
 import uvicorn
+
+from config import config
 
 # Uvloop is a significantly faster loop.
 try:
     import uvloop
+
     uvloop.install()
 except ImportError:
     pass
@@ -21,14 +26,12 @@ from logger import (
 )
 from starlette.applications import Starlette
 from starlette.routing import Route
+from starlette.routing import WebSocketRoute
 from handlers.redis.redis import pubsub_executor
 from pp.main import build_oppai, verify_oppai
 
 # Initialise globals.
-from globals.connections import (
-    connect_sql, 
-    connect_redis
-)
+from globals.connections import connect_sql, connect_redis
 from globals.caches import initialise_cache
 
 from logger import (
@@ -55,8 +58,10 @@ from handlers.web.misc import (
     beatmap_rate_handler,
     get_seasonals_handler,
     bancho_connect,
-    difficulty_rating
+    difficulty_rating,
 )
+
+from handlers.web.ws import ScoreFeed
 
 # Load redis handlers.
 from handlers.redis.ripple import (
@@ -90,7 +95,7 @@ STARTUP_TASKS = (
 DEPENDENCIES = (
     (verify_oppai, build_oppai),
     (check_log_file, ensure_log_file),
-    (verify_required_folders, ensure_required_folders)
+    (verify_required_folders, ensure_required_folders),
 )
 
 PUBSUB_REGISTER = (
@@ -107,6 +112,7 @@ PUBSUB_REGISTER = (
     (recalc_pp_pubsub, "ussr:recalc_pp"),
     (recalc_user_pubsub, "ussr:recalc_user"),
 )
+
 
 def ensure_dependencies():
     """Checks if all dependencies are met, and if not, attempts to fix them."""
@@ -127,7 +133,7 @@ def ensure_dependencies():
 async def perform_startup(redis: bool = True):
     """Runs all of the startup tasks, checking if they all succeed. If not,
     `SystemExit` will be raised."""
-    
+
     os.system("clear")
     info("Running startup tasks...")
 
@@ -138,7 +144,7 @@ async def perform_startup(redis: bool = True):
     except Exception:
         error("Error running startup task!" + traceback.format_exc())
         raise SystemExit(1)
-    
+
     if redis:
         try:
             for coro, name in PUBSUB_REGISTER:
@@ -154,38 +160,46 @@ def server_start():
     """Handles a regular start of the server."""
 
     app = Starlette(
-        debug= DEBUG,
-        on_startup= [
-            perform_startup
-        ],
-        routes= [
+        debug=DEBUG,
+        on_startup=[perform_startup],
+        routes=[
             # osu web Routes
             Route("/web/osu-osz2-getscores.php", leaderboard_get_handler),
             Route("/web/osu-search.php", direct_get_handler),
             Route("/web/osu-search-set.php", get_set_handler),
             Route("/d/{map_id:str}", download_map),
             Route("/web/osu-getreplay.php", get_replay_web_handler),
-            Route("/web/osu-screenshot.php", upload_image_handler, methods= ["POST"]),
+            Route("/web/osu-screenshot.php", upload_image_handler, methods=["POST"]),
             Route(
-                "/web/osu-submit-modular-selector.php", score_submit_handler, methods= ["POST"]
+                "/web/osu-submit-modular-selector.php",
+                score_submit_handler,
+                methods=["POST"],
             ),
             Route("/web/lastfm.php", lastfm_handler),
             Route("/web/osu-getfriends.php", getfriends_handler),
-            Route("/web/osu-error.php", osu_error_handler, methods= ["POST"]),
+            Route("/web/osu-error.php", osu_error_handler, methods=["POST"]),
             Route("/web/osu-rate.php", beatmap_rate_handler),
             Route("/web/osu-getseasonal.php", get_seasonals_handler),
             Route("/web/bancho_connect.php", bancho_connect),
-            Route("/difficulty-rating", difficulty_rating, methods= ["POST"]),
+            Route("/difficulty-rating", difficulty_rating, methods=["POST"]),
             # Ripple API Routes
             Route("/api/v1/status", status_handler),
             Route("/api/v1/pp", pp_handler),
             # Frontend Routes
             Route("/web/replays/{score_id:int}", get_full_replay_handler),
-        ]
+            # Websocket Routes.
+            WebSocketRoute("/ws/scores/feed", ScoreFeed),
+        ],
     )
 
     write_log_file("Server started!")
-    uvicorn.run(app, port= config.PORT, access_log= False, log_level= "error")
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=config.PORT,
+        access_log=False,
+        log_level="error",
+    )
 
 
 if __name__ == "__main__":

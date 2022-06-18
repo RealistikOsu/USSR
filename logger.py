@@ -1,6 +1,9 @@
-from libs.time import formatted_date
-import sys
+from __future__ import annotations
+
 import os
+import sys
+
+from libs.time import formatted_date
 
 
 class Ansi:
@@ -41,7 +44,7 @@ def log_message(content: str, l_type: str, bg_col: str):
     # Print to console. Use this as faster ig.
     sys.stdout.write(
         f"\033[37m{bg_col}[{l_type}]\033[49m - "
-        f"[{formatted_date()}] {content}\033[39m\n"
+        f"[{formatted_date()}] {content}\033[39m\n",
     )
 
 

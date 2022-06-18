@@ -1,7 +1,9 @@
 """Created a full dedicated file for 2 poor functions, i know."""
+from __future__ import annotations
+
 from genericpath import exists
-from os.path import isdir
 from os import makedirs
+from os.path import isdir
 
 from config import config
 
@@ -28,4 +30,4 @@ def verify_required_folders() -> bool:
 
 def ensure_required_folders():
     for folder in REQUIRED_FOLDERS:
-        makedirs(folder,exist_ok=True)
+        makedirs(folder, exist_ok=True)

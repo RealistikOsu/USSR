@@ -1,5 +1,8 @@
 # Score completion statuses.
+from __future__ import annotations
+
 from enum import IntEnum
+
 
 class Completed(IntEnum):
     """Completion statuses for database scores."""
@@ -16,6 +19,7 @@ class Completed(IntEnum):
         """Bool corresponding to whether the user finished playing the map."""
 
         return self.value in _map_complete
+
 
 _map_complete = (
     Completed.COMPLETE,

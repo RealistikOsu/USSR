@@ -1,36 +1,39 @@
 # Implementation of the ripple api for compatibility purposes.
+from __future__ import annotations
+
 from starlette.requests import Request
-from starlette.responses import Response, JSONResponse
-from constants.modes import Mode
+from starlette.responses import JSONResponse
+from starlette.responses import Response
+
 from constants.c_modes import CustomModes
+from constants.modes import Mode
 from constants.mods import Mods
 from helpers.beatmap import bmap_md5_from_id
 from logger import info
-from pp.main import select_calculator
 from objects.beatmap import Beatmap
+from pp.main import select_calculator
+
 
 async def status_handler(request: Request) -> Response:
     """Handles the `/api/v1/status` with a constant response."""
 
-    return JSONResponse({
-        "status": 200,
-        "server_status": 1,
-    })
+    return JSONResponse(
+        {
+            "status": 200,
+            "server_status": 1,
+        },
+    )
 
-TILLERINO_PERCENTAGES = (
-    100, 99, 98, 95
-)
+
+TILLERINO_PERCENTAGES = (100, 99, 98, 95)
 
 # PP Calculation. TODO: Ratelimit.
 async def pp_handler(request: Request) -> Response:
     """Handles the `/api/v1/pp` api."""
 
     beatmap_id = request.query_params.get("b")
-    if not beatmap_id: 
-        return JSONResponse({
-            "status": 400,
-            "message": "Missing b GET argument."
-        }, 400)
+    if not beatmap_id:
+        return JSONResponse({"status": 400, "message": "Missing b GET argument."}, 400)
 
     mods = int(request.query_params.get("m", 0))
     mods = Mods(mods)
@@ -49,11 +52,11 @@ async def pp_handler(request: Request) -> Response:
 
     # Get beatmap.
     bmap_md5 = await bmap_md5_from_id(beatmap_id)
-    if not bmap_md5: 
-        return JSONResponse({
-            "status": 400,
-            "message": "Invalid/non-existent beatmap id."
-        }, 400)
+    if not bmap_md5:
+        return JSONResponse(
+            {"status": 400, "message": "Invalid/non-existent beatmap id."},
+            400,
+        )
 
     bmap = await Beatmap.from_md5(bmap_md5)
 
@@ -75,17 +78,19 @@ async def pp_handler(request: Request) -> Response:
             res = await calc.calculate()
             star_rating = res[1]
             pp_result.append(res[0])
-    
+
     info(f"Handled PP Calculation API Request for {bmap.song_name}!")
-    
+
     # Final Response!
-    return JSONResponse({
-        "status": 200,
-        "message": "ok",
-        "song_name": bmap.song_name,
-        "pp": pp_result,
-        "length": bmap.hit_length,
-        "stars": star_rating,
-        "ar": bmap.ar,
-        "bpm": bmap.bpm,
-    })
+    return JSONResponse(
+        {
+            "status": 200,
+            "message": "ok",
+            "song_name": bmap.song_name,
+            "pp": pp_result,
+            "length": bmap.hit_length,
+            "stars": star_rating,
+            "ar": bmap.ar,
+            "bpm": bmap.bpm,
+        },
+    )

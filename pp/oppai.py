@@ -1,65 +1,72 @@
+from __future__ import annotations
+
 import ctypes
 import functools
-from typing import (
-    TYPE_CHECKING,
-    Type,
-    Optional
-)
 from types import TracebackType
+from typing import Optional
+from typing import Type
+from typing import TYPE_CHECKING
+
 from helpers.beatmap import fetch_osu_file
 
 if TYPE_CHECKING:
     from objects.score import Score
     from pathlib import Path
 
+
 class OppaiWrapper:
     """Lightweight wrapper around franc[e]sco's c89 oppai-ng library.
     Made by cmyui https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/osu/oppai_ng.py
     """
-    __slots__  = ('static_lib', '_ez')
+
+    __slots__ = ("static_lib", "_ez")
 
     def __init__(self, lib_path: str) -> None:
         self.static_lib = self.load_static_library(lib_path)
         self._ez = 0
 
-    def __enter__(self) -> 'OppaiWrapper':
+    def __enter__(self) -> OppaiWrapper:
         self._ez = self.static_lib.ezpp_new()
         return self
 
     def __exit__(
-        self, exc_type: Optional[Type[BaseException]],
+        self,
+        exc_type: Optional[Type[BaseException]],
         exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType]
+        traceback: Optional[TracebackType],
     ) -> bool:
         self.static_lib.ezpp_free(self._ez)
         self._ez = 0
         return False
-    
+
     # Screw proper with usage.
     def set_static_lib(self):
         """Creates a static lib binding for the object.
-        
+
         Note:
             Remember to call this before using the object.
             Remember to free the static lib using `free_static_lib` after you're done.
         """
 
         self._ez = self.static_lib.ezpp_new()
-    
+
     def free_static_lib(self):
         """Frees the static lib for the object."""
         self.static_lib.ezpp_free(self._ez)
 
     # NOTE: probably the only function you'll need to use
     def configure(
-        self, mode: int = 0,
-        acc: float = 0, mods: int = 0,
-        combo: int = 0, nmiss: int = 0
+        self,
+        mode: int = 0,
+        acc: float = 0,
+        mods: int = 0,
+        combo: int = 0,
+        nmiss: int = 0,
     ) -> None:
         """Convenience wrapper so you don't have to
-           think about the order for clobbering stuff"""
+        think about the order for clobbering stuff"""
         if self._ez == 0:
-            raise RuntimeError('OppaiWrapper used before oppai-ng initialization!')
+            raise RuntimeError("OppaiWrapper used before oppai-ng initialization!")
 
         if mode:
             self.set_mode(mode)
@@ -70,24 +77,28 @@ class OppaiWrapper:
         if combo:
             self.set_combo(combo)
         if acc:
-            self.set_accuracy_percent(acc) # n50, n100s?
+            self.set_accuracy_percent(acc)  # n50, n100s?
 
     # NOTE: all of the 1-1 oppai-ng api functions below will assume the library
     #       has been loaded successfully and ezpp_new has been called.
 
-    def calculate(self, osu_file_path: 'Path') -> None: # ezpp()
+    def calculate(self, osu_file_path: Path) -> None:  # ezpp()
         osu_file_path_bytestr = str(osu_file_path).encode()
         self.static_lib.ezpp(self._ez, osu_file_path_bytestr)
 
-    def calculate_data(self, osu_file_contents: bytes) -> None: # ezpp_data()
+    def calculate_data(self, osu_file_contents: bytes) -> None:  # ezpp_data()
         self.static_lib.ezpp_data(self._ez, osu_file_contents, len(osu_file_contents))
 
-    def calculate_dup(self, osu_file_path: 'Path') -> None: # ezpp_dup()
+    def calculate_dup(self, osu_file_path: Path) -> None:  # ezpp_dup()
         osu_file_path_bytestr = str(osu_file_path).encode()
         self.static_lib.ezpp_dup(self._ez, osu_file_path_bytestr)
 
-    def calculate_data_dup(self, osu_file_contents: bytes) -> None: # ezpp_data_dup()
-        self.static_lib.ezpp_data_dup(self._ez, osu_file_contents, len(osu_file_contents))
+    def calculate_data_dup(self, osu_file_contents: bytes) -> None:  # ezpp_data_dup()
+        self.static_lib.ezpp_data_dup(
+            self._ez,
+            osu_file_contents,
+            len(osu_file_contents),
+        )
 
     # get stuff
 
@@ -277,11 +288,11 @@ class OppaiWrapper:
     @functools.cache
     def load_static_library(lib_path: str) -> ctypes.CDLL:
         """Load the oppai-ng static library,
-           and register c types to it's api."""
+        and register c types to it's api."""
         static_lib = ctypes.cdll.LoadLibrary(lib_path)
 
         if not static_lib:
-            raise RuntimeError(f'Failed to load {lib_path}.')
+            raise RuntimeError(f"Failed to load {lib_path}.")
 
         # main api
 
@@ -549,6 +560,7 @@ class OppaiWrapper:
 
         return static_lib
 
+
 # Now here are our abstractions around the `OppaiWrapper` meeting the standards of
 # BaseCalculator.
 class BaseOppaiCalculator:
@@ -558,20 +570,20 @@ class BaseOppaiCalculator:
     def __init__(self, lib_path: str) -> None:
         self._lib = OppaiWrapper(lib_path)
 
-        self.mode: int  = None
-        self.mods: int  = None
-        self.n50: int   = None
-        self.n100: int  = None
-        self.n300: int  = None
-        self.katu: int  = None
+        self.mode: int = None
+        self.mods: int = None
+        self.n50: int = None
+        self.n100: int = None
+        self.n300: int = None
+        self.katu: int = None
         self.combo: int = None
         self.score: int = None
         self.acc: float = None
         self.bmap_id: int = None
         self.miss: int = None
-    
+
     @classmethod
-    def from_score(cls, score: 'Score') -> 'BaseOppaiCalculator':
+    def from_score(cls, score: Score) -> BaseOppaiCalculator:
         """Create a calculator object from a score."""
 
         calc = cls()
@@ -587,19 +599,13 @@ class BaseOppaiCalculator:
         calc.acc = score.accuracy
         calc.miss = score.count_miss
         return calc
-    
+
     def __configure(self) -> None:
         """Configures the C calculator to use the data from the calculator object."""
-        
+
         self._lib.set_static_lib()
-        self._lib.configure(
-            self.mode,
-            self.acc,
-            self.mods,
-            self.combo,
-            self.miss
-        )
-    
+        self._lib.configure(self.mode, self.acc, self.mods, self.combo, self.miss)
+
     async def calculate(self) -> tuple[float, float]:
         """Calculates the PP and star rating."""
 
@@ -613,11 +619,13 @@ class BaseOppaiCalculator:
         self._lib.free_static_lib()
         return res
 
+
 class OppaiAP(BaseOppaiCalculator):
     """A wrapper around the Oppai Autopilot calculator."""
 
     def __init__(self) -> None:
         super().__init__("pp/oppai-ap/liboppai.so")
+
 
 class OppaiRX(BaseOppaiCalculator):
     """A wrapper around the Oppai Relax calculator."""

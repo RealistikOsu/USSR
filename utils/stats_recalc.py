@@ -1,12 +1,21 @@
 # Handles recalculating total PP, accuracy and max combo for a user using
 # USSR's new formulas.
-from cli_utils import perform_startup_requirements, get_loop, perform_split_async
-from objects.stats import Stats
-from helpers.user import update_lb_pos, update_country_lb_pos, fetch_user_country
+from __future__ import annotations
+
+from cli_utils import get_loop
+from cli_utils import perform_split_async
+from cli_utils import perform_startup_requirements
+
 from constants.c_modes import CustomModes
 from constants.modes import Mode
-from logger import info, error
 from globals.connections import sql
+from helpers.user import fetch_user_country
+from helpers.user import update_country_lb_pos
+from helpers.user import update_lb_pos
+from logger import error
+from logger import info
+from objects.stats import Stats
+
 
 async def perform_stats_update(uid_tup: tuple[int, int]):
     """Performs the recalculation and saving of a singular user from stats."""
@@ -19,8 +28,10 @@ async def perform_stats_update(uid_tup: tuple[int, int]):
         for c_mode in (CustomModes.VANILLA, CustomModes.RELAX, CustomModes.AUTOPILOT):
 
             # Some of these modes are mutually exclusive. Don't allow them.
-            if c_mode is CustomModes.AUTOPILOT and mode is not Mode.STANDARD: continue
-            if c_mode is CustomModes.RELAX and mode is Mode.MANIA: continue
+            if c_mode is CustomModes.AUTOPILOT and mode is not Mode.STANDARD:
+                continue
+            if c_mode is CustomModes.RELAX and mode is Mode.MANIA:
+                continue
 
             st = await Stats.from_sql(user_id, mode, c_mode)
             if not st:
@@ -44,28 +55,31 @@ async def perform_stats_update(uid_tup: tuple[int, int]):
                 await update_lb_pos(user_id, st.pp, mode, c_mode)
                 await update_country_lb_pos(user_id, st.pp, mode, c_mode, country)
 
-            info(f"Recalculated stats for user {st.user_id}!\n"
-                 f"| {old_pp:.2f}pp -> {st.pp:.2f} | {old_acc:.2f}% -> {st.accuracy:2f}% | {old_max_combo}x -> {st.max_combo}x")
+            info(
+                f"Recalculated stats for user {st.user_id}!\n"
+                f"| {old_pp:.2f}pp -> {st.pp:.2f} | {old_acc:.2f}% -> {st.accuracy:2f}% | {old_max_combo}x -> {st.max_combo}x",
+            )
+
 
 async def recalc_chk(l: list[int]):
     """Recalculates a chunk of user_id stats."""
 
-    for uid in l: await perform_stats_update(uid)
+    for uid in l:
+        await perform_stats_update(uid)
     info("Chunk of recalculation completed!")
+
 
 async def main():
     """The root of the server wide recalculator."""
 
     info("Fetching a list of all users.")
 
-    users_db = await sql.fetchall(
-        "SELECT id, privileges FROM users"
-    )
+    users_db = await sql.fetchall("SELECT id, privileges FROM users")
 
     info("Starting the stars recalculation of the whole server...")
-    
+
     await perform_split_async(recalc_chk, users_db, 16)
-    
+
 
 if __name__ == "__main__":
     loop = get_loop()

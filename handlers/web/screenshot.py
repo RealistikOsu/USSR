@@ -1,19 +1,26 @@
 # The screenshot related handlers.
-from helpers.user import safe_name
-from libs.crypt import gen_rand_str
-from aiopath import AsyncPath as Path
-from globals.caches import check_auth, name
-from helpers.pep import check_online
-from globals.connections import redis
-from starlette.requests import Request
-from starlette.responses import Response, PlainTextResponse
-from logger import error, info
-from config import config
+from __future__ import annotations
+
 import os
 
-SS_DELAY = 10 # Seconds per screenshot.
-FS_LIMIT = 500_000 # Rosu screenshots don't exceed this.
-ERR_RESP = "https://c.ussr.pl/" # We do a lil trolley.
+from aiopath import AsyncPath as Path
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
+from starlette.responses import Response
+
+from config import config
+from globals.caches import check_auth
+from globals.caches import name
+from globals.connections import redis
+from helpers.pep import check_online
+from helpers.user import safe_name
+from libs.crypt import gen_rand_str
+from logger import error
+from logger import info
+
+SS_DELAY = 10  # Seconds per screenshot.
+FS_LIMIT = 500_000  # Rosu screenshots don't exceed this.
+ERR_RESP = "https://c.ussr.pl/"  # We do a lil trolley.
 SS_NAME_LEN = 8
 
 if config.DATA_DIR[0] == "/" or config.DATA_DIR[1] == ":":
@@ -27,9 +34,11 @@ async def is_ratelimit(ip: str) -> bool:
     it establises the limit in Redis."""
 
     rl_key = "ussr:ss_limit:" + ip
-    if await redis.get(rl_key): return True
-    await redis.set(rl_key, 1, expire= SS_DELAY)
+    if await redis.get(rl_key):
+        return True
+    await redis.set(rl_key, 1, expire=SS_DELAY)
     return False
+
 
 async def upload_image_handler(req: Request) -> Response:
     """Handles screenshot uploads (POST /web/osu-screenshot.php)."""
@@ -40,20 +49,24 @@ async def upload_image_handler(req: Request) -> Response:
     password = post_args["p"]
     if not await check_auth(username, password):
         return PlainTextResponse("no")
-    
+
     # This is a particularly dangerous endpoint.
     user_id = await name.id_from_safe(safe_name(username))
     if not await check_online(user_id):
-        error(f"User {username} ({user_id}) tried to upload a screenshot while offline.")
+        error(
+            f"User {username} ({user_id}) tried to upload a screenshot while offline.",
+        )
         return PlainTextResponse(ERR_RESP)
-    
+
     if req.headers.get("user-agent") != "osu!":
         error(f"User {username} ({user_id}) tried to upload a screenshot using a bot.")
         return PlainTextResponse(ERR_RESP)
 
     # LETS style ratelimit.
     if await is_ratelimit(req.headers["x-real-ip"]):
-        error(f"User {username} ({user_id}) tried to upload a screenshot while ratelimited.")
+        error(
+            f"User {username} ({user_id}) tried to upload a screenshot while ratelimited.",
+        )
         return PlainTextResponse(ERR_RESP)
 
     content = await post_args["ss"].read()
@@ -61,10 +74,10 @@ async def upload_image_handler(req: Request) -> Response:
     if content.__sizeof__() > FS_LIMIT:
         return PlainTextResponse(ERR_RESP)
 
-    if content[6:10] in (b'JFIF', b'Exif'):
-        ext =  'jpeg'
-    elif content.startswith(b'\211PNG\r\n\032\n'):
-        ext = 'png'
+    if content[6:10] in (b"JFIF", b"Exif"):
+        ext = "jpeg"
+    elif content.startswith(b"\211PNG\r\n\032\n"):
+        ext = "png"
     else:
         error(f"User {username} ({user_id}) tried to upload unknown extention file.")
         return PlainTextResponse(ERR_RESP)

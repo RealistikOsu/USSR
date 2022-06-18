@@ -1,11 +1,15 @@
 # USSR New Redis impl.
+from __future__ import annotations
+
+from constants.c_modes import CustomModes
+from constants.modes import Mode
 from globals.caches import beatmaps
+from logger import error
+from logger import info
 from objects.leaderboard import GlobalLeaderboard
 from objects.score import Score
 from objects.stats import Stats
-from constants.modes import Mode
-from constants.c_modes import CustomModes
-from logger import info, error
+
 
 async def drop_bmap_cache_pubsub(data: bytes) -> None:
     """
@@ -13,8 +17,9 @@ async def drop_bmap_cache_pubsub(data: bytes) -> None:
     Drops the beatmap from cache. Takes in a string that is the beatmap md5.
     NOTE: This does not affect already cached leaderboards.
     """
-    
+
     beatmaps.drop(data.decode())
+
 
 async def refresh_leaderboard_pubsub(data: bytes) -> None:
     """
@@ -22,7 +27,7 @@ async def refresh_leaderboard_pubsub(data: bytes) -> None:
 
     Data:
         beatmap_md5:mode int:custommode int
-    
+
     Reloads the leaderboards and beatmap of an existing object alongside
     dropping the beatmap object.
     """
@@ -40,8 +45,9 @@ async def refresh_leaderboard_pubsub(data: bytes) -> None:
     if lb := GlobalLeaderboard.from_cache(md5, c_mode, mode):
         await lb.refresh_beatmap()
         await lb.refresh()
-    
+
     info(f"Redis Pubsub: Refreshed leaderboards and beatmap for {md5}!")
+
 
 async def recalc_pp_pubsub(data: bytes) -> None:
     """
@@ -57,13 +63,16 @@ async def recalc_pp_pubsub(data: bytes) -> None:
     # Attempt to fetch score.
     score = await Score.from_db(score_id, c_mode, False)
     if not score:
-        error("Redis Pubsub: Error recalculating PP for score with ID: "
-             f"{score_id} | Score not found!")
+        error(
+            "Redis Pubsub: Error recalculating PP for score with ID: "
+            f"{score_id} | Score not found!",
+        )
         return
-    
+
     await score.calc_pp()
     await score.save_pp()
     info(f"Redis Pubsub: Recalculated PP for score {score_id}")
+
 
 async def recalc_user_pubsub(data: bytes) -> None:
     """
@@ -87,7 +96,8 @@ async def recalc_user_pubsub(data: bytes) -> None:
             await st.calc_playcount()
             await st.update_redis_ranks()
             await st.save()
-    
+
     info(f"Redis Pubsub: Recalculated the statistics for user {user_id}")
+
 
 # TODO: Add verify handler.
