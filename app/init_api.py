@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import pprint
 
 import aiohttp
@@ -14,6 +15,7 @@ from fastapi.responses import Response
 from starlette.middleware.base import RequestResponseEndpoint
 
 import app.state
+import app.usecases
 import logger
 
 
@@ -27,11 +29,22 @@ def init_events(asgi_app: FastAPI) -> None:
             json_serialize=lambda x: orjson.dumps(x).decode(),
         )
 
+        for _task in (
+            app.usecases.privileges.update_privileges_task,
+            app.usecases.usernames.update_usernames_task,
+            app.usecases.countries.update_countries_task,
+            app.usecases.clans.update_clans_task,
+        ):
+            task = asyncio.create_task(_task())
+            app.state.tasks.add(task)
+
         logger.info("Server has started!")
         logger.write_log_file("Server has started!")
 
     @asgi_app.on_event("shutdown")
     async def on_shutdown() -> None:
+        await app.state.cancel_tasks()
+
         await app.state.services.database.disconnect()
         await app.state.services.redis.close()
 
