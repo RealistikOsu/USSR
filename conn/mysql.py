@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from typing import Any
 from typing import Optional
 from typing import Tuple
-from typing import Union
 
 import aiomysql
 
@@ -26,7 +26,6 @@ class MySQLPool:
         classmethod instead."""
         self._pool: aiomysql.Pool
 
-    @classmethod
     async def connect(
         self,
         host: str,
@@ -88,7 +87,7 @@ class MySQLPool:
                 # Immidiately return it
                 return await cur.fetchone()
 
-    async def fetchcol(self, query: str, args: tuple = ()) -> Optional[Union[int, str]]:
+    async def fetchcol(self, query: str, args: tuple = ()) -> Optional[Any]:
         """Fetches the value of a singular column from the result.
 
         Args:
@@ -157,7 +156,7 @@ class MySQLPool:
                 # Return it
                 return cur.lastrowid
 
-    def kill(self) -> None:
+    async def kill(self) -> None:
         """Ends the MySQL connection pool to the MySQL server.
 
         Note:
@@ -166,5 +165,5 @@ class MySQLPool:
                 of this coro.
         """
 
-        self._pool.terminate()
         self._pool.close()
+        await self._pool.wait_closed()

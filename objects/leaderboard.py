@@ -263,9 +263,8 @@ class GlobalLeaderboard:
 
         leaderboards.cache(self.__create_idx(), self)
 
-    @classmethod
+    @staticmethod
     def from_cache(
-        _,
         bmap_md5: str,
         c_mode: CustomModes,
         mode: Mode,
@@ -594,7 +593,7 @@ class CountryLeaderboard(GlobalLeaderboard):
             extra_joins="INNER JOIN users_stats st ON st.id = a.id",
         )
 
-    def _fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+    def _fetch_where_conds(self) -> tuple[tuple[str, ...], tuple[object, ...]]:
         """Returns the where conditions to be used within MySQL queries
         related to the leaderboard, alongside args meant to be safely formatted
         into the query."""
@@ -636,7 +635,7 @@ class FriendLeaderboard(CountryLeaderboard):
             extra_joins="",
         )
 
-    def _fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+    def _fetch_where_conds(self) -> tuple[tuple[str, ...], tuple[object, ...]]:
         """Returns the where conditions to be used within MySQL queries
         related to the leaderboard, alongside args meant to be safely formatted
         into the query."""
@@ -708,7 +707,7 @@ class ModLeaderboard(GlobalLeaderboard):
             await res.refresh()
         return res
 
-    def _fetch_where_conds(self) -> tuple[tuple[str], tuple[object]]:
+    def _fetch_where_conds(self) -> tuple[tuple[str, ...], tuple[object, ...]]:
         """Returns the where conditions to be used within MySQL queries
         related to the leaderboard, alongside args meant to be safely formatted
         into the query."""

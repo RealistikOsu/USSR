@@ -7,6 +7,7 @@ from typing import Optional
 
 from py3rijndael import RijndaelCbc
 from py3rijndael import ZeroPadding
+from starlette.datastructures import FormData
 
 from .leaderboard import GlobalLeaderboard
 from config import config
@@ -119,7 +120,7 @@ class Score:
         return value
 
     @classmethod
-    async def from_score_sub(self, post_args: dict) -> Optional["Score"]:
+    async def from_score_sub(cls, post_args: FormData) -> Optional["Score"]:
         """Creates an instance of `Score` from data provided in a score
         submit request."""
 
@@ -158,7 +159,7 @@ class Score:
         mods = Mods(int(score_data[13]))
         mode = Mode(int(score_data[15]))
 
-        s = Score(
+        s = cls(
             0,
             bmap,
             user_id,

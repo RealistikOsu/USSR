@@ -12,7 +12,7 @@ class Actions(IntFlag):
     BAN = 1 << 3
 
     @property
-    def log_action(self):
+    def log_action(self) -> str:
         return _actions[self]
 
 

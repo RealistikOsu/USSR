@@ -14,11 +14,11 @@ class CustomModes(IntEnum):
     RELAX = 1
     AUTOPILOT = 2
 
-    def to_db_suffix(self):
+    def to_db_suffix(self) -> str:
         """Returns the database table (for redis and sql) suffix for the given
         `c_mode`."""
 
-        return _db_suffixes[self.value]
+        return _db_suffixes[self]
 
     @staticmethod
     def all() -> tuple[CustomModes, ...]:
@@ -27,20 +27,20 @@ class CustomModes(IntEnum):
         return _all_c_modes
 
     @classmethod
-    def from_mods(self, mods: Mods, mode: Optional[Mode] = None) -> CustomModes:
+    def from_mods(cls, mods: Mods, mode: Optional[Mode] = None) -> CustomModes:
         """Creates an instance of `CustomModes` from a mod combo."""
 
         # Mania only supports vanilla
         if mode is Mode.MANIA:
-            return CustomModes.VANILLA
+            return cls.VANILLA
         elif mods & Mods.AUTOPILOT:
-            return CustomModes.AUTOPILOT
+            return cls.AUTOPILOT
         elif mods & Mods.RELAX:
-            return CustomModes.RELAX
-        return CustomModes.VANILLA
+            return cls.RELAX
+        return cls.VANILLA
 
     @classmethod
-    def from_score_id(self, score_id: int) -> CustomModes:
+    def from_score_id(cls, score_id: int) -> CustomModes:
         """Calculates the c_mode for a score using score offsets.
 
         Args:
@@ -49,10 +49,10 @@ class CustomModes(IntEnum):
         """
 
         if RELAX_OFFSET < score_id < AP_OFFSET:
-            return CustomModes.RELAX
+            return cls.RELAX
         elif score_id > AP_OFFSET:
-            return CustomModes.AUTOPILOT
-        return CustomModes.VANILLA
+            return cls.AUTOPILOT
+        return cls.VANILLA
 
     @property
     def uses_ppboard(self) -> bool:
@@ -134,5 +134,5 @@ _available_modes = {
 }
 
 # Score offsets for each mode, avoiding queries.
-RELAX_OFFSET = 1073741823
-AP_OFFSET = 2000000000
+RELAX_OFFSET = 1_073_741_823
+AP_OFFSET = 2_000_000_000

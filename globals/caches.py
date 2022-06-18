@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING
 from . import connections
 from caches.bcrypt import BCryptCache
 from caches.clan import ClanCache
-from caches.lru_cache import Cache
+from caches.lru_cache import LRUCache
 from caches.priv import PrivilegeCache
 from caches.username import UsernameCache
-from constants.c_modes import CustomModes
 from constants.modes import Mode
 from logger import debug
 from logger import info
@@ -18,6 +17,9 @@ from objects.achievement import Achievement
 
 if TYPE_CHECKING:
     from constants.statuses import Status
+    from objects.beatmap import Beatmap
+    from objects.leaderboard import GlobalLeaderboard
+    from objects.stats import Stats
 
 # Specialised Caches
 name = UsernameCache()
@@ -28,14 +30,14 @@ achievements = []
 websockets = []
 
 # General Caches.
-beatmaps = Cache(cache_length=120, cache_limit=1000)
-leaderboards = Cache(cache_length=240, cache_limit=100_000)
+beatmaps: LRUCache[Beatmap] = LRUCache(size=1000)
+leaderboards: LRUCache[GlobalLeaderboard] = LRUCache(size=5_000)
 
 # Cache for statuses that require an api call to get. md5: status
 no_check_md5s: dict[str, Status] = {}
 
 # Stats cache. Key = tuple[CustomModes, Mode, user_id]
-stats_cache = Cache(cache_length=240, cache_limit=300)
+stats_cache: LRUCache[Stats] = LRUCache(size=500)
 
 
 def add_nocheck_md5(md5: str, st: Status) -> None:

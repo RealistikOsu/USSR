@@ -1,8 +1,6 @@
 # Rather small endpoints that don't deserve their own file.
 from __future__ import annotations
 
-from functools import cache
-
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.responses import PlainTextResponse
@@ -116,7 +114,7 @@ async def osu_error_handler(req: Request) -> Response:
     return PlainTextResponse("")
 
 
-async def beatmap_rate_handler(req: Request) -> str:
+async def beatmap_rate_handler(req: Request) -> Response:
     """Handles the beatmap rating procedure.
     Handles `/web/osu-rate.php`
     """

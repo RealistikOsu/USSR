@@ -12,11 +12,10 @@ class Mode(IntEnum):
     def to_db_str(self) -> str:
         """Converts a mod enum to a `str` used in the database."""
 
-        return _mode_str_conv[self.value]
+        return _mode_str_conv[self]
 
-    # Not sure if this is the right usage...
     @staticmethod
-    def all() -> tuple[Mode, ...]:
+    def all() -> tuple[Mode, Mode, Mode, Mode]:
         """Retuns a tuple of all modes."""
 
         return _all_modes

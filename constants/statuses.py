@@ -18,23 +18,23 @@ class Status(IntEnum):
     LOVED = 5
 
     @classmethod
-    def from_direct(self, value: int) -> Status:
+    def from_direct(cls, value: int) -> Status:
         """Convert current direct status to osu! normal."""
-        return _normal_direct_conv.get(value, self.PENDING)
+        return _normal_direct_conv.get(value, cls.PENDING)
 
     @classmethod
-    def from_api(self, value: int) -> Status:
+    def from_api(cls, value: int) -> Status:
         """Converts an osu!api status to a regular one."""
 
         # This is neat thanks james
         if value <= 0:
-            return self.PENDING
+            return cls.PENDING
         else:
-            return self(value + 1)
+            return cls(value + 1)
 
     def to_direct(self) -> int:
         """Converts osu statuses to osu!direct ones."""
-        return _direct_normal_conv.get(self.value, self.value)
+        return _direct_normal_conv.get(self, self.value)
 
 
 _direct_normal_conv = {
@@ -60,11 +60,11 @@ class LeaderboardTypes(IntEnum):
     """osu! in-game leaderboards types. Taken from osu! `RankingType` enum at
     `SongSelection.cs` line 3180."""
 
-    LOCAL: int = 0  # Not used online.
-    GLOBAL: int = 1  # Regular top leaderboards.
-    MOD: int = 2  # Leaderboards for a specific mod combo.
-    FRIENDS: int = 3  # Leaderboard containing only the user's friends.
-    COUNTRY: int = 4  # Leaderboards containing only people from the user's nation.
+    LOCAL = 0  # Not used online.
+    GLOBAL = 1  # Regular top leaderboards.
+    MOD = 2  # Leaderboards for a specific mod combo.
+    FRIENDS = 3  # Leaderboard containing only the user's friends.
+    COUNTRY = 4  # Leaderboards containing only people from the user's nation.
 
 
 FETCH_TEXT = ("No Result", "Cache", "MySQL", "API", "Local")
@@ -102,6 +102,6 @@ class FetchStatus(IntEnum):
 
     @property
     def console_text(self) -> str:
-        """Returns the text string to be used in loggign."""
+        """Returns the text string to be used in logging."""
 
         return f"{self.colour}{FETCH_TEXT[self.value]}{Fore.WHITE}"

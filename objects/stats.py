@@ -130,7 +130,10 @@ class Stats:
 
         stats_cache.cache((self.c_mode, self.mode, self.user_id), self)
 
-    async def calc_pp_acc_full(self, _run_pp: int = None) -> tuple[float, float]:
+    async def calc_pp_acc_full(
+        self,
+        _run_pp: Optional[int] = None,
+    ) -> Optional[tuple[float, float]]:
         """Recalculates the full PP amount and average accuract for a user
         from scratch, using their top 100 scores. Sets the values in object
         and returns a tuple of pp and acc.

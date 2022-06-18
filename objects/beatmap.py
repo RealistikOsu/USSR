@@ -52,7 +52,7 @@ class Beatmap:
     def difficulty(self) -> float:
         """Returns the star difficulty for the beatmap's main mode."""
 
-        return self.__getattribute__(_diff_attribs[self.mode.value])
+        return self.__getattribute__(_diff_attribs[self.mode])
 
     @property
     def has_leaderboard(self) -> bool:
@@ -158,8 +158,8 @@ class Beatmap:
             status_frozen=not not map_db[19],
         )
 
-    @classmethod
-    async def from_cache(self, md5: str) -> Optional["Beatmap"]:
+    @staticmethod
+    async def from_cache(md5: str) -> Optional["Beatmap"]:
         """Tries to fetch an existing instance of `Beatmap` from the global
         Beatmap cache.
 
@@ -172,8 +172,8 @@ class Beatmap:
 
         return beatmaps.get(md5)
 
-    @classmethod
-    async def from_md5(_, md5: str) -> Optional["Beatmap"]:
+    @staticmethod
+    async def from_md5(md5: str) -> Optional["Beatmap"]:
         """Attempts to create/fetch an instance of beatmap using multiple
         sources ordered by speed. High level API.
 
@@ -365,7 +365,7 @@ class Beatmap:
         self.status = Status.UPDATE_AVAILABLE
 
         # Delete cached `.osu`
-        delete_osu_file(self.id)
+        await delete_osu_file(self.id)
 
         # Delete our current entry.
         await self.delete_db()
@@ -431,7 +431,7 @@ class Beatmap:
 
         # Set star diff for the main mode.
         bmap.__setattr__(
-            _diff_attribs[bmap.mode.value],
+            _diff_attribs[bmap.mode],
             round(float(map_json["difficultyrating"]), 2),
         )
 

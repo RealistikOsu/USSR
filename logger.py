@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import os
 import sys
+from enum import IntEnum
 
 from libs.time import formatted_date
 
 
-class Ansi:
+class Ansi(IntEnum):
     BLACK = 40
     RED = 41
     GREEN = 42
@@ -50,7 +51,7 @@ def log_message(content: str, l_type: str, bg_col: str):
 
 def custom_log(message: str, header: str, colour: Ansi):
     """Prints custom log with custom header and colour"""
-    return log_message(message, header, f"\033[{colour}m")
+    return log_message(message, header, f"\033[{colour.value}m")
 
 
 def debug(message: str):

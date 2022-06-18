@@ -70,7 +70,7 @@ class BCryptCache:
         if known_md5 := self.known_correct.get(user_id):
             if pwd == known_md5:
                 return True
-            # DOnt return the result directly to handle passwd changes ig.
+            # Dont return the result directly to handle passwd changes ig.
 
         # Fetch from db and compare using bcrypt.
         user_pass = await _fetch_bcrypt(user_id)
