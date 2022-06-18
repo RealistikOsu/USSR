@@ -71,16 +71,11 @@ def debug(text: str):
         _log(text, "DEBUG", Ansi.WHITE)
 
 
-def check_log_file() -> bool:
-    """Checks if a valit log file exists that can be written to."""
-
-    return os.path.exists("err.log")
-
-
 def ensure_log_file():
     """Ensures that a log file is present that can be written to."""
 
-    os.mknod("err.log")
+    if not os.path.exists("err.log"):
+        os.mknod("err.log")
 
 
 def write_log_file(msg: str, timestamp: bool = True):

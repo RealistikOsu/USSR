@@ -12,14 +12,14 @@ __version__ = "v2.0.0"
 
 @dataclass
 class JsonFile:
-    file: dict = field(init=False)
     file_name: str
+    file: dict = field(default_factory=dict)
 
-    def load_file(self) -> None:
+    def __post_init__(self) -> None:
         """Reloads the file fully into memory."""
 
         with open(self.file_name) as f:
-            self.file = loads(f)
+            self.file = loads(f.read())
 
     def get_file(self) -> dict:
         """Returns the loaded JSON file as a dict.
@@ -36,7 +36,7 @@ class JsonFile:
         """
 
         with open(self.file_name, "w") as f:
-            dumps(new_content, f, indent=4)
+            dumps(new_content, f, option=4)
 
         self.file = new_content
 
@@ -135,7 +135,7 @@ class Config(ConfigReader):
     SQL_DB: str = "ripple"
     SQL_PASS: str = "db password"
     DATA_DIR: str = ".data"
-    DIRECT_URL: str = "https://catboy.best/"
+    DIRECT_URL: str = "https://catboy.best/api"
     API_KEYS_POOL: list = ["keys here"]
     CUSTOM_CLIENTS: bool = False  # Allow custom clients on
     SRV_URL: str = "https://ussr.pl"

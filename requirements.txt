@@ -1,1 +1,10 @@
+aiodns
+aiohttp
+aioredis==2.0.1
+Brotli
+cchardet
+databases[asyncmy]
+fastapi
 orjson
+uvicorn
+uvloop
