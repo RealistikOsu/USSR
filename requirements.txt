@@ -6,5 +6,7 @@ cchardet
 databases[asyncmy]
 fastapi
 orjson
+py3rijndael
+rosu-pp-py
 uvicorn
 uvloop

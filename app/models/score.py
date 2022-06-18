@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Optional
 
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.score_status import ScoreStatus
+from app.models.user import User
 
 
 @dataclass
@@ -33,6 +35,7 @@ class Score:
     nkatu: int
 
     passed: bool
+    quit: bool
     perfect: bool
     status: ScoreStatus
 
@@ -102,4 +105,31 @@ class Score:
             sr=0.0,  # irrelevant in this case
             time_elapsed=result["playtime"],
             passed=result["completed"] > ScoreStatus.FAILED,
+        )
+
+    @classmethod
+    def from_submission(cls, data: list[str], map_md5: str, user: User) -> Score:
+        return Score(
+            id=0,  # set later
+            map_md5=map_md5,
+            user_id=user.id,
+            mode=Mode.from_lb(int(data[13]), int(data[11])),
+            mods=Mods(int(data[11])),
+            pp=0.0,  # set later
+            sr=0.0,  # set later
+            score=int(data[7]),
+            max_combo=int(data[8]),
+            acc=0.0,  # set later
+            n300=int(data[1]),
+            n100=int(data[2]),
+            n50=int(data[3]),
+            nmiss=int(data[6]),
+            ngeki=int(data[4]),
+            nkatu=int(data[5]),
+            passed=data[12] == "True",
+            quit=False,  # set later
+            perfect=data[9] == "True",
+            status=ScoreStatus.FAILED,  # set later
+            time=int(time.time()),
+            time_elapsed=0,  # set later
         )

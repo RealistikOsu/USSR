@@ -49,6 +49,23 @@ async def fetch_db(username: str) -> Optional[User]:
     )
 
 
+# common call ver
+async def auth_user(username: str, password: str) -> Optional[User]:
+    user = await fetch_db(username)
+    if not user:
+        return None
+
+    correct_password = await app.usecases.password.verify_password(
+        password,
+        user.password_bcrypt,
+    )
+    if not correct_password:
+        return None
+
+    return user
+
+
+# depends ver
 def authenticate_user(
     param_function: Callable[..., Any],
     name_arg: str = "u",

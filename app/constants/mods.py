@@ -76,6 +76,28 @@ class Mods(IntFlag):
 
         return _mods
 
+    @property
+    def rankable(self) -> bool:
+        """Checks if the mod combo is rank-worthy."""
+
+        if self & Mods.AUTOPLAY:
+            return False
+
+        return True
+
+    @property
+    def conflict(self) -> bool:
+        """Anticheat measure to check for illegal mod combos."""
+
+        if self & Mods.DOUBLETIME and self & Mods.HALFTIME:
+            return True
+        elif self & Mods.NIGHTCORE and not self & Mods.DOUBLETIME:
+            return True
+        elif self & Mods.EASY and self & Mods.HARDROCK:
+            return True
+
+        return False
+
 
 str_mods = {
     Mods.NOFAIL: "NF",

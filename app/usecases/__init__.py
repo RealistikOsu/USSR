@@ -8,5 +8,6 @@ from . import leaderboards
 from . import password
 from . import performance
 from . import privileges
+from . import score
 from . import user
 from . import usernames
