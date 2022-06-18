@@ -1,76 +1,72 @@
-from __future__ import annotations
-
-import os
-import sys
+from functools import cache
 from enum import IntEnum
-
-from libs.time import formatted_date
-
-
-class Ansi(IntEnum):
-    BLACK = 40
-    RED = 41
-    GREEN = 42
-    YELLOW = 43
-    BLUE = 44
-    MAGENTA = 45
-    CYAN = 46
-    WHITE = 47
-
-
-# Received permission directly from him to use it. Just figured it looks cool.
-# Made some optimisations to it.
-__name__ = "LoggerModule"
-__author__ = "lenforiee"
+import sys
+import time
+import os
 
 DEBUG = "debug" in sys.argv
+__all__ = (
+    "info",
+    "error",
+    "warning",
+    "debug",
+)
 
-# Windows support
-# activated only when os name is nt (windows)
-if os.name == "nt":
-    from ctypes import windll
+# https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/logging.py#L20-L45
+class Ansi(IntEnum):
+    BLACK = 30
+    RED = 31
+    GREEN = 32
+    YELLOW = 33
+    BLUE = 34
+    MAGENTA = 35
+    CYAN = 36
+    WHITE = 37
 
-    windll.kernel32.SetConsoleMode(windll.kernel32.GetStdHandle(-11), 7)
+    GRAY = 90
+    LRED = 91
+    LGREEN = 92
+    LYELLOW = 93
+    LBLUE = 94
+    LMAGENTA = 95
+    LCYAN = 96
+    LWHITE = 97
+
+    RESET = 0
+
+    @cache
+    def __repr__(self) -> str:
+        return f"\x1b[{self.value}m"
 
 
-def log_message(content: str, l_type: str, bg_col: str):
-    """Creates the final string and writes it to console.
+def formatted_date() -> str:
+    return time.strftime("%d-%m-%Y %H:%M:%S", time.localtime())
 
-    Args:
-        content (str): The main text to be logged to console.
-        l_type (str): The type of the log that will be displayed to the user.
-        bl_col (str): The background colour for the `l_type`.
-    """
 
-    # Print to console. Use this as faster ig.
-    sys.stdout.write(
-        f"\033[37m{bg_col}[{l_type}]\033[49m - "
-        f"[{formatted_date()}] {content}\033[39m\n",
+def _log(content: str, action: str, colour: Ansi = Ansi.WHITE):
+    timestamp = formatted_date()
+    sys.stdout.write(  # This is mess but it forms in really cool log.
+        f"\x1b[90m[{timestamp} - {colour!r}\033[1"
+        f"m{action}\033[0m\x1b[90m]: \x1b[94m{content}\x1b[0m\n"
     )
 
 
-def custom_log(message: str, header: str, colour: Ansi):
-    """Prints custom log with custom header and colour"""
-    return log_message(message, header, f"\033[{colour.value}m")
+def info(text: str):
+    _log(text, "INFO", Ansi.GREEN)
 
 
-def debug(message: str):
+def error(text: str):
+    write_log_file(text)
+    _log(text, "ERROR", Ansi.RED)
+
+
+def warning(text: str):
+    _log(text, "WARNING", Ansi.BLUE)
+
+
+def debug(text: str):
     if DEBUG:
-        return log_message(message, "DEBUG", "\033[43m")
-
-
-def info(message: str):
-    return log_message(message, "INFO", "\033[42m")
-
-
-def error(message: str):
-    # Log errors to file.
-    write_log_file(message)
-    return log_message(message, "ERROR", "\033[41m")
-
-
-def warning(message: str):
-    return log_message(message, "WARNING", "\033[44m")
+        _log(text, "DEBUG", Ansi.WHITE)
 
 
 def check_log_file() -> bool:
