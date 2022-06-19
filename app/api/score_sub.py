@@ -206,7 +206,6 @@ async def submit_score(
         },
     ):
         # duplicate score detected
-        print("found duplicate")
         return b"error: no"
 
     if (
