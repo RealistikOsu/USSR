@@ -31,7 +31,7 @@ def ensure_oppai() -> None:
 def calculate_oppai(score: Score, osu_file_path: Path) -> tuple[float, float]:
     if score.mode.relax:
         lib_path = "oppai-rx/liboppai.so"
-    elif score.mode.relax:
+    elif score.mode.autopilot:
         lib_path = "oppai-ap/liboppai.so"
 
     with OppaiWrapper(lib_path) as ezpp:
