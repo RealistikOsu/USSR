@@ -6,12 +6,14 @@ from fastapi import Path
 from fastapi import Query
 from fastapi import Request
 from fastapi import Response
+from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
 from . import direct
 from . import error
 from . import lastfm
 from . import leaderboards
+from . import pp
 from . import rate
 from . import replays
 from . import score_sub
@@ -49,6 +51,8 @@ router.add_api_route("/web/lastfm.php", lastfm.lastfm)
 router.add_api_route("/web/osu-error.php", error.error)
 
 router.add_api_route("/web/osu-rate.php", rate.rate_map)
+
+router.add_api_route("/api/v1/pp", pp.calculate_pp)
 
 
 @router.get("/web/bancho-connect.php")
@@ -90,3 +94,10 @@ async def get_friends(
     user: User = Depends(authenticate_user(Query, "u", "h")),
 ):
     return "\n".join(map(str, user.friends))
+
+
+@router.get("/api/v1/status")
+async def status_handler():
+    return ORJSONResponse(
+        {"status": 200, "server_status": 1},
+    )

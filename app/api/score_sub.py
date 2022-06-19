@@ -86,22 +86,6 @@ DATA_PATH = Path(config.DATA_DIR)
 MAPS_PATH = DATA_PATH / "maps"
 
 
-async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
-    if (
-        not osu_file_path.exists()
-        or hashlib.md5(osu_file_path.read_bytes()).hexdigest() != map_md5
-    ):
-        async with app.state.services.http.get(
-            f"https://old.ppy.sh/osu/{map_id}",
-        ) as response:
-            if response.status != 200:
-                return False
-
-            osu_file_path.write_bytes(await response.read())
-
-    return True
-
-
 T = TypeVar("T", bound=Union[int, float])
 
 
@@ -170,7 +154,11 @@ async def submit_score(
         )
 
     osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
-    if await check_local_file(osu_file_path, beatmap.id, beatmap.md5):
+    if await app.usecases.performance.check_local_file(
+        osu_file_path,
+        beatmap.id,
+        beatmap.md5,
+    ):
         if beatmap.mode.as_vn == score.mode.as_vn:
             # only get pp if the map is not a convert
             # convert support will come later

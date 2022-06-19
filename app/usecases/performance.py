@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import hashlib
 import math
 import os
 
 from rosu_pp_py import Calculator
 from rosu_pp_py import ScoreParams
 
+import app.state
 import logger
+from app.constants.mode import Mode
 from app.models.score import Score
 from app.objects.oppai import OppaiWrapper
 from app.objects.path import Path
@@ -28,19 +31,42 @@ def ensure_oppai() -> None:
             os.system(f"cd {dir} && chmod +x libbuild && ./libbuild && cd ..")
 
 
-def calculate_oppai(score: Score, osu_file_path: Path) -> tuple[float, float]:
-    if score.mode.relax:
+async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
+    if (
+        not osu_file_path.exists()
+        or hashlib.md5(osu_file_path.read_bytes()).hexdigest() != map_md5
+    ):
+        async with app.state.services.http.get(
+            f"https://old.ppy.sh/osu/{map_id}",
+        ) as response:
+            if response.status != 200:
+                return False
+
+            osu_file_path.write_bytes(await response.read())
+
+    return True
+
+
+def calculate_oppai(
+    mode: Mode,
+    mods: int,
+    max_combo: int,
+    acc: float,
+    nmiss: int,
+    osu_file_path: Path,
+) -> tuple[float, float]:
+    if mode.relax:
         lib_path = "oppai-rx/liboppai.so"
-    elif score.mode.autopilot:
+    elif mode.autopilot:
         lib_path = "oppai-ap/liboppai.so"
 
     with OppaiWrapper(lib_path) as ezpp:
         ezpp.configure(
-            mode=score.mode.as_vn,
-            acc=score.acc,
-            mods=score.mods.value,
-            combo=score.max_combo,
-            nmiss=score.nmiss,
+            mode=mode.as_vn,
+            acc=acc,
+            mods=mods,
+            combo=max_combo,
+            nmiss=nmiss,
         )
         ezpp.calculate(str(osu_file_path))
 
@@ -57,18 +83,21 @@ def calculate_oppai(score: Score, osu_file_path: Path) -> tuple[float, float]:
         return (round(pp, 2), round(sr, 2))
 
 
-def calculate_rosu(score: Score, osu_file_path: Path) -> tuple[float, float]:
+def calculate_rosu(
+    mods: int,
+    max_combo: int,
+    score: int,
+    acc: float,
+    nmiss: int,
+    osu_file_path: Path,
+) -> tuple[float, float]:
     calculator = Calculator(str(osu_file_path))
     params = ScoreParams(
-        mods=score.mods,
-        n50=score.n50,
-        n100=score.n100,
-        n300=score.n300,
-        nKatu=score.nkatu,
-        combo=score.max_combo,
-        score=score.score,
-        acc=score.acc,
-        nMisses=score.nmiss,
+        mods=mods,
+        combo=max_combo,
+        score=score,
+        acc=acc,
+        nMisses=nmiss,
     )
 
     (res,) = calculator.calculate(params)
@@ -83,8 +112,28 @@ def calculate_rosu(score: Score, osu_file_path: Path) -> tuple[float, float]:
     return (round(res.pp, 2), round(res.stars, 2))
 
 
-def calculate_score(score: Score, osu_file_path: Path) -> None:
-    if (score.mode.relax or score.mode.autopilot) and score.mode.as_vn == 0:
-        score.pp, score.sr = calculate_oppai(score, osu_file_path)
+def calculate_performance(
+    mode: Mode,
+    mods: int,
+    max_combo: int,
+    score: int,
+    acc: float,
+    nmiss: int,
+    osu_file_path: Path,
+) -> tuple[float, float]:
+    if (mode.relax or mode.autopilot) and mode.as_vn == 0:
+        return calculate_oppai(mode, mods, max_combo, acc, nmiss, osu_file_path)
     else:
-        score.pp, score.sr = calculate_rosu(score, osu_file_path)
+        return calculate_rosu(mods, max_combo, score, acc, nmiss, osu_file_path)
+
+
+def calculate_score(score: Score, osu_file_path: Path) -> None:
+    return calculate_performance(
+        score.mode,
+        score.mods.value,
+        score.max_combo,
+        score.score,
+        score.acc,
+        score.nmiss,
+        osu_file_path,
+    )
