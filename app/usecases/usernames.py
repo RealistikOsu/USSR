@@ -13,6 +13,10 @@ async def get_username(user_id: int) -> str:
     if user_id in USERNAMES:
         return USERNAMES[user_id]
 
+    return await update_username(user_id)
+
+
+async def update_username(user_id: int) -> str:
     username = await app.state.services.database.fetch_val(
         "SELECT username FROM users WHERE id = :id",
         {"id": user_id},

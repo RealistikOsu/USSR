@@ -25,6 +25,7 @@ import app.state
 import app.usecases
 import app.utils
 import logger
+from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.score import Score
@@ -291,9 +292,16 @@ async def submit_score(
 
     await app.usecases.stats.refresh_stats(user.id)
 
-    score.rank = await leaderboard.find_score_rank(score.id)
+    if score.status == ScoreStatus.BEST:
+        score.rank = await leaderboard.find_score_rank(score.id)
+    elif score.status == ScoreStatus.SUBMITTED:
+        score.rank = await leaderboard.whatif_placement(
+            score.pp if score.mode > Mode.MANIA else score.score,
+        )
+
     if (
         score.rank == 1
+        and score.status == ScoreStatus.BEST
         and beatmap.has_leaderboard
         and not user.privileges.is_restricted
     ):

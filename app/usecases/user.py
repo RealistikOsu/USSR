@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import time
 from typing import Any
 from typing import Callable
@@ -11,6 +10,7 @@ from fastapi import HTTPException
 import app.state.services
 import app.usecases.discord
 import app.usecases.password
+import app.usecases.privileges
 import app.usecases.score
 import app.utils
 import logger
@@ -145,6 +145,8 @@ async def restrict_user(user: User, reason: str = "No reason given") -> None:
 
     await notify_ban(user)
     await remove_from_leaderboard(user)
+
+    app.usecases.privileges.set_privilege(user.id, user.privileges)
 
     await app.usecases.discord.log_user_edit(user, "restricted", reason)
     logger.info(f"{user} has been restricted for {reason}!")

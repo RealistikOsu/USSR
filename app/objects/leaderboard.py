@@ -5,6 +5,7 @@ from dataclasses import field
 from typing import Optional
 from typing import TYPE_CHECKING
 from typing import TypedDict
+from typing import Union
 
 from app.constants.mode import Mode
 
@@ -81,6 +82,20 @@ class Leaderboard:
             sort = lambda score: score.score
 
         self.scores = sorted(self.scores, key=sort, reverse=True)
+
+    async def whatif_placement(self, sort_value: Union[int, float]) -> int:
+        unrestricted_scores = await self.get_unrestricted_scores()
+
+        for idx, score in enumerate(unrestricted_scores):
+            if self.mode > Mode.MANIA:
+                sort_key = score.pp
+            else:
+                sort_key = score.score
+
+            if sort_value > sort_key:
+                return idx + 1
+
+        return 1
 
     async def add_score(self, score: Score) -> None:
         await self.remove_user(score.user_id)

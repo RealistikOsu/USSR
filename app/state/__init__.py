@@ -8,6 +8,12 @@ from . import services
 
 tasks: set[asyncio.Task] = set()
 
+from typing import Callable, Awaitable
+
+PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
+
+PUBSUBS: dict[str, PUBSUB_HANDLER] = {}
+
 
 async def cancel_tasks() -> None:
     logger.info(f"Cancelling {len(tasks)} tasks.")

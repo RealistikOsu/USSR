@@ -13,6 +13,10 @@ async def get_clan(user_id: int) -> str:
     if user_id in CLANS:
         return CLANS[user_id]
 
+    return await update_clan(user_id)
+
+
+async def update_clan(user_id: int) -> str:
     clan_tag = await app.state.services.database.fetch_val(
         "SELECT tag FROM user_clans LEFT JOIN clans ON user_clans.clan = clans.id WHERE user = :id",
         {"id": user_id},

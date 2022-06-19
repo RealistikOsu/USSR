@@ -14,6 +14,7 @@ from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
 from starlette.middleware.base import RequestResponseEndpoint
 
+import app.redis
 import app.state
 import app.usecases
 import logger
@@ -30,6 +31,7 @@ def init_events(asgi_app: FastAPI) -> None:
         )
 
         await app.state.cache.init_cache()
+        await app.redis.initialise_pubsubs()
 
         for _task in (
             app.usecases.privileges.update_privileges_task,

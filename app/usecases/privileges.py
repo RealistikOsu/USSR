@@ -14,6 +14,10 @@ async def get_privilege(user_id: int) -> Privileges:
     if user_id in PRIVILEGES:
         return PRIVILEGES[user_id]
 
+    return await update_privilege(user_id)
+
+
+async def update_privilege(user_id: int) -> Privileges:
     db_privilege = await app.state.services.database.fetch_val(
         "SELECT privileges FROM users WHERE id = :id",
         {"id": user_id},
@@ -27,6 +31,10 @@ async def get_privilege(user_id: int) -> Privileges:
     PRIVILEGES[user_id] = privilege
 
     return privilege
+
+
+def set_privilege(user_id: int, privileges: Privileges) -> None:
+    PRIVILEGES[user_id] = privileges
 
 
 async def load_privileges() -> None:
