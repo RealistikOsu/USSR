@@ -1,17 +1,22 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import Path
+from fastapi import Query
 from fastapi import Request
 from fastapi import Response
 from fastapi.responses import RedirectResponse
 
 from . import direct
+from . import lastfm
 from . import leaderboards
 from . import replays
 from . import score_sub
 from . import screenshots
 from . import seasonals
+from app.models.user import User
+from app.usecases.user import authenticate_user
 
 router = APIRouter(default_response_class=Response)
 
@@ -36,6 +41,8 @@ router.add_api_route("/web/osu-search-set.php", direct.beatmap_card)
 router.add_api_route("/d/{set_id}", direct.download_map)
 
 router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
+
+router.add_api_route("/web/lastfm.php", lastfm.lastfm)
 
 
 @router.get("/web/bancho-connect.php")
@@ -70,3 +77,10 @@ async def difficulty_rating(request: Request):
         url=f"https://osu.ppy.sh{request['path']}",
         status_code=307,
     )
+
+
+@router.get("/web/osu-getfriends.php")
+async def get_friends(
+    user: User = Depends(authenticate_user(Query, "u", "h")),
+):
+    return "\n".join(map(str, user.friends))

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from . import lastfm
 from . import leaderboard_type
 from . import mode
 from . import mods
