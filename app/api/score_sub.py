@@ -220,11 +220,9 @@ async def submit_score(
         )
 
     if score.status == ScoreStatus.BEST:
-        asyncio.create_task(
-            app.state.services.database.execute(
-                f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
-                {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
-            ),
+        await app.state.services.database.execute(
+            f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
+            {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
         )
 
     score.id = await app.state.services.database.execute(
