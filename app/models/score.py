@@ -36,7 +36,7 @@ class Score:
 
     passed: bool
     quit: bool
-    perfect: bool
+    full_combo: bool
     status: ScoreStatus
 
     time: int
@@ -53,19 +53,18 @@ class Score:
 
         return (
             f"{self.id}|{username}|{score}|{self.max_combo}|{self.n50}|{self.n100}|{self.n300}|{self.nmiss}|"
-            f"{self.nkatu}|{self.ngeki}|{int(self.perfect)}|{int(self.mods)}|{self.user_id}|{rank}|{self.time}|"
+            f"{self.nkatu}|{self.ngeki}|{int(self.full_combo)}|{int(self.mods)}|{self.user_id}|{rank}|{self.time}|"
             "1"  # has replay
         )
 
     @property
     def db_dict(self) -> dict:
         return {
-            "id": self.id,
             "beatmap_md5": self.map_md5,
             "userid": self.user_id,
             "score": self.score,
             "max_combo": self.max_combo,
-            "full_combo": self.perfect,
+            "full_combo": self.full_combo,
             "mods": self.mods.value,
             "300_count": self.n300,
             "100_count": self.n100,
@@ -89,7 +88,7 @@ class Score:
             user_id=result["userid"],
             score=result["score"],
             max_combo=result["max_combo"],
-            perfect=result["full_combo"],
+            full_combo=result["full_combo"],
             mods=Mods(result["mods"]),
             n300=result["300_count"],
             n100=result["100_count"],
@@ -105,6 +104,7 @@ class Score:
             sr=0.0,  # irrelevant in this case
             time_elapsed=result["playtime"],
             passed=result["completed"] > ScoreStatus.FAILED,
+            quit=result["completed"] == ScoreStatus.QUIT,
         )
 
     @classmethod
@@ -128,7 +128,7 @@ class Score:
             nkatu=int(data[5]),
             passed=data[12] == "True",
             quit=False,  # set later
-            perfect=data[9] == "True",
+            full_combo=data[9] == "True",
             status=ScoreStatus.FAILED,  # set later
             time=int(time.time()),
             time_elapsed=0,  # set later

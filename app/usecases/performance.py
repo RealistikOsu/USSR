@@ -9,6 +9,7 @@ from rosu_pp_py import ScoreParams
 import logger
 from app.models.score import Score
 from app.objects.oppai import OppaiWrapper
+from app.objects.path import Path
 
 OPPAI_DIRS = (
     "oppai-ap",
@@ -27,7 +28,7 @@ def ensure_oppai() -> None:
             os.system(f"cd {dir} && chmod +x libbuild && ./libbuild && cd ..")
 
 
-def calculate_oppai(score: Score, osu_file_path: str) -> tuple[float, float]:
+def calculate_oppai(score: Score, osu_file_path: Path) -> tuple[float, float]:
     if score.mode.relax:
         lib_path = "oppai-rx/liboppai.so"
     elif score.mode.relax:
@@ -41,7 +42,7 @@ def calculate_oppai(score: Score, osu_file_path: str) -> tuple[float, float]:
             combo=score.max_combo,
             nmiss=score.nmiss,
         )
-        ezpp.calculate(osu_file_path)
+        ezpp.calculate(str(osu_file_path))
 
         pp = ezpp.get_pp()
         sr = ezpp.get_sr()
@@ -56,8 +57,8 @@ def calculate_oppai(score: Score, osu_file_path: str) -> tuple[float, float]:
         return (round(pp, 2), round(sr, 2))
 
 
-def calculate_rosu(score: Score, osu_file_path: str) -> tuple[float, float]:
-    calculator = Calculator(osu_file_path)
+def calculate_rosu(score: Score, osu_file_path: Path) -> tuple[float, float]:
+    calculator = Calculator(str(osu_file_path))
     params = ScoreParams(
         mods=score.mods,
         n50=score.n50,
@@ -70,7 +71,7 @@ def calculate_rosu(score: Score, osu_file_path: str) -> tuple[float, float]:
         nMisses=score.nmiss,
     )
 
-    (res,) = calculator.calculate()
+    (res,) = calculator.calculate(params)
 
     for _attr in (
         res.pp,
@@ -82,7 +83,7 @@ def calculate_rosu(score: Score, osu_file_path: str) -> tuple[float, float]:
     return (round(res.pp, 2), round(res.stars, 2))
 
 
-def calculate_score(score: Score, osu_file_path: str) -> None:
+def calculate_score(score: Score, osu_file_path: Path) -> None:
     if (score.mode.relax or score.mode.autopilot) and score.mode.as_vn == 0:
         score.pp, score.sr = calculate_oppai(score, osu_file_path)
     else:

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from enum import IntEnum
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 from app.constants.mods import Mods
+from config import config
 
 mode_str = (
     "osu!std",
@@ -59,6 +61,68 @@ class Mode(IntEnum):
             return "scores_ap"
 
         return "scores"
+
+    @cached_property
+    def pp_cap(self) -> int:
+        if self.relax:
+            return config.PP_CAP_RX
+
+        if self.autopilot:
+            return config.PP_CAP_AP
+
+        return config.PP_CAP_VN
+
+    @cached_property
+    def stats_table(self) -> str:
+        if self.relax:
+            return "rx_stats"
+
+        if self.autopilot:
+            return "ap_stats"
+
+        return "users_stats"
+
+    @cached_property
+    def stats_prefix(self) -> str:
+        mode_vn = self.as_vn
+
+        return {
+            Mode.STD: "std",
+            Mode.TAIKO: "taiko",
+            Mode.CATCH: "ctb",
+            Mode.MANIA: "mania",
+        }[mode_vn]
+
+    @cached_property
+    def redis_leaderboard(self) -> str:
+        suffix = ""
+
+        if self.relax:
+            suffix = "_relax"
+        elif self.autopilot:
+            suffix = "_ap"
+
+        return f"leaderboard{suffix}"
+
+    @cached_property
+    def relax_int(self) -> int:
+        if self.relax:
+            return 1
+
+        if self.autopilot:
+            return 2
+
+        return 0
+
+    @cached_property
+    def relax_str(self) -> str:
+        if self.relax:
+            return "RX"
+
+        if self.autopilot:
+            return "AP"
+
+        return "VN"
 
     @cached_property
     def sort(self) -> str:

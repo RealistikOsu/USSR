@@ -30,8 +30,15 @@ class Leaderboard:
     def remove_score_index(self, index: int) -> None:
         self.scores.pop(index)
 
-    async def find_user_score(self, user_id: int) -> Optional[UserScore]:
-        unrestricted_scores = await self.get_unrestricted_scores()
+    async def find_user_score(
+        self,
+        user_id: int,
+        unrestricted: bool = True,
+    ) -> Optional[UserScore]:
+        if unrestricted:
+            unrestricted_scores = await self.get_unrestricted_scores()
+        else:
+            unrestricted_scores = self.scores
 
         for idx, score in enumerate(unrestricted_scores):
             if score.user_id == user_id:
@@ -54,7 +61,7 @@ class Leaderboard:
 
         for score in self.scores:
             user_privilege = await app.usecases.privileges.get_privilege(score.user_id)
-            if user_privilege.is_restricted or user_privilege.is_banned:
+            if user_privilege.is_restricted:
                 continue
 
             scores.append(score)
@@ -62,10 +69,10 @@ class Leaderboard:
         return scores
 
     async def remove_user(self, user_id: int) -> None:
-        result = await self.find_user_score(user_id)
+        result = await self.find_user_score(user_id, unrestricted=False)
 
         if result is not None:
-            self.remove_score_index(result["rank"] - 1)
+            self.scores.remove(result["score"])
 
     def sort(self) -> None:
         if self.mode > Mode.MANIA:

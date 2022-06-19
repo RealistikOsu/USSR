@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import os
 import time
 from base64 import b64decode
+from copy import copy
+from datetime import datetime
 from typing import NamedTuple
 from typing import Optional
 from typing import TypeVar
@@ -20,9 +23,13 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 
 import app.state
 import app.usecases
+import app.utils
 import logger
+from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.score import Score
+from app.objects.path import Path
+from app.usecases.user import restrict_user
 from config import config
 
 
@@ -74,22 +81,22 @@ def decrypt_score_data(
     return score_data, client_hash_decoded
 
 
-MAPS_PATH = f"{config.DATA_DIR}/maps"
+DATA_PATH = Path(config.DATA_DIR)
+MAPS_PATH = DATA_PATH / "maps"
 
 
-async def check_local_file(osu_file_path: str, map_id: int, map_md5: str) -> bool:
-    with open(osu_file_path, "rb") as f:
-        if not osu_file_path.exists() or hashlib.md5(f.read()).hexdigest() != map_md5:
-            async with app.state.services.http.get(
-                f"https://old.ppy.sh/osu/{map_id}",
-            ) as response:
-                if response.status != 200:
-                    return False
+async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
+    if (
+        not osu_file_path.exists()
+        or hashlib.md5(osu_file_path.read_bytes()).hexdigest() != map_md5
+    ):
+        async with app.state.services.http.get(
+            f"https://old.ppy.sh/osu/{map_id}",
+        ) as response:
+            if response.status != 200:
+                return False
 
-                osu_file = await response.read()
-
-    with open(osu_file_path, "wb") as f:
-        f.write(osu_file)
+            osu_file_path.write_bytes(await response.read())
 
     return True
 
@@ -161,7 +168,7 @@ async def submit_score(
             "Illegal mod combo (score submitter).",
         )
 
-    osu_file_path = os.path.join(MAPS_PATH, f"{beatmap.id}.osu")
+    osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
     if await check_local_file(osu_file_path, beatmap.id, beatmap.md5):
         if beatmap.mode.as_vn == score.mode.as_vn:
             # only get pp if the map is not a convert
@@ -199,4 +206,168 @@ async def submit_score(
         },
     ):
         # duplicate score detected
+        print("found duplicate")
         return b"error: no"
+
+    if (
+        beatmap.gives_pp
+        and score.pp > score.mode.pp_cap
+        and not await app.usecases.verified.get_verified(user.id)
+    ):
+        await restrict_user(
+            user,
+            f"Surpassing PP cap as unverified! ({score.pp:.2f}pp).",
+        )
+
+    if score.status == ScoreStatus.BEST:
+        asyncio.create_task(
+            app.state.services.database.execute(
+                f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
+                {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
+            ),
+        )
+
+    score.id = await app.state.services.database.execute(
+        (
+            f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
+            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, playtime) VALUES "
+            "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
+            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :playtime)"
+        ),
+        score.db_dict,
+    )
+
+    if score.passed:
+        replay_data = await replay_file.read()
+
+        replay_path = app.utils.VANILLA_REPLAYS
+        if score.mode.relax:
+            replay_path = app.utils.RELAX_REPLAYS
+
+        if score.mode.autopilot:
+            replay_path = app.utils.AUTOPILOT_REPLAYS
+
+        if len(replay_data) < 24:
+            await restrict_user(
+                user,
+                "Score submit without replay (should always contain it).",
+            )
+        else:
+            replay_file = replay_path / f"{score.id}.osr"
+            replay_file.write_bytes(replay_data)
+
+    asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
+    asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
+
+    stats = await app.usecases.stats.fetch(user.id, score.mode)
+    old_stats = copy(stats)
+
+    stats.playcount += 1
+    stats.total_score += score.score
+    stats.total_hits += score.n300 + score.n100 + score.n50
+
+    if score.passed and beatmap.has_leaderboard:
+        if beatmap.status == RankedStatus.RANKED:
+            stats.ranked_score += score.score
+
+            if score.old_best and score.status == ScoreStatus.BEST:
+                stats.ranked_score -= score.old_best.score
+
+        if stats.max_combo < score.max_combo:
+            stats.max_combo = score.max_combo
+
+        if score.status == ScoreStatus.BEST and score.pp:
+            await app.usecases.stats.full_recalc(stats, score.pp)
+
+            await leaderboard.add_score(score)
+
+    await app.usecases.stats.save(stats)
+
+    if (
+        score.status == ScoreStatus.BEST
+        and not user.privileges.is_restricted
+        and old_stats.pp != stats.pp
+    ):
+        await app.usecases.stats.update_rank(stats)
+
+    await app.usecases.stats.refresh_stats(user.id)
+
+    score.rank = await leaderboard.find_score_rank(score.id)
+    if (
+        score.rank == 1
+        and beatmap.has_leaderboard
+        and not user.privileges.is_restricted
+    ):
+        asyncio.create_task(
+            app.usecases.score.handle_first_place(
+                score,
+                beatmap,
+                user,
+                old_stats,
+                stats,
+            ),
+        )
+
+    asyncio.create_task(app.utils.notify_new_score(score.id))
+
+    if score.old_best:
+        beatmap_ranking_chart = (
+            chart_entry("rank", score.old_best.rank, score.rank),
+            chart_entry("rankedScore", score.old_best.score, score.score),
+            chart_entry("totalScore", score.old_best.score, score.score),
+            chart_entry("maxCombo", score.old_best.max_combo, score.max_combo),
+            chart_entry("accuracy", round(score.old_best.acc, 2), round(score.acc, 2)),
+            chart_entry("pp", round(score.old_best.pp, 2), round(score.pp, 2)),
+        )
+    else:
+        beatmap_ranking_chart = (
+            chart_entry("rank", None, score.rank),
+            chart_entry("rankedScore", None, score.score),
+            chart_entry("totalScore", None, score.score),
+            chart_entry("maxCombo", None, score.max_combo),
+            chart_entry("accuracy", None, round(score.acc, 2)),
+            chart_entry("pp", None, round(score.pp, 2)),
+        )
+
+    overall_ranking_chart = (
+        chart_entry("rank", old_stats.rank, stats.rank),
+        chart_entry("rankedScore", old_stats.ranked_score, stats.ranked_score),
+        chart_entry("totalScore", old_stats.total_score, stats.total_score),
+        chart_entry("maxCombo", old_stats.max_combo, stats.max_combo),
+        chart_entry("accuracy", round(old_stats.accuracy, 2), round(stats.accuracy, 2)),
+        chart_entry("pp", old_stats.pp, stats.pp),
+    )
+
+    new_achievements: list[str] = []
+    if score.passed and beatmap.has_leaderboard and not user.privileges.is_restricted:
+        new_achievements = await app.usecases.score.unlock_achievements(score, stats)
+
+    achievements_str = "/".join(new_achievements)
+
+    submission_charts = [
+        f"beatmapId:{beatmap.id}",
+        f"beatmapSetId:{beatmap.set_id}",
+        f"beatmapPlaycount:{beatmap.plays}",
+        f"beatmapPasscount:{beatmap.passes}",
+        f"approvedDate:{datetime.utcfromtimestamp(beatmap.last_update).strftime('%Y-%m-%d %H:%M:%S')}",
+        "\n",
+        "chartId:beatmap",
+        f"chartUrl:{beatmap.set_url}",
+        "chartName:Beatmap Ranking",
+        *beatmap_ranking_chart,
+        f"onlineScoreId:{score.id}",
+        "\n",
+        "chartId:overall",
+        f"chartUrl:{user.url}",
+        "chartName:Overall Ranking",
+        *overall_ranking_chart,
+        f"achievements-new:{achievements_str}",
+    ]
+
+    end = time.perf_counter_ns()
+    formatted_time = app.utils.format_time(end - start)
+    logger.info(
+        f"{user} submitted a {score.pp:.2f}pp {score.mode!r} score on {beatmap.song_name} in {formatted_time}",
+    )
+
+    return "|".join(submission_charts).encode()

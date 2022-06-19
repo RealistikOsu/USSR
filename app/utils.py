@@ -3,7 +3,11 @@ from __future__ import annotations
 import os
 from typing import Union
 
+import orjson
+
+import app.state
 import logger
+from app.objects.path import Path
 from config import config
 
 REQUIRED_FOLDERS = (
@@ -13,6 +17,11 @@ REQUIRED_FOLDERS = (
     f"{config.DATA_DIR}/replays_ap/",
     f"{config.DATA_DIR}/maps/",
 )
+
+DATA_PATH = Path(config.DATA_DIR)
+RELAX_REPLAYS = DATA_PATH / "replays_relax"
+AUTOPILOT_REPLAYS = DATA_PATH / "replays_ap"
+VANILLA_REPLAYS = DATA_PATH / "replays"
 
 
 def ensure_folders():
@@ -37,3 +46,22 @@ def format_time(time: Union[int, float]) -> str:
         time /= 1000
 
     return f"{time:.2f}{suffix}"
+
+
+async def channel_message(channel: str, message: str) -> None:
+    msg = orjson.dumps(
+        {
+            "to": channel,
+            "message": message,
+        },
+    )
+
+    await app.state.services.redis.publish("peppy:bot_msg", msg)
+
+
+async def announce(message: str) -> None:
+    await channel_message("#announce", message)
+
+
+async def notify_new_score(score_id: int) -> None:
+    await app.state.services.redis.publish("api:score_submission", score_id)

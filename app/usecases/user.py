@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import Any
 from typing import Callable
@@ -10,9 +11,12 @@ from fastapi import HTTPException
 import app.state.services
 import app.usecases.discord
 import app.usecases.password
+import app.usecases.score
 import app.utils
 import logger
 from app.constants.privileges import Privileges
+from app.models.beatmap import Beatmap
+from app.models.score import Score
 from app.models.user import User
 
 
@@ -144,3 +148,29 @@ async def restrict_user(user: User, reason: str = "No reason given") -> None:
 
     await app.usecases.discord.log_user_edit(user, "restricted", reason)
     logger.info(f"{user} has been restricted for {reason}!")
+
+
+async def fetch_achievements(user_id: int) -> list[int]:
+    db_achievements = await app.state.services.database.fetch_all(
+        "SELECT achievement_id FROM users_achievements WHERE user_id = :id",
+        {"id": user_id},
+    )
+
+    return [ach["achievement_id"] for ach in db_achievements]
+
+
+async def unlock_achievement(user_id: int, ach_id: int) -> None:
+    await app.state.services.database.execute(
+        "INSERT INTO users_achievements (achievement_id, user_id, time) VALUES (:aid, :uid, :timestamp)",
+        {"aid": ach_id, "uid": user_id, "timestamp": int(time.time())},
+    )
+
+
+async def increment_playtime(score: Score, beatmap: Beatmap) -> None:
+    await app.state.services.database.execute(
+        f"UPDATE {score.mode.stats_table} SET playtime_{score.mode.stats_prefix} = playtime_{score.mode.stats_prefix} + :new WHERE id = :id",
+        {
+            "new": app.usecases.score.get_non_computed_playtime(score, beatmap),
+            "id": score.user_id,
+        },
+    )

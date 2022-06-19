@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import random
 import time
-from datetime import datetime
 from typing import Optional
 
 import app.state
@@ -28,9 +28,11 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
             # delete any instances of the old map
             MD5_CACHE.pop(beatmap.md5, None)
 
-            await app.state.services.database.execute(
-                "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
-                {"old_md5": beatmap.md5},
+            asyncio.create_task(
+                app.state.services.database.execute(
+                    "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
+                    {"old_md5": beatmap.md5},
+                ),
             )
 
             if beatmap.frozen:
@@ -38,9 +40,11 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
                 new_beatmap.status = beatmap.status
     else:
         # it's now unsubmitted!
-        await app.state.services.database.execute(
-            "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
-            {"old_md5": beatmap.md5},
+        asyncio.create_task(
+            app.state.services.database.execute(
+                "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
+                {"old_md5": beatmap.md5},
+            ),
         )
 
         return None
@@ -48,7 +52,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     # update for new shit
     new_beatmap.last_update = int(time.time())
 
-    await save(new_beatmap)  # i don't trust mysql for some reason
+    asyncio.create_task(save(new_beatmap))  # i don't trust mysql for some reason
     MD5_CACHE[new_beatmap.md5] = new_beatmap
     ID_CACHE[new_beatmap.id] = new_beatmap
 
@@ -204,7 +208,7 @@ async def md5_from_api(md5: str) -> Optional[Beatmap]:
     beatmaps = parse_from_osu_api(response_json)
 
     for beatmap in beatmaps:
-        await save(beatmap)
+        asyncio.create_task(save(beatmap))
         add_to_set_cache(beatmap)
 
     for beatmap in beatmaps:
@@ -229,7 +233,7 @@ async def id_from_api(id: int) -> Optional[Beatmap]:
     beatmaps = parse_from_osu_api(response_json)
 
     for beatmap in beatmaps:
-        await save(beatmap)
+        asyncio.create_task(save(beatmap))
         add_to_set_cache(beatmap)
 
     for beatmap in beatmaps:
@@ -254,7 +258,7 @@ async def set_from_api(id: int) -> Optional[list[Beatmap]]:
     beatmaps = parse_from_osu_api(response_json)
 
     for beatmap in beatmaps:
-        await save(beatmap)
+        asyncio.create_task(save(beatmap))
         add_to_set_cache(beatmap)
 
     return beatmaps
@@ -334,3 +338,14 @@ def parse_from_osu_api(
         )
 
     return maps
+
+
+async def increment_playcount(beatmap: Beatmap, passcount: bool = True) -> None:
+    beatmap.plays += 1
+    if passcount:
+        beatmap.passes += 1
+
+    await app.state.services.database.execute(
+        "UPDATE beatmaps SET passcount = :pass, playcount = :play WHERE beatmap_md5 = :md5",
+        {"play": beatmap.plays, "pass": beatmap.passes, "md5": beatmap.md5},
+    )
