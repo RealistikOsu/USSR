@@ -40,12 +40,15 @@ async def add_rating(user_id: int, map_md5: str, rating: int) -> float:
 
 
 async def rate_map(
-    user: User = Depends(authenticate_user(Query, "u", "h")),
+    user: User = Depends(authenticate_user(Query, "u", "p")),
     map_md5: str = Query(..., alias="c"),
     rating: Optional[int] = Query(None, alias="v", ge=1, le=10),
 ):
     beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
-    if not beatmap or not beatmap.has_leaderboard:
+    if not beatmap:
+        return b"no exist"
+
+    if not beatmap.has_leaderboard:
         return b"not ranked"
 
     if await check_user_rated(user, beatmap):
@@ -56,8 +59,8 @@ async def rate_map(
         beatmap.rating = new_rating
 
         logger.info(
-            f"{user} has rated {beatmap.song_name} with {rating} (new average: {new_rating})",
+            f"{user} has rated {beatmap.song_name} with rating {rating} (new average: {new_rating:.2f})",
         )
-        return f"{new_rating:.2f}".encode()
-
-    return b"ok"
+        return f"alreadyvoting\n{new_rating:.2f}".encode()
+    else:
+        return b"ok"
