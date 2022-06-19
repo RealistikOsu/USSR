@@ -128,7 +128,7 @@ def calculate_performance(
 
 
 def calculate_score(score: Score, osu_file_path: Path) -> None:
-    return calculate_performance(
+    score.pp, score.sr = calculate_performance(
         score.mode,
         score.mods.value,
         score.max_combo,
