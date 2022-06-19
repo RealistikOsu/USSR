@@ -11,6 +11,7 @@ from . import leaderboards
 from . import replays
 from . import score_sub
 from . import screenshots
+from . import seasonals
 
 router = APIRouter(default_response_class=Response)
 
@@ -33,6 +34,8 @@ router.add_api_route("/web/replays/{score_id}", replays.get_full_replay)
 router.add_api_route("/web/osu-search.php", direct.osu_direct)
 router.add_api_route("/web/osu-search-set.php", direct.beatmap_card)
 router.add_api_route("/d/{set_id}", direct.download_map)
+
+router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
 
 
 @router.get("/web/bancho-connect.php")
