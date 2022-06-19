@@ -168,6 +168,7 @@ async def handle_first_place(
             "mode": score.mode.as_vn,
             "completed": score.status.value,
             "accuracy": score.acc,
+            "pp": score.pp,
             "play_time": score.time,
             "beatmap_md5": score.map_md5,
             "relax": score.mode.relax_int,
