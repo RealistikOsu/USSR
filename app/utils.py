@@ -75,3 +75,11 @@ async def check_online(user_id: int, ip: str = None) -> bool:
         return await app.state.services.redis.sismember(key, ip)
 
     return await app.state.services.redis.exists(key)
+
+
+def ts_to_utc_ticks(ts: int) -> int:
+    """Converts a UNIX timestamp to a UTC ticks. Equivalent to the reverse of
+    C#'s `DateTime.ToUniversalTime().Ticks`.
+    """
+
+    return int(ts * 1e7) + 0x89F7FF5F7B58000

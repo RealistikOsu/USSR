@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from fastapi import Response
 
 from . import leaderboards
+from . import replays
 from . import score_sub
 from . import screenshots
 
@@ -21,3 +22,6 @@ router.add_api_route(
     screenshots.upload_screenshot,
     methods=["POST"],
 )
+
+router.add_api_route("/web/osu-getreplay.php", replays.get_replay)
+router.add_api_route("/web/replays/{score_id}", replays.get_full_replay)

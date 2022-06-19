@@ -18,6 +18,9 @@ mode_str = (
     "std!ap",
 )
 
+RELAX_OFFSET = 1_073_741_823
+AP_OFFSET = 2_000_000_000
+
 
 class Mode(IntEnum):
     STD = 0
@@ -127,6 +130,16 @@ class Mode(IntEnum):
     @cached_property
     def sort(self) -> str:
         return "pp" if self.value > 3 else "score"
+
+    @classmethod
+    def from_offset(cls, score_id: int) -> Mode:
+        # IMPORTANT NOTE: this does not return the correct MODE, just the correct vn/rx/ap representation
+        if RELAX_OFFSET < score_id < AP_OFFSET:
+            return Mode.STD_RX
+        elif score_id > AP_OFFSET:
+            return Mode.STD_AP
+
+        return Mode.STD
 
     @classmethod
     def from_lb(cls, mode: int, mods: int) -> Mode:

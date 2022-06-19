@@ -96,7 +96,7 @@ class Score:
             nkatu=result["katus_count"],
             ngeki=result["gekis_count"],
             nmiss=result["misses_count"],
-            time=result["time"],
+            time=int(result["time"]),
             mode=Mode.from_lb(result["play_mode"], result["mods"]),
             status=ScoreStatus(result["completed"]),
             acc=result["accuracy"],

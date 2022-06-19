@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+from typing import Optional
 
 import app.state
 import app.usecases
 import app.utils
+from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.score_status import ScoreStatus
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
+from app.objects.binary import BinaryWriter
 
 
 def calculate_accuracy(score: Score) -> float:
@@ -179,4 +183,67 @@ async def handle_first_place(
         beatmap,
         old_stats,
         new_stats,
+    )
+
+
+OSU_VERSION = 20211103
+
+
+async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
+    replay_path = app.utils.VANILLA_REPLAYS
+    if score.mode.relax:
+        replay_path = app.utils.RELAX_REPLAYS
+
+    if score.mode.autopilot:
+        replay_path = app.utils.AUTOPILOT_REPLAYS
+
+    replay_file = replay_path / f"{score.id}.osr"
+    if not replay_file.exists():
+        return
+
+    username = await app.usecases.usernames.get_username(score.user_id)
+    if not username:
+        return
+
+    raw_data = replay_file.read_bytes()
+    replay_md5 = hashlib.md5(
+        "{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}".format(
+            score.n100 + score.n300,
+            score.n50,
+            score.ngeki,
+            score.nkatu,
+            score.nmiss,
+            score.map_md5,
+            score.max_combo,
+            "true" if score.full_combo else "false",
+            username,
+            score.score,
+            0,
+            score.mods.value,
+            "true",
+        ).encode(),
+    ).hexdigest()
+
+    return (
+        BinaryWriter()
+        .write_u8_le(score.mode.value)
+        .write_i32_le(OSU_VERSION)
+        .write_osu_string(score.map_md5)
+        .write_osu_string(username)
+        .write_osu_string(replay_md5)
+        .write_i16_le(score.n300)
+        .write_i16_le(score.n100)
+        .write_i16_le(score.n50)
+        .write_i16_le(score.ngeki)
+        .write_i16_le(score.nkatu)
+        .write_i16_le(score.nmiss)
+        .write_i32_le(score.score)
+        .write_i16_le(score.max_combo)
+        .write_u8_le(score.full_combo)
+        .write_i32_le(score.mods.value)
+        .write_u8_le(0)
+        .write_i64_le(app.utils.ts_to_utc_ticks(score.time))
+        .write_i32_le(len(raw_data))
+        .write_raw(raw_data)
+        .write_i64_le(score.id)
     )
