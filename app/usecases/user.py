@@ -54,6 +54,37 @@ async def fetch_db(username: str) -> Optional[User]:
     )
 
 
+async def fetch_db_id(user_id: int) -> Optional[User]:
+    db_user = await app.state.services.database.fetch_one(
+        "SELECT * FROM users WHERE id = :id",
+        {"id": user_id},
+    )
+
+    if not db_user:
+        return None
+
+    country = await app.state.services.database.fetch_val(
+        "SELECT country FROM users_stats WHERE id = :id",
+        {"id": db_user["id"]},
+    )
+
+    db_friends = await app.state.services.database.fetch_all(
+        "SELECT user2 FROM users_relationships WHERE user1 = :id",
+        {"id": db_user["id"]},
+    )
+
+    friends = [relationship["user2"] for relationship in db_friends]
+
+    return User(
+        id=db_user["id"],
+        name=db_user["username"],
+        privileges=Privileges(db_user["privileges"]),
+        friends=friends,
+        password_bcrypt=db_user["password_md5"],
+        country=country,
+    )
+
+
 # common call ver
 async def auth_user(username: str, password: str) -> Optional[User]:
     user = await fetch_db(username)

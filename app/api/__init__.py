@@ -9,6 +9,7 @@ from fastapi import Response
 from fastapi.responses import RedirectResponse
 
 from . import direct
+from . import error
 from . import lastfm
 from . import leaderboards
 from . import replays
@@ -43,6 +44,8 @@ router.add_api_route("/d/{set_id}", direct.download_map)
 router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
 
 router.add_api_route("/web/lastfm.php", lastfm.lastfm)
+
+router.add_api_route("/web/osu-error.php", error.error)
 
 
 @router.get("/web/bancho-connect.php")
