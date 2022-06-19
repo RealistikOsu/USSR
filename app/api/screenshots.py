@@ -28,7 +28,7 @@ SS_PATH = Path(config.DATA_DIR) / "screenshots"
 
 async def is_ratelimit(ip: str) -> bool:
     """Checks if an IP is ratelimited from taking screenshots. If not,
-    it establises the limit in Redis."""
+    it establishes the limit in Redis."""
 
     rl_key = "ussr:ss_limit:" + ip
     if await app.state.services.redis.get(rl_key):
