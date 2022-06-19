@@ -1,6 +1,6 @@
-[submodule "pp/oppai-ap"]
-	path = pp/oppai-ap
-	url = https://github.com/RealistikOsu/RealistikAP-PP
-[submodule "pp/oppai-rx"]
-	path = pp/oppai-rx
+[submodule "oppai-rx"]
+	path = oppai-rx
 	url = https://github.com/RealistikOsu/RealistikPP-RX
+[submodule "oppai-ap"]
+	path = oppai-ap
+	url = https://github.com/RealistikOsu/RealistikAP-PP

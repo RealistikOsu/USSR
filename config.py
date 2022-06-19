@@ -1,10 +1,44 @@
-from libs.files import JsonFile
+from dataclasses import dataclass, field
+from orjson import dumps, loads
+from typing import Union
+
 from logger import debug
 from logger import info
 
 __name__ = "ConfigModule"
 __author__ = "RealistikDash"
 __version__ = "v2.0.0"
+
+
+@dataclass
+class JsonFile:
+    file_name: str
+    file: dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        """Reloads the file fully into memory."""
+
+        with open(self.file_name) as f:
+            self.file = loads(f.read())
+
+    def get_file(self) -> dict:
+        """Returns the loaded JSON file as a dict.
+        Returns:
+            Contents of the file.
+        """
+        return self.file
+
+    def write_file(self, new_content: Union[dict, list]) -> None:
+        """Writes `new_content` to the target file.
+        Args:
+            new_content (dict, list): The new content that should be placed
+                within the file.
+        """
+
+        with open(self.file_name, "w") as f:
+            dumps(new_content, f, option=4)
+
+        self.file = new_content
 
 
 class ConfigReader:
@@ -52,18 +86,17 @@ class ConfigReader:
             "The config has just been updated! Please edit according to your preferences!",
         )
         debug("Keys added: " + ", ".join(keys_updated))
+
         raise SystemExit(0)
 
     def read_json(self, key: str, default=None):
         """Reads a value directly from the json file and returns
         if. If the value is not already in the JSON file, it adds
         it and sets it as `default`.
-
         Args:
             key (str): The JSON key to fetch the value of.
             default (any): The value for the key to be set to if the
                 value is not set.
-
         Returns:
             Value of the key.
         """
@@ -102,7 +135,7 @@ class Config(ConfigReader):
     SQL_DB: str = "ripple"
     SQL_PASS: str = "db password"
     DATA_DIR: str = ".data"
-    DIRECT_URL: str = "https://api.chimu.moe/"
+    DIRECT_URL: str = "https://catboy.best/api"
     API_KEYS_POOL: list = ["keys here"]
     CUSTOM_CLIENTS: bool = False  # Allow custom clients on
     SRV_URL: str = "https://ussr.pl"

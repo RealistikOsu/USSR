@@ -2,7 +2,7 @@
 Ultimate Score Server for RealistikOsu (well not just us but it makes the acronym work.)
 *Also I wonder how long this name will last*.
 
-![Speed FLex](https://i.imgur.com/31fYbHP.png)
+![Speed Flex](https://i.tsunyoku.xyz/raw_uploads/b4fdb5a5-8a58-45d4-9fd0-19e6531ac5c5)
 
 
 ## What is this?
@@ -17,14 +17,3 @@ All of this while also MASSIVELY improving upon LETS in the following areas:
 - Significantly more efficient with the database and other resources
 - Modern asynchronous Python architecture
 - Maintainable, modifiable codebase
-
-## Extras
-Alongside the main score server portion, USSR features multiple tools available within the CLI to assist you with your server!
-
-## MySQL Database and Nginx Config
-Within the `extras` folder in the repo are the MySQL database required for the score server (and the RealistikOsu stack) alongside
-the recommended Nginx config. This is to provide everyone the best experience setting up and avoid any accidental missing tables.
-
-### PP System Estimation Tool
-![Result Example](https://i.imgur.com/nkd09L5.png)
-This tool aims to help you experiment with new PP system changes, displaying the effects it would have on a user's scores.
