@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from fastapi import Path
+from fastapi import Request
 from fastapi import Response
+from fastapi.responses import RedirectResponse
 
 from . import direct
 from . import leaderboards
@@ -30,3 +33,37 @@ router.add_api_route("/web/replays/{score_id}", replays.get_full_replay)
 router.add_api_route("/web/osu-search.php", direct.osu_direct)
 router.add_api_route("/web/osu-search-set.php", direct.beatmap_card)
 router.add_api_route("/d/{set_id}", direct.download_map)
+
+
+@router.get("/web/bancho-connect.php")
+async def bancho_connect():
+    return b""
+
+
+@router.get("/p/doyoureallywanttoaskpeppy")
+async def peppy():
+    return b"This is a peppy skill issue, please ignore."
+
+
+async def osu_redirect(request: Request, _: int = Path(...)):
+    return RedirectResponse(
+        url=f"https://osu.ppy.sh{request['path']}",
+        status_code=301,
+    )
+
+
+for pattern in (
+    "/beatmapsets/{_}",
+    "/beatmaps/{_}",
+    "/community/forums/topics/{_}",
+    "/web/maps/{_}",
+):
+    router.get(pattern)(osu_redirect)
+
+
+@router.post("/difficulty-rating")
+async def difficulty_rating(request: Request):
+    return RedirectResponse(
+        url=f"https://osu.ppy.sh{request['path']}",
+        status_code=307,
+    )
