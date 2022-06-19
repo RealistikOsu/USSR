@@ -12,6 +12,7 @@ from . import direct
 from . import error
 from . import lastfm
 from . import leaderboards
+from . import rate
 from . import replays
 from . import score_sub
 from . import screenshots
@@ -46,6 +47,8 @@ router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
 router.add_api_route("/web/lastfm.php", lastfm.lastfm)
 
 router.add_api_route("/web/osu-error.php", error.error)
+
+router.add_api_route("/web/osu-rate.php", rate.rate_map)
 
 
 @router.get("/web/bancho-connect.php")
