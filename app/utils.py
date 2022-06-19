@@ -16,6 +16,7 @@ REQUIRED_FOLDERS = (
     f"{config.DATA_DIR}/replays_relax/",
     f"{config.DATA_DIR}/replays_ap/",
     f"{config.DATA_DIR}/maps/",
+    f"{config.DATA_DIR}/screenshots/",
 )
 
 DATA_PATH = Path(config.DATA_DIR)
@@ -65,3 +66,12 @@ async def announce(message: str) -> None:
 
 async def notify_new_score(score_id: int) -> None:
     await app.state.services.redis.publish("api:score_submission", score_id)
+
+
+async def check_online(user_id: int, ip: str = None) -> bool:
+    key = f"peppy:sessions:{user_id}"
+
+    if ip:
+        return await app.state.services.redis.sismember(key, ip)
+
+    return await app.state.services.redis.exists(key)
