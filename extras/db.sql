@@ -69,7 +69,6 @@ CREATE TABLE `ap_stats` (
   `pp_mania` int(11) NOT NULL DEFAULT '0',
   `pp_ctb` int(11) NOT NULL DEFAULT '0',
   `pp_taiko` int(11) NOT NULL DEFAULT '0',
-  `country` char(2) NOT NULL DEFAULT 'XX',
   `unrestricted_pp` int(11) NOT NULL DEFAULT '0',
   `ppboard` int(11) NOT NULL DEFAULT '1',
   `replays_watched_std` int(11) NOT NULL DEFAULT '0',
@@ -527,7 +526,6 @@ CREATE TABLE `rx_stats` (
   `pp_mania` int(11) NOT NULL DEFAULT '0',
   `pp_ctb` int(11) NOT NULL DEFAULT '0',
   `pp_taiko` int(11) NOT NULL DEFAULT '0',
-  `country` char(2) NOT NULL DEFAULT 'XX',
   `unrestricted_pp` int(11) NOT NULL DEFAULT '0',
   `ppboard` int(11) NOT NULL DEFAULT '1',
   `replays_watched_std` int(11) NOT NULL DEFAULT '0',
@@ -687,7 +685,8 @@ CREATE TABLE `users` (
   `freezedate` int(11) NOT NULL DEFAULT '0',
   `firstloginafterfrozen` int(11) NOT NULL DEFAULT '0',
   `bypass_hwid` tinyint(1) NOT NULL DEFAULT '0',
-  `ban_reason` varchar(128) NOT NULL DEFAULT ''
+  `ban_reason` varchar(128) NOT NULL DEFAULT '',
+  `country` VARCHAR(2) NOT NULL DEFAULT 'XX'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -761,7 +760,6 @@ CREATE TABLE `users_stats` (
   `total_hits_taiko` int(11) NOT NULL DEFAULT '0',
   `total_hits_ctb` int(11) NOT NULL DEFAULT '0',
   `total_hits_mania` int(11) NOT NULL DEFAULT '0',
-  `country` char(2) CHARACTER SET latin1 NOT NULL DEFAULT 'XX',
   `unrestricted_pp` int(11) NOT NULL DEFAULT '0',
   `ppboard` int(11) NOT NULL DEFAULT '0',
   `show_country` tinyint(4) NOT NULL DEFAULT '1',
@@ -1485,13 +1483,13 @@ INSERT INTO `ussr_achievements` (`id`, `file`, `name`, `desc`, `cond`) VALUES
 (96, 'all-intro-spunout', 'Burned Out', 'One cannot always spin to win.', '(score.mods & 4096 != 0) and score.passed');
 
 -- Bot
-INSERT INTO `users` (`id`, `osuver`, `username`, `username_safe`, `ban_datetime`, `password_md5`, `salt`, `email`, `register_datetime`, `rank`, `allowed`, `latest_activity`, `silence_end`, `silence_reason`, `password_version`, `privileges`, `donor_expire`, `flags`, `achievements_version`, `achievements_0`, `achievements_1`, `notes`, `frozen`, `freezedate`, `firstloginafterfrozen`, `bypass_hwid`, `ban_reason`) VALUES (999, NULL, 'RealistikBot', 'realistikbot', '0', 'ferdiuhgerggerger', '', 'rel@es.to', '1578160000', '4', '1', '1578160000', '0', '', '1', '942669823', '2147483647', '0', '0', '1', '1', 'Why are you running?', '0', '0', '0', '0', '');
-INSERT INTO `users_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `ranked_score_std`, `playcount_std`, `total_score_std`, `replays_watched_std`, `ranked_score_taiko`, `playcount_taiko`, `total_score_taiko`, `replays_watched_taiko`, `ranked_score_ctb`, `playcount_ctb`, `total_score_ctb`, `replays_watched_ctb`, `ranked_score_mania`, `playcount_mania`, `total_score_mania`, `replays_watched_mania`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `country`, `unrestricted_pp`, `ppboard`, `show_country`, `level_std`, `level_taiko`, `level_ctb`, `level_mania`, `playtime_std`, `playtime_taiko`, `playtime_ctb`, `playtime_mania`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_ctb`, `avg_accuracy_mania`, `pp_std`, `pp_taiko`, `pp_ctb`, `pp_mania`, `badges_shown`, `safe_title`, `userpage_content`, `play_style`, `favourite_mode`, `prefer_relax`, `custom_badge_icon`, `custom_badge_name`, `can_custom_badge`, `show_custom_badge`, `current_status`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
-(999, 'RealistikBot', '', 'black', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'GB', 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0.000000000000, 0.000000000000, 0.000000000000, 0.000000000000, 0, 0, 0, 0, '3,4,11,0,0,0', 0, NULL, 0, 0, 0, '', '', 1, 1, 'Dead', 0, 0, 0, 0, 0);
-INSERT INTO `rx_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `country`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
-(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'GB', 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `ap_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `country`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
-(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'GB', 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `users` (`id`, `osuver`, `username`, `username_safe`, `ban_datetime`, `password_md5`, `salt`, `email`, `register_datetime`, `rank`, `allowed`, `latest_activity`, `silence_end`, `silence_reason`, `password_version`, `privileges`, `donor_expire`, `flags`, `achievements_version`, `achievements_0`, `achievements_1`, `notes`, `frozen`, `freezedate`, `firstloginafterfrozen`, `bypass_hwid`, `ban_reason`, `country`) VALUES (999, NULL, 'RealistikBot', 'realistikbot', '0', 'ferdiuhgerggerger', '', 'rel@es.to', '1578160000', '4', '1', '1578160000', '0', '', '1', '942669823', '2147483647', '0', '0', '1', '1', 'Why are you running?', '0', '0', '0', '0', '', 'GB');
+INSERT INTO `users_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `ranked_score_std`, `playcount_std`, `total_score_std`, `replays_watched_std`, `ranked_score_taiko`, `playcount_taiko`, `total_score_taiko`, `replays_watched_taiko`, `ranked_score_ctb`, `playcount_ctb`, `total_score_ctb`, `replays_watched_ctb`, `ranked_score_mania`, `playcount_mania`, `total_score_mania`, `replays_watched_mania`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `unrestricted_pp`, `ppboard`, `show_country`, `level_std`, `level_taiko`, `level_ctb`, `level_mania`, `playtime_std`, `playtime_taiko`, `playtime_ctb`, `playtime_mania`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_ctb`, `avg_accuracy_mania`, `pp_std`, `pp_taiko`, `pp_ctb`, `pp_mania`, `badges_shown`, `safe_title`, `userpage_content`, `play_style`, `favourite_mode`, `prefer_relax`, `custom_badge_icon`, `custom_badge_name`, `can_custom_badge`, `show_custom_badge`, `current_status`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
+(999, 'RealistikBot', '', 'black', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0.000000000000, 0.000000000000, 0.000000000000, 0.000000000000, 0, 0, 0, 0, '3,4,11,0,0,0', 0, NULL, 0, 0, 0, '', '', 1, 1, 'Dead', 0, 0, 0, 0, 0);
+INSERT INTO `rx_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
+(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `ap_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
+(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 
 -- These aren't really used...
