@@ -147,6 +147,7 @@ class Config(ConfigReader):
     PP_CAP_RX: int = 1200
     PP_CAP_AP: int = 1200
     WS_WRITE_KEY: str = ""
+    BOT_USER_ID: int = 999
 
 
 config = Config()

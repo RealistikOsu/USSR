@@ -19,6 +19,7 @@ from app.constants.privileges import Privileges
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.user import User
+from config import config
 
 
 async def fetch_db(username: str) -> Optional[User]:
@@ -158,9 +159,32 @@ async def remove_from_leaderboard(user: User) -> None:
 
 async def notify_ban(user: User) -> None:
     await app.state.services.redis.publish("peppy:ban", user.id)
+    
+async def insert_ban_log(user: User, summary: str, detail: str) -> None:
+    """Inserts a ban log into the database.
+    
+    Note:
+        This function prefixes the detail with `"USSR Autoban: "` before
+        inserting it into the database.
+    """
+    
+    # Prefix the detail with a ussr autoban.
+    detail = "USSR Autoban: " + detail
+    
+    await app.state.services.database.execute(
+        "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (:from_id, :to_id, :summary, :detail)",
+        {
+            "from_id": config.BOT_USER_ID,
+            "to_id": user.id,
+            "summary": summary,
+            "detail": detail,
+        }
+    )
 
+DEFAULT_SUMMARY = "No summary available."
+DEFAULT_DETAIL = "No detail available."
 
-async def restrict_user(user: User, reason: str = "No reason given") -> None:
+async def restrict_user(user: User, summary: str = DEFAULT_SUMMARY, detail: str = DEFAULT_DETAIL) -> None:
     if user.privileges.is_restricted:
         return
 
@@ -170,18 +194,19 @@ async def restrict_user(user: User, reason: str = "No reason given") -> None:
         {
             "new_priv": user.privileges,
             "ban_time": int(time.time()),
-            "ban_reason": reason,
+            "ban_reason": summary,
             "id": user.id,
         },
     )
 
+    await insert_ban_log(user, summary, detail)
     await notify_ban(user)
     await remove_from_leaderboard(user)
 
     app.usecases.privileges.set_privilege(user.id, user.privileges)
 
-    await app.usecases.discord.log_user_edit(user, "restricted", reason)
-    logger.info(f"{user} has been restricted for {reason}!")
+    await app.usecases.discord.log_user_edit(user, "restricted", summary)
+    logger.info(f"{user} has been restricted for {summary}!")
 
 
 async def fetch_achievements(user_id: int) -> list[int]:
