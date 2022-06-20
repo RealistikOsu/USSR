@@ -142,15 +142,29 @@ async def submit_score(
         return b"error: no"
 
     if not token and not config.CUSTOM_CLIENTS:
-        await app.usecases.user.restrict_user(user, "Tampering with osu!auth.")
+        await app.usecases.user.restrict_user(
+            user,
+            "Tampering with osu!auth.",
+            "The client has not sent an anticheat token to the server, meaning "
+            "that they either have disabled the anticheat, or are using a custom/older "
+            "client. (score submit gate)",
+        )
 
     if user_agent != "osu!":
-        await app.usecases.user.restrict_user(user, "Score submitter.")
+        await app.usecases.user.restrict_user(
+            user,
+            "Score submitter or other external client behaviour emulator",
+            "The expected user-agent header for an osu! client is 'osu!', while "
+            f"the client sent '{user_agent}'. (score submit gate)",
+        )
 
     if score.mods.conflict:
         await app.usecases.user.restrict_user(
             user,
-            "Illegal mod combo (score submitter).",
+            "Illegal score mod combination.",
+            "The user attempted to submit a score with the mod combination "
+            f"+{score.mods!r}, which contains mutually exclusive/illegal mods. "
+            "(score submit gate)",
         )
 
     osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
@@ -204,7 +218,10 @@ async def submit_score(
     ):
         await restrict_user(
             user,
-            f"Surpassing PP cap as unverified! ({score.pp:.2f}pp).",
+            f"Surpassing PP cap as unverified!",
+            "The user attempted to submit a score with PP higher than the "
+            f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
+            f" ID: {score.id} (score submit gate)",
         )
 
     if score.status == ScoreStatus.BEST:
@@ -236,7 +253,10 @@ async def submit_score(
         if len(replay_data) < 24:
             await restrict_user(
                 user,
-                "Score submit without replay (should always contain it).",
+                "Score submit without replay.",
+                "The user attempted to submit a completed score without a replay "
+                "attached. This should NEVER happen and means they are likely using "
+                "a replay editor. (score submit gate)",
             )
         else:
             replay_file = replay_path / f"{score.id}.osr"
