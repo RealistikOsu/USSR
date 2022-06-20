@@ -19,6 +19,7 @@ from app.usecases.user import authenticate_user
 
 CUR_LB_VER = 4
 
+
 async def get_leaderboard(
     user: User = Depends(authenticate_user(Query, "us", "ha")),
     requesting_from_editor_song_select: bool = Query(..., alias="s"),

@@ -188,7 +188,9 @@ DEFAULT_DETAIL = "No detail available."
 
 
 async def restrict_user(
-    user: User, summary: str = DEFAULT_SUMMARY, detail: str = DEFAULT_DETAIL,
+    user: User,
+    summary: str = DEFAULT_SUMMARY,
+    detail: str = DEFAULT_DETAIL,
 ) -> None:
     if user.privileges.is_restricted:
         return
