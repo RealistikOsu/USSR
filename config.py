@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from orjson import dumps, loads
+from json import dump, loads
 from typing import Union
 
 from logger import debug
@@ -36,7 +36,7 @@ class JsonFile:
         """
 
         with open(self.file_name, "w") as f:
-            dumps(new_content, f, option=4)
+            dump(new_content, f, indent=4)
 
         self.file = new_content
 
