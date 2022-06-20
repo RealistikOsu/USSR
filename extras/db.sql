@@ -1,7 +1,7 @@
 /*
 The RealistikOsu Database Structure.
 This is a Ripple based db schema around which USSR was designed.
-Dump: 17/5/22
+Dump: 20/6/22
 */
 
 CREATE TABLE `achievements` (
@@ -856,9 +856,22 @@ CREATE TABLE user_pinned (
 
 ALTER TABLE `user_pinned` ADD INDEX(`userid`);
 
---
--- Indexes for dumped tables
---
+CREATE TABLE `ban_logs` (
+  `id` int(11) NOT NULL,
+  `from_id` int(11) NOT NULL,
+  `to_id` int(11) NOT NULL,
+  `ts` datetime NOT NULL,
+  `summary` varchar(256) NOT NULL,
+  `detail` varchar(2048) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `ban_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `to_id` (`to_id`);
+
+ALTER TABLE `ban_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 
 --
 -- Indexes for table `achievements`
