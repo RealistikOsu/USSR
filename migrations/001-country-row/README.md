@@ -1,18 +1,7 @@
-# Country Field Migrator
+# Country Row Migrator
 
 A database migration utility for the updated user country storage.
 ![Example Console Log](https://user-images.githubusercontent.com/36131887/174663844-633ff769-cf2b-4b9b-8886-012a91d923b6.png)
-
-
-## What is this?
-This is a tool for updating older USSR databases (pre-20/6/22) to the schema used by modern USSR.
-This migration utility is responsible for moving user country data from the `users_stats` table to the `users` table.
-This change resolves a consistency error within the schema alongisde improving the performance of some queries which require the country alongside
-user data.
-
-## How to run?
-
-This migration utility requires `golang >= 1.17` as it is written with performance in mind.
 
 ### Pre-setup
 
