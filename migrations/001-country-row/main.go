@@ -37,6 +37,10 @@ func updateCountry(idx int, usersList []int) {
 			country = "XX"
 		}
 		_, err = DB.Exec("UPDATE users SET country = ? WHERE id = ?", country, userID)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		log.Println(fmt.Sprintf("[Thread #%d] Updated user id: %d", idx, userID))
 		USERS_COUNT += 1
 	}
