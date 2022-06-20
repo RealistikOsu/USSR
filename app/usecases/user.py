@@ -159,18 +159,19 @@ async def remove_from_leaderboard(user: User) -> None:
 
 async def notify_ban(user: User) -> None:
     await app.state.services.redis.publish("peppy:ban", user.id)
-    
+
+
 async def insert_ban_log(user: User, summary: str, detail: str) -> None:
     """Inserts a ban log into the database.
-    
+
     Note:
         This function prefixes the detail with `"USSR Autoban: "` before
         inserting it into the database.
     """
-    
+
     # Prefix the detail with a ussr autoban.
     detail = "USSR Autoban: " + detail
-    
+
     await app.state.services.database.execute(
         "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (:from_id, :to_id, :summary, :detail)",
         {
@@ -178,13 +179,17 @@ async def insert_ban_log(user: User, summary: str, detail: str) -> None:
             "to_id": user.id,
             "summary": summary,
             "detail": detail,
-        }
+        },
     )
+
 
 DEFAULT_SUMMARY = "No summary available."
 DEFAULT_DETAIL = "No detail available."
 
-async def restrict_user(user: User, summary: str = DEFAULT_SUMMARY, detail: str = DEFAULT_DETAIL) -> None:
+
+async def restrict_user(
+    user: User, summary: str = DEFAULT_SUMMARY, detail: str = DEFAULT_DETAIL,
+) -> None:
     if user.privileges.is_restricted:
         return
 
