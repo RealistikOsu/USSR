@@ -198,7 +198,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
     if score.mode.autopilot:
         replay_path = app.utils.AUTOPILOT_REPLAYS
 
-    replay_file = replay_path / f"{score.id}.osr"
+    replay_file = replay_path / f"replay_{score.id}.osr"
     if not replay_file.exists():
         return
 
