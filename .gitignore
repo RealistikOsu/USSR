@@ -132,3 +132,4 @@ config.json
 .vscode/
 test_data/
 .data/
+*.sum
