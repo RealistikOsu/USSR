@@ -57,7 +57,8 @@ def main() -> int:
 
         # Find all replays to rename.
         rename_replays = filter(
-            lambda x: not x.startswith("replay_"), glob.glob("*.osr"),
+            lambda x: not x.startswith("replay_"),
+            glob.glob("*.osr"),
         )
 
         for replay_name in rename_replays:
