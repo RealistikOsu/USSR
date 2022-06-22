@@ -132,21 +132,15 @@ class Config(ConfigReader):
     PORT: int = 2137
     SQL_HOST: str = "localhost"
     SQL_USER: str = "root"
-    SQL_DB: str = "ripple"
+    SQL_DB: str = "akatsuki"
     SQL_PASS: str = "db password"
     DATA_DIR: str = ".data"
     DIRECT_URL: str = "https://catboy.best/api"
     API_KEYS_POOL: list = ["keys here"]
     CUSTOM_CLIENTS: bool = False  # Allow custom clients on
-    SRV_URL: str = "https://ussr.pl"
-    SRV_NAME: str = "RealistikOsu"
-    SRV_VERIFIED_BADGE: int = 1005
-    DISCORD_FIRST_PLACE: str = ""
+    SRV_URL: str = "https://akatsuki.pw"
+    SRV_NAME: str = "osu!Akatsuki"
     DISCORD_ADMIN_HOOK: str = ""
-    PP_CAP_VN: int = 700
-    PP_CAP_RX: int = 1200
-    PP_CAP_AP: int = 1200
-    WS_WRITE_KEY: str = ""
     BOT_USER_ID: int = 999
 
 

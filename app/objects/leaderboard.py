@@ -37,7 +37,7 @@ class Leaderboard:
         unrestricted: bool = True,
     ) -> Optional[UserScore]:
         if unrestricted:
-            unrestricted_scores = await self.get_unrestricted_scores()
+            unrestricted_scores = await self.get_unrestricted_scores(user_id)
         else:
             unrestricted_scores = self.scores
 
@@ -48,8 +48,8 @@ class Leaderboard:
                     "rank": idx + 1,
                 }
 
-    async def find_score_rank(self, score_id: int) -> int:
-        unrestricted_scores = await self.get_unrestricted_scores()
+    async def find_score_rank(self, user_id: int, score_id: int) -> int:
+        unrestricted_scores = await self.get_unrestricted_scores(user_id)
 
         for idx, score in enumerate(unrestricted_scores):
             if score.id == score_id:
@@ -57,12 +57,18 @@ class Leaderboard:
 
         return 0
 
-    async def get_unrestricted_scores(self) -> list[Score]:
+    async def get_unrestricted_scores(
+        self,
+        user_id: int,
+        include_self: bool = True,
+    ) -> list[Score]:
         scores = []
 
         for score in self.scores:
             user_privilege = await app.usecases.privileges.get_privilege(score.user_id)
-            if user_privilege.is_restricted:
+            if user_privilege.is_restricted and not (
+                score.user_id == user_id and include_self
+            ):
                 continue
 
             scores.append(score)
@@ -83,8 +89,8 @@ class Leaderboard:
 
         self.scores = sorted(self.scores, key=sort, reverse=True)
 
-    async def whatif_placement(self, sort_value: Union[int, float]) -> int:
-        unrestricted_scores = await self.get_unrestricted_scores()
+    async def whatif_placement(self, user_id: int, sort_value: Union[int, float]) -> int:
+        unrestricted_scores = await self.get_unrestricted_scores(user_id)
 
         for idx, score in enumerate(unrestricted_scores):
             if self.mode > Mode.MANIA:
