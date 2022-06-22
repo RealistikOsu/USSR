@@ -259,7 +259,7 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            replay_file = replay_path / f"{score.id}.osr"
+            replay_file = replay_path / f"replay_{score.id}.osr"
             replay_file.write_bytes(replay_data)
 
     asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))

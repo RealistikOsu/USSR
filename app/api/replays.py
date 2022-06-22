@@ -38,7 +38,7 @@ async def get_replay(
     if mode.autopilot:
         replay_path = app.utils.AUTOPILOT_REPLAYS
 
-    replay_file = replay_path / f"{score_id}.osr"
+    replay_file = replay_path / f"replay_{score_id}.osr"
     if not replay_file.exists():
         logger.error(f"Requested replay ID {score_id}, but no file could be found")
         return b"error: no"
