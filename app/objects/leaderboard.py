@@ -90,7 +90,9 @@ class Leaderboard:
         self.scores = sorted(self.scores, key=sort, reverse=True)
 
     async def whatif_placement(
-        self, user_id: int, sort_value: Union[int, float],
+        self,
+        user_id: int,
+        sort_value: Union[int, float],
     ) -> int:
         unrestricted_scores = await self.get_unrestricted_scores(user_id)
 
