@@ -299,9 +299,10 @@ async def submit_score(
     await app.usecases.stats.refresh_stats(user.id)
 
     if score.status == ScoreStatus.BEST:
-        score.rank = await leaderboard.find_score_rank(score.id)
+        score.rank = await leaderboard.find_score_rank(score.user_id, score.id)
     elif score.status == ScoreStatus.SUBMITTED:
         score.rank = await leaderboard.whatif_placement(
+            user.id,
             score.pp if score.mode > Mode.MANIA else score.score,
         )
 
