@@ -14,7 +14,7 @@ async def get_country(user_id: int) -> str:
         return COUNTRIES[user_id]
 
     country = await app.state.services.database.fetch_val(
-        "SELECT country FROM users WHERE id = :id",
+        "SELECT country FROM users_stats WHERE id = :id",
         {"id": user_id},
     )
 
@@ -28,7 +28,7 @@ async def get_country(user_id: int) -> str:
 
 async def load_countries() -> None:
     db_countries = await app.state.services.database.fetch_all(
-        "SELECT id, country FROM users",
+        "SELECT id, country FROM users_stats",
     )
 
     for db_user in db_countries:

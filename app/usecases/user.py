@@ -34,7 +34,7 @@ async def fetch_db(username: str) -> Optional[User]:
         return None
 
     country = await app.state.services.database.fetch_val(
-        "SELECT country FROM users WHERE id = :id",
+        "SELECT country FROM users_stats WHERE id = :id",
         {"id": db_user["id"]},
     )
 
@@ -65,7 +65,7 @@ async def fetch_db_id(user_id: int) -> Optional[User]:
         return None
 
     country = await app.state.services.database.fetch_val(
-        "SELECT country FROM users WHERE id = :id",
+        "SELECT country FROM users_stats WHERE id = :id",
         {"id": db_user["id"]},
     )
 
