@@ -14,21 +14,17 @@ from app.models.score import Score
 from app.objects.oppai import OppaiWrapper
 from app.objects.path import Path
 
-OPPAI_DIRS = (
-    "oppai-ap",
-    "oppai-rx",
-)
-
+OPPAI_DIR = Path.cwd() / "akatsuki-pp"
+OPPAI_LIB = OPPAI_DIR / "liboppai.so"
 
 def ensure_oppai() -> None:
-    for dir in OPPAI_DIRS:
-        if not os.path.exists(dir):
-            logger.error(f"Oppai folder {dir} does not exist!")
-            raise RuntimeError
+    if not OPPAI_DIR.exists():
+        logger.error(f"Oppai folder {OPPAI_DIR} does not exist!")
+        raise RuntimeError
 
-        if not os.path.exists(f"{dir}/liboppai.so"):
-            logger.warning(f"Oppai ({dir}) not built, building...")
-            os.system(f"cd {dir} && chmod +x libbuild && ./libbuild && cd ..")
+    if not OPPAI_LIB.exists():
+        logger.warning(f"Oppai ({OPPAI_DIR}) not built, building...")
+        os.system(f"cd {OPPAI_DIR} && chmod +x libbuild && ./libbuild && cd ..")
 
 
 async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
@@ -55,12 +51,7 @@ def calculate_oppai(
     nmiss: int,
     osu_file_path: Path,
 ) -> tuple[float, float]:
-    if mode.relax:
-        lib_path = "oppai-rx/liboppai.so"
-    elif mode.autopilot:
-        lib_path = "oppai-ap/liboppai.so"
-
-    with OppaiWrapper(lib_path) as ezpp:
+    with OppaiWrapper(str(OPPAI_LIB)) as ezpp:
         ezpp.configure(
             mode=mode.as_vn,
             acc=acc,
