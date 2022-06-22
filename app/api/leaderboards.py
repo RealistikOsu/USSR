@@ -121,7 +121,7 @@ async def get_leaderboard(
         leaderboard_type = LeaderboardType(leaderboard_type_arg)
 
         scores: list[Score] = []
-        for score in await leaderboard.get_unrestricted_scores():
+        for score in await leaderboard.get_unrestricted_scores(user.id):
             if len(scores) >= 100:  # max 100 scores on lb
                 break
 
