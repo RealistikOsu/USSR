@@ -4,8 +4,6 @@ import asyncio
 import hashlib
 from typing import Optional
 
-from aiohttp import ClientSession
-
 import app.state
 import app.usecases
 import app.utils
@@ -171,12 +169,13 @@ OSU_VERSION = 2021_11_03
 
 
 async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
-    async with ClientSession() as session:
-        async with session.get(f"http://localhost:3030/get?id={score.id}") as session:
-            if not session or session.status != 200:
-                return
+    async with app.state.services.http.get(
+        f"http://localhost:3030/get?id={score.id}"
+    ) as session:
+        if not session or session.status != 200:
+            return
 
-            raw_data = await session.read()
+        raw_data = await session.read()
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if not username:
