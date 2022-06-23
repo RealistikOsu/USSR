@@ -276,8 +276,9 @@ async def submit_score(
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
 
-        if score.status == ScoreStatus.BEST and score.pp:
-            await app.usecases.stats.full_recalc(stats, score.pp)
+        if score.status == ScoreStatus.BEST:
+            if score.pp:
+                await app.usecases.stats.full_recalc(stats, score.pp)
 
             await leaderboard.add_score(score)
 
