@@ -228,10 +228,11 @@ async def submit_score(
 
     score.id = await app.state.services.database.execute(
         (
+            # TODO: add playtime
             f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
-            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, playtime) VALUES "
+            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp) VALUES "
             "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
-            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :playtime)"
+            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp)"
         ),
         score.db_dict,
     )
