@@ -227,7 +227,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
 
     return (
         BinaryWriter()
-        .write_u8_le(score.mode.value)
+        .write_u8_le(score.mode.as_vn)
         .write_i32_le(OSU_VERSION)
         .write_osu_string(score.map_md5)
         .write_osu_string(username)
