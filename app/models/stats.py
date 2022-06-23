@@ -17,8 +17,10 @@ class Stats:
     country_rank: int
     accuracy: float
     playcount: int
+    playtime: int
     max_combo: int
     total_hits: int
+    replays_watched: int
 
     _required_recalc_pp: float = 0.0
     _cur_bonus_pp: float = 0.0

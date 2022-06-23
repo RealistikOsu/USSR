@@ -235,22 +235,3 @@ async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> N
             "timestamp": int(time.time()),
         },
     )
-
-
-async def increment_playtime(score: Score, beatmap: Beatmap) -> None:
-    await app.state.services.database.execute(
-        f"UPDATE {score.mode.stats_table} SET playtime_{score.mode.stats_prefix} = playtime_{score.mode.stats_prefix} + :new WHERE id = :id",
-        {
-            "new": app.usecases.score.get_non_computed_playtime(score, beatmap),
-            "id": score.user_id,
-        },
-    )
-
-
-async def increment_replays_watched(user_id: int, mode: Mode) -> None:
-    await app.state.services.database.execute(
-        "UPDATE users_stats SET replays_watched_{0} = replays_watched_{0} + 1 WHERE id = :id".format(
-            mode.stats_prefix,
-        ),
-        {"id": user_id},
-    )

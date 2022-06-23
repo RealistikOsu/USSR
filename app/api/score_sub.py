@@ -248,14 +248,11 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            async with ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
-                await session.post(
-                    f"http://localhost:3030/save?id={score.id}",
-                    data=replay_data,
-                )
-
-    asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
-    asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
+            async with app.state.services.http.post(
+                f"http://localhost:3030/save?id={score.id}",
+                data=replay_data,
+            ):
+                ...
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
     if stats is None:
@@ -264,6 +261,7 @@ async def submit_score(
     old_stats = copy(stats)
 
     stats.playcount += 1
+    stats.playtime += score.time_elapsed
     stats.total_score += score.score
     stats.total_hits += score.n300 + score.n100 + score.n50
 

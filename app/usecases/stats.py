@@ -38,7 +38,9 @@ async def fetch_db(user_id: int, mode: Mode) -> Optional[Stats]:
     db_stats = await app.state.services.database.fetch_one(
         (
             "SELECT ranked_score_{m} ranked_score, total_score_{m} total_score, pp_{m} pp, avg_accuracy_{m} accuracy, "
-            "playcount_{m} playcount, max_combo_{m} max_combo, total_hits_{m} total_hits FROM {s} WHERE id = :id"
+            "playcount_{m} playcount, playtime_{m} playtime, max_combo_{m} max_combo, total_hits_{m} total_hits, "
+            "replays_watched_{m} replays_watched "
+            "FROM {s} WHERE id = :id"
         ).format(m=mode.stats_prefix, s=mode.stats_table),
         {"id": user_id},
     )
@@ -58,8 +60,10 @@ async def fetch_db(user_id: int, mode: Mode) -> Optional[Stats]:
         country_rank=country_rank,
         accuracy=db_stats["accuracy"],
         playcount=db_stats["playcount"],
+        playtime=db_stats["playtime"],
         max_combo=db_stats["max_combo"],
         total_hits=db_stats["total_hits"],
+        replays_watched=db_stats["replays_watched"],
     )
 
 
@@ -138,17 +142,30 @@ async def calc_bonus(stats: Stats) -> float:
 async def save(stats: Stats) -> None:
     await app.state.services.database.execute(
         (
-            "UPDATE {t} SET ranked_score_{m} = :ranked_score, total_score_{m} = :total_score, pp_{m} = :pp, avg_accuracy_{m} = :accuracy, "
-            "playcount_{m} = :playcount, max_combo_{m} = :max_combo, total_hits_{m} = :total_hits WHERE id = :id"
+            """
+            UPDATE {t}
+            SET ranked_score_{m} = :ranked_score,
+                total_score_{m} = :total_score,
+                pp_{m} = :pp,
+                avg_accuracy_{m} = :avg_accuracy,
+                playcount_{m} = :playcount,
+                playtime_{m} = :playtime,
+                max_combo_{m} = :max_combo,
+                total_hits_{m} = :total_hits,
+                replays_watched_{m} = :replays_watched
+                WHERE id = :id
+            """
         ).format(t=stats.mode.stats_table, m=stats.mode.stats_prefix),
         {
             "ranked_score": stats.ranked_score,
             "total_score": stats.total_score,
             "pp": stats.pp,
-            "accuracy": stats.accuracy,
+            "avg_accuracy": stats.accuracy,
             "playcount": stats.playcount,
+            "playtime": stats.playtime,
             "max_combo": stats.max_combo,
             "total_hits": stats.total_hits,
+            "replays_watched": stats.replays_watched,
             "id": stats.user_id,
         },
     )
