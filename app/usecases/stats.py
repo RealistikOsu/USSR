@@ -155,7 +155,10 @@ async def save(stats: Stats) -> None:
                 replays_watched_{m} = :replays_watched
                 WHERE id = :id
             """
-        ).format(t=stats.mode.stats_table, m=stats.mode.stats_prefix),
+        ).format(
+            t=stats.mode.stats_table,
+            m=stats.mode.stats_prefix,
+        ),
         {
             "ranked_score": stats.ranked_score,
             "total_score": stats.total_score,

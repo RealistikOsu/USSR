@@ -7,12 +7,7 @@ from enum import IntEnum
 from functools import cache
 
 DEBUG = "debug" in sys.argv
-__all__ = (
-    "info",
-    "error",
-    "warning",
-    "debug",
-)
+
 
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/logging.py#L20-L45
 class Ansi(IntEnum):
@@ -53,32 +48,32 @@ def _log(content: str, action: str, colour: Ansi = Ansi.WHITE):
     )
 
 
-def info(text: str):
+def info(text: str) -> None:
     _log(text, "INFO", Ansi.GREEN)
 
 
-def error(text: str):
+def error(text: str) -> None:
     write_log_file(text)
     _log(text, "ERROR", Ansi.RED)
 
 
-def warning(text: str):
+def warning(text: str) -> None:
     _log(text, "WARNING", Ansi.BLUE)
 
 
-def debug(text: str):
+def debug(text: str) -> None:
     if DEBUG:
         _log(text, "DEBUG", Ansi.WHITE)
 
 
-def ensure_log_file():
+def ensure_log_file() -> None:
     """Ensures that a log file is present that can be written to."""
 
     if not os.path.exists("err.log"):
         os.mknod("err.log")
 
 
-def write_log_file(msg: str, timestamp: bool = True):
+def write_log_file(msg: str, timestamp: bool = True) -> None:
     """Appends a message to the log file."""
 
     with open("err.log", "a+") as f:

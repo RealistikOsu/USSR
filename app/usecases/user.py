@@ -17,10 +17,7 @@ import app.utils
 import logger
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
-from app.models.beatmap import Beatmap
-from app.models.score import Score
 from app.models.user import User
-from config import config
 
 
 async def fetch_db(username: str) -> Optional[User]:

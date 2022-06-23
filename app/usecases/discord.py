@@ -6,9 +6,6 @@ from typing import Optional
 
 import app.state
 import logger
-from app.models.beatmap import Beatmap
-from app.models.score import Score
-from app.models.stats import Stats
 from app.models.user import User
 from config import config
 

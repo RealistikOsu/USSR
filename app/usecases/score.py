@@ -7,7 +7,6 @@ from typing import Optional
 import app.state
 import app.usecases
 import app.utils
-from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.score_status import ScoreStatus
 from app.models.beatmap import Beatmap
@@ -71,6 +70,8 @@ def calculate_accuracy(score: Score) -> float:
             )
             / (total * 300.0)
         )
+    else:
+        raise NotImplementedError(f"Unknown mode: {vanilla_mode}")
 
 
 def calculate_status(score: Score) -> None:
@@ -170,7 +171,7 @@ OSU_VERSION = 2021_11_03
 
 async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
     async with app.state.services.http.get(
-        f"http://localhost:3030/get?id={score.id}"
+        f"http://localhost:3030/get?id={score.id}",
     ) as session:
         if not session or session.status != 200:
             return

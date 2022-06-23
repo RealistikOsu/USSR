@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-from calendar import c
 from urllib.parse import unquote_plus
 
 from fastapi import Depends

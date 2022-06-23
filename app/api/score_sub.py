@@ -10,8 +10,6 @@ from typing import Optional
 from typing import TypeVar
 from typing import Union
 
-import aiohttp
-from aiohttp import ClientSession
 from fastapi import File
 from fastapi import Form
 from fastapi import Header

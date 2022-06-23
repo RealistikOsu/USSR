@@ -5,7 +5,6 @@ import asyncio
 import app.state
 import logger
 from app.constants.mode import Mode
-from config import config
 
 WHITELIST: dict[int, int] = {}
 FIVE_MINUTES = 60 * 5
