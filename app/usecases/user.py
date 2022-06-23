@@ -232,3 +232,16 @@ async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> N
             "timestamp": int(time.time()),
         },
     )
+
+
+async def increment_replays_watched(user_id: int, mode: Mode) -> None:
+    await app.state.services.database.execute(
+        (
+            """
+            UPDATE users_stats
+            SET replays_watched_{0} = replays_watched_{0} + 1
+            WHERE id = :id
+            """
+        ).format(mode.stats_prefix),
+        {"id": user_id},
+    )
