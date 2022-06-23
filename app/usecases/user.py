@@ -218,19 +218,25 @@ async def restrict_user(
     logger.info(f"{user} has been restricted for {summary}!")
 
 
-async def fetch_achievements(user_id: int) -> list[int]:
+async def fetch_achievements(user_id: int, mode: Mode) -> list[int]:
     db_achievements = await app.state.services.database.fetch_all(
-        "SELECT achievement_id FROM users_achievements WHERE user_id = :id",
-        {"id": user_id},
+        "SELECT achievement_id FROM users_achievements WHERE user_id = :id AND mode = :mode",
+        {"id": user_id, "mode": mode.value},
     )
 
     return [ach["achievement_id"] for ach in db_achievements]
 
 
-async def unlock_achievement(user_id: int, ach_id: int) -> None:
+async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> None:
     await app.state.services.database.execute(
-        "INSERT INTO users_achievements (achievement_id, user_id, time) VALUES (:aid, :uid, :timestamp)",
-        {"aid": ach_id, "uid": user_id, "timestamp": int(time.time())},
+        "INSERT INTO users_achievements (achievement_id, user_id, mode, created_at) "
+        "VALUES (:achievement_id, :user_id, :mode, :timestamp)",
+        {
+            "achievement_id": achievement_id,
+            "user_id": user_id,
+            "mode": mode.value,
+            "timestamp": int(time.time()),
+        },
     )
 
 

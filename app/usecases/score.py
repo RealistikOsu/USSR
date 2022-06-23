@@ -93,7 +93,10 @@ def calculate_status(score: Score) -> None:
 async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
     new_achievements: list[str] = []
 
-    user_achievements = await app.usecases.user.fetch_achievements(score.user_id)
+    user_achievements = await app.usecases.user.fetch_achievements(
+        score.user_id,
+        score.mode,
+    )
     for achievement in app.state.cache.ACHIEVEMENTS:
         if achievement.id in user_achievements:
             continue
@@ -103,7 +106,11 @@ async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
 
             # db insertion is not required immediately, let's run it in the bg!
             asyncio.create_task(
-                app.usecases.user.unlock_achievement(score.user_id, achievement.id),
+                app.usecases.user.unlock_achievement(
+                    achievement.id,
+                    score.user_id,
+                    score.mode,
+                ),
             )
 
     return new_achievements
