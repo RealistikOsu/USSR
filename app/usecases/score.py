@@ -151,7 +151,7 @@ async def handle_first_place(
 
     await app.state.services.database.execute(
         (
-            "INSERT INTO first_places (beatmap_md5, mode, rx, scoreid, userid) VALUES "
+            "INSERT INTO scores_first (beatmap_md5, mode, rx, scoreid, userid) VALUES "
             "(:md5, :mode, :rx, :sid, :uid)"
         ),
         {
