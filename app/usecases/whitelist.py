@@ -18,10 +18,12 @@ FIVE_MINUTES = 60 * 5
 
 
 def _match_verified(whitelist_int: int, mode: Mode) -> bool:
-    if mode.relax or mode.autopilot:
-        return whitelist_int in (2, 3)
-
-    return whitelist_int in (1, 3)
+    if mode.autopilot:
+        return whitelist_int & 2 != 0  # TODO: make this 4
+    elif mode.relax:
+        return whitelist_int & 2 != 0
+    else:
+        return whitelist_int & 1 != 0
 
 
 async def get_whitelisted(user_id: int, mode: Mode) -> bool:
