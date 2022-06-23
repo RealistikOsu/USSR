@@ -14,8 +14,8 @@ from config import config
 
 REQUIRED_FOLDERS = (
     config.DATA_DIR,
-    f"{config.DATA_DIR}/beatmaps/",
-    f"{config.DATA_DIR}/screenshots/",
+    f"{config.DATA_DIR}/beatmaps",
+    f"{config.DATA_DIR}/screenshots",
 )
 
 DATA_PATH = Path(config.DATA_DIR)
