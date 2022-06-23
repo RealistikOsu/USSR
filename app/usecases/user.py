@@ -205,16 +205,13 @@ async def restrict_user(
         },
     )
 
-    await insert_ban_log(
-        user,
-        summary,
-    )
+    await insert_ban_log(user, summary)
     await notify_ban(user)
     await remove_from_leaderboard(user)
 
     app.usecases.privileges.set_privilege(user.id, user.privileges)
 
-    await app.usecases.discord.log_user_edit(user, summary)
+    await app.usecases.discord.log_user_edit(user, "restricted", summary)
     logger.info(f"{user} has been restricted for {summary}!")
 
 
@@ -255,7 +252,5 @@ async def increment_replays_watched(user_id: int, mode: Mode) -> None:
         "UPDATE users_stats SET replays_watched_{0} = replays_watched_{0} + 1 WHERE id = :id".format(
             mode.stats_prefix,
         ),
-        {
-            "id": user_id,
-        },
+        {"id": user_id},
     )
