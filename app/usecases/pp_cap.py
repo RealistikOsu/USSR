@@ -56,19 +56,19 @@ async def load_pp_caps() -> None:
     for mode, mods in (
         # std
         (Mode.STD, Mods.NOMOD),
-        (Mods.STD, Mods.FLASHLIGHT),
+        (Mode.STD, Mods.FLASHLIGHT),
         (Mode.STD_RX, Mods.NOMOD),
         (Mode.STD_RX, Mods.FLASHLIGHT),
         (Mode.STD_AP, Mods.NOMOD),
-        (Mode.STD_AP, Mods.FLASHLIGHT)
+        (Mode.STD_AP, Mods.FLASHLIGHT),
         # taiko
         (Mode.TAIKO, Mods.NOMOD),
-        (Mods.TAIKO, Mods.FLASHLIGHT),
+        (Mode.TAIKO, Mods.FLASHLIGHT),
         (Mode.TAIKO_RX, Mods.NOMOD),
         (Mode.TAIKO_RX, Mods.FLASHLIGHT),
         # catch
         (Mode.CATCH, Mods.NOMOD),
-        (Mods.CATCH, Mods.FLASHLIGHT),
+        (Mode.CATCH, Mods.FLASHLIGHT),
         (Mode.CATCH_RX, Mods.NOMOD),
         (Mode.CATCH_RX, Mods.FLASHLIGHT),
         # mania
