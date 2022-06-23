@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import asyncio
 
-from aiohttp import ClientSession
 from fastapi import Path
 from fastapi import Query
 from fastapi import Response
-from fastapi.responses import FileResponse
 
 import app.state
 import app.usecases
@@ -32,15 +30,16 @@ async def get_replay(
 
     mode = Mode.from_lb(db_score["play_mode"], db_score["mods"])
 
-    async with ClientSession() as session:
-        async with session.get(f"http://localhost:3030/get?id={score_id}") as session:
-            if not session or session.status != 200:
-                logger.error(
-                    f"Requested replay ID {score_id}, but no file could be found",
-                )
-                return b""
+    async with app.state.services.http.get(
+        f"http://localhost:3030/get?id={score_id}",
+    ) as session:
+        if not session or session.status != 200:
+            logger.error(
+                f"Requested replay ID {score_id}, but no file could be found",
+            )
+            return b""
 
-            replay_data = await session.read()
+        replay_data = await session.read()
 
     asyncio.create_task(
         app.usecases.user.increment_replays_watched(db_score["userid"], mode),

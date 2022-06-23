@@ -7,7 +7,6 @@ from fastapi import Depends
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
-from fastapi import Query
 from fastapi import UploadFile
 
 import app.state

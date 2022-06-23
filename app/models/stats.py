@@ -20,5 +20,5 @@ class Stats:
     max_combo: int
     total_hits: int
 
-    _required_recalc_pp: int = 0
+    _required_recalc_pp: float = 0.0
     _cur_bonus_pp: float = 0.0

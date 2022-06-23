@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import os
 import time
 from base64 import b64decode
 from copy import copy
@@ -54,7 +52,7 @@ async def parse_form(score_data: FormData) -> Optional[ScoreData]:
         logger.warning(f"Failed to validate score multipart data: ({exc.args[0]})")
         return None
     else:
-        return (
+        return ScoreData(
             score_data_b64.encode(),
             replay_file,
         )
@@ -116,7 +114,7 @@ async def submit_score(
 
     score_params = await parse_form(await request.form())
     if not score_params:
-        return
+        return b"error: no"
 
     score_data_b64, replay_file = score_params
     score_data, _ = decrypt_score_data(
@@ -132,7 +130,7 @@ async def submit_score(
 
     username = score_data[1].rstrip()
     if not (user := await app.usecases.user.auth_user(username, password_md5)):
-        return  # empty resp tells osu to retry
+        return b""  # empty resp tells osu to retry
 
     score = Score.from_submission(score_data[2:], beatmap_md5, user)
     leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
@@ -146,7 +144,6 @@ async def submit_score(
     if not token and not config.CUSTOM_CLIENTS:
         await app.usecases.user.restrict_user(
             user,
-            "Tampering with osu!auth.",
             "The client has not sent an anticheat token to the server, meaning "
             "that they either have disabled the anticheat, or are using a custom/older "
             "client. (score submit gate)",
@@ -155,7 +152,6 @@ async def submit_score(
     if user_agent != "osu!":
         await app.usecases.user.restrict_user(
             user,
-            "Score submitter or other external client behaviour emulator",
             "The expected user-agent header for an osu! client is 'osu!', while "
             f"the client sent '{user_agent}'. (score submit gate)",
         )
@@ -163,7 +159,6 @@ async def submit_score(
     if score.mods.conflict:
         await app.usecases.user.restrict_user(
             user,
-            "Illegal score mod combination.",
             "The user attempted to submit a score with the mod combination "
             f"+{score.mods!r}, which contains mutually exclusive/illegal mods. "
             "(score submit gate)",
@@ -220,7 +215,6 @@ async def submit_score(
     ):
         await restrict_user(
             user,
-            f"Surpassing PP cap as unverified!",
             "The user attempted to submit a score with PP higher than the "
             f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
             f" ID: {score.id} (score submit gate)",
@@ -248,7 +242,6 @@ async def submit_score(
         if len(replay_data) < 24:
             await restrict_user(
                 user,
-                "Score submit without replay.",
                 "The user attempted to submit a completed score without a replay "
                 "attached. This should NEVER happen and means they are likely using "
                 "a replay editor. (score submit gate)",
@@ -264,6 +257,9 @@ async def submit_score(
     asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
+    if stats is None:
+        return b"error: no"
+
     old_stats = copy(stats)
 
     stats.playcount += 1

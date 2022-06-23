@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import NamedTuple
 from typing import Optional
-from typing import TypedDict
 
 import app.state
 import app.usecases
@@ -72,22 +70,22 @@ class RankInfo(NamedTuple):
 
 async def get_redis_rank(user_id: int, mode: Mode) -> RankInfo:
     redis_global_rank = await app.state.services.redis.zrevrank(
-        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}",
+        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}",
         user_id,
     )
     global_rank = int(redis_global_rank) + 1 if redis_global_rank else 0
 
     country = await app.usecases.countries.get_country(user_id)
     redis_country_rank = await app.state.services.redis.zrevrank(
-        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}:{country.lower()}",
+        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}:{country.lower()}",
         user_id,
     )
     country_rank = int(redis_country_rank) + 1 if redis_country_rank else 0
 
-    return global_rank, country_rank
+    return RankInfo(global_rank, country_rank)
 
 
-async def full_recalc(stats: Stats, score_pp: Optional[int] = None) -> None:
+async def full_recalc(stats: Stats, score_pp: float) -> None:
     if (
         stats._required_recalc_pp
         and score_pp is not None
@@ -160,14 +158,14 @@ async def update_rank(stats: Stats) -> None:
     mode = stats.mode
 
     await app.state.services.redis.zadd(
-        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}",
-        {stats.user_id: stats.pp},
+        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}",
+        {str(stats.user_id): stats.pp},
     )
 
     country = await app.usecases.countries.get_country(stats.user_id)
     await app.state.services.redis.zadd(
-        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}:{country.lower()}",
-        {stats.user_id: stats.pp},
+        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}:{country.lower()}",
+        {str(stats.user_id): stats.pp},
     )
 
     stats.rank, stats.country_rank = await get_redis_rank(stats.user_id, mode)

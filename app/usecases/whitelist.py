@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-from app.constants.mode import Mode
 
 import app.state
 import logger
+from app.constants.mode import Mode
 from config import config
 
 WHITELIST: dict[int, int] = {}
@@ -40,7 +40,7 @@ async def get_whitelisted(user_id: int, mode: Mode) -> bool:
 async def load_whitelist() -> None:
     # fetch all to store who don't have verified too
     db_whitelists = await app.state.services.database.fetch_all(
-        "SELECT id, whitelist FROM users"
+        "SELECT id, whitelist FROM users",
     )
 
     for db_whitelist in db_whitelists:

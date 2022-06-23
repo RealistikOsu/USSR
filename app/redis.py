@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Awaitable
 from typing import Callable
+from typing import Optional
 from typing import TypedDict
 
 import aioredis.client
@@ -53,13 +54,16 @@ async def handle_beatmap_status_change(payload: str) -> None:
 
     It should be published with the payload being the beatmap's md5 and new status
     """
-    beatmap_md5, _ = payload.split(",")
+    beatmap_md5, _ = payload.split(",", maxsplit=1)
 
     cached_beatmap = app.usecases.beatmap.md5_from_cache(beatmap_md5)
     if not cached_beatmap:
         return
 
     new_beatmap = await app.usecases.beatmap.md5_from_database(beatmap_md5)
+
+    if new_beatmap is None:
+        return
 
     if new_beatmap.status != cached_beatmap.status:
         # map's status changed, reflect it
@@ -105,7 +109,7 @@ class RedisMessage(TypedDict):
 async def loop_pubsubs(pubsub: aioredis.client.PubSub) -> None:
     while True:
         try:
-            message: RedisMessage = await pubsub.get_message(
+            message: Optional[RedisMessage] = await pubsub.get_message(
                 ignore_subscribe_messages=True,
                 timeout=1.0,
             )

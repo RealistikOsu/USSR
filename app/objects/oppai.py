@@ -5,6 +5,10 @@ import functools
 from types import TracebackType
 from typing import Optional
 from typing import Type
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.objects.path import Path
 
 
 class OppaiWrapper:

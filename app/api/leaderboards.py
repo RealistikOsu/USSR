@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import time
-from urllib.parse import unquote
+from calendar import c
+from urllib.parse import unquote_plus
 
 from fastapi import Depends
 from fastapi import Query
@@ -46,7 +47,6 @@ async def get_leaderboard(
     if leaderboard_version != CUR_LB_VER:
         await app.usecases.user.restrict_user(
             user,
-            "Bypassing client version protections.",
             "The leaderboard version for the current known latest osu! client is "
             f"{CUR_LB_VER}, but the client sent {leaderboard_version}. (leaderboard gate)",
         )
@@ -60,13 +60,11 @@ async def get_leaderboard(
         beatmap = await app.usecases.beatmap.update_beatmap(beatmap)
 
     if not beatmap:
-        if has_set_id:
+        if has_set_id and map_set_id not in app.usecases.beatmap.SET_CACHE:
             app.state.cache.UNSUBMITTED.add(map_md5)
-            app.usecases.beatmap.SET_CACHE.pop(map_set_id, None)
-
             return b"-1|false"
 
-        filename = unquote(map_filename)
+        filename = unquote_plus(map_filename)
         if has_set_id:
             for bmap in app.usecases.beatmap.SET_CACHE[map_set_id]:
                 if bmap.filename == filename:
@@ -95,7 +93,12 @@ async def get_leaderboard(
     response_lines: list[str] = []
 
     if requesting_from_editor_song_select:
-        response_lines.append(beatmap.osu_string(score_count=0, rating=beatmap.rating))
+        response_lines.append(
+            beatmap.osu_string(
+                score_count=0,
+                rating=beatmap.rating or 10.0,
+            ),
+        )
     else:
         # real leaderboard, let's get some scores!
         leaderboard = await app.usecases.leaderboards.fetch(beatmap, mode)
@@ -103,7 +106,7 @@ async def get_leaderboard(
         response_lines.append(
             beatmap.osu_string(
                 score_count=len(leaderboard),
-                rating=beatmap.rating,
+                rating=beatmap.rating or 10.0,
             ),
         )
 

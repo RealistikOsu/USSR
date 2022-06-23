@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from enum import IntEnum
 from functools import cached_property
-from typing import TYPE_CHECKING
 
 from app.constants.mods import Mods
-from config import config
 
 mode_str = (
     "osu!std",
@@ -84,7 +82,7 @@ class Mode(IntEnum):
             Mode.TAIKO: "taiko",
             Mode.CATCH: "ctb",
             Mode.MANIA: "mania",
-        }[mode_vn]
+        }[Mode(mode_vn)]
 
     @cached_property
     def redis_leaderboard(self) -> str:

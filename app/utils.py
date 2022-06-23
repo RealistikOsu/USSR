@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import os
+from typing import Optional
 from typing import Union
 from urllib.parse import urlencode
 
-import orjson
+from aiohttp import ClientSession
 
 import app.state
 import logger
@@ -64,7 +65,7 @@ async def announce(message: str) -> None:
     await channel_message("#announce", message)
 
 
-async def check_online(user_id: int, ip: str = None) -> bool:
+async def check_online(user_id: int, ip: Optional[str] = None) -> bool:
     key = f"peppy:sessions:{user_id}"
 
     if ip:
