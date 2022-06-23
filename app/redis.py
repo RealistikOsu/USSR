@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Awaitable
 from typing import Callable
+from typing import Optional
 from typing import TypedDict
 
 import aioredis.client
@@ -35,7 +36,7 @@ class UsernameChange(TypedDict):
     userID: str
 
 
-@register_pubsub("peppy:change_username")
+@register_pubsub("less:change_username")
 async def handle_username_change(payload: str) -> None:
     data: UsernameChange = orjson.loads(payload)
     user_id = int(data["userID"])
@@ -44,21 +45,25 @@ async def handle_username_change(payload: str) -> None:
     logger.info(f"Updated user ID {user_id}'s username to {username}")
 
 
-@register_pubsub("ussr:refresh_bmap")
+@register_pubsub("cache:map_update")
 async def handle_beatmap_status_change(payload: str) -> None:
     """Pubsub to handle beatmap status changes
 
     This pubsub should be called when a beatmap's status updates
     so that the cache can accordingly refresh.
 
-    It should be published with the payload being the beatmap's md5.
+    It should be published with the payload being the beatmap's md5 and new status
     """
+    beatmap_md5, _ = payload.split(",", maxsplit=1)
 
-    cached_beatmap = app.usecases.beatmap.md5_from_cache(payload)
+    cached_beatmap = app.usecases.beatmap.md5_from_cache(beatmap_md5)
     if not cached_beatmap:
         return
 
-    new_beatmap = await app.usecases.beatmap.md5_from_database(payload)
+    new_beatmap = await app.usecases.beatmap.md5_from_database(beatmap_md5)
+
+    if new_beatmap is None:
+        return
 
     if new_beatmap.status != cached_beatmap.status:
         # map's status changed, reflect it
@@ -81,12 +86,19 @@ async def handle_beatmap_status_change(payload: str) -> None:
     logger.info(f"Updated {cached_beatmap.song_name} in cache!")
 
 
-@register_pubsub("rosu:clan_update")
+@register_pubsub("api:update_clan")
 async def handle_clan_change(payload: str) -> None:
-    user_id = int(payload)
-    await app.usecases.clans.update_clan(user_id)
+    clan_id = int(payload)
 
-    logger.info(f"Updated clan for user ID {user_id}")
+    clan_users = await app.state.services.database.fetch_all(
+        "SELECT user FROM user_clans WHERE clan = :id",
+        {"id": clan_id},
+    )
+
+    for clan_user in clan_users:
+        await app.usecases.clans.update_clan(clan_user["id"])
+
+    logger.info(f"Updated tag for clan ID {clan_id}")
 
 
 class RedisMessage(TypedDict):
@@ -97,7 +109,7 @@ class RedisMessage(TypedDict):
 async def loop_pubsubs(pubsub: aioredis.client.PubSub) -> None:
     while True:
         try:
-            message: RedisMessage = await pubsub.get_message(
+            message: Optional[RedisMessage] = await pubsub.get_message(
                 ignore_subscribe_messages=True,
                 timeout=1.0,
             )

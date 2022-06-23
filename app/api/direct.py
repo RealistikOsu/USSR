@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from typing import Any
 from typing import Optional
 from urllib.parse import unquote_plus
@@ -90,16 +89,16 @@ async def beatmap_card(
     map_set_id: Optional[int] = Query(None, alias="s"),
     map_id: Optional[int] = Query(None, alias="b"),
 ):
-    if not map_set_id:
+    if map_set_id is None and map_id is not None:
         bmap = await app.usecases.beatmap.fetch_by_id(map_id)
-        if not bmap:
+        if bmap is None:
             return
 
         map_set_id = bmap.set_id
 
     url = f"{config.DIRECT_URL}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
     async with app.state.services.http.get(url) as response:
-        if not response or response.status != 200:
+        if response.status != 200:
             return
 
         result = await response.json()

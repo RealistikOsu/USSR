@@ -6,9 +6,6 @@ from typing import Optional
 
 import app.state
 import logger
-from app.models.beatmap import Beatmap
-from app.models.score import Score
-from app.models.stats import Stats
 from app.models.user import User
 from config import config
 
@@ -176,7 +173,7 @@ async def wrap_hook(hook: str, embed: Embed) -> None:
     logger.info("Sending Discord webhook!")
 
     try:
-        wh = Webhook(hook, tts=False, username="USSR Score Server")
+        wh = Webhook(hook, tts=False, username="LESS Score Server")
         wh.add_embed(embed)
         await wh.post()
     except Exception:
@@ -201,7 +198,6 @@ EDIT_COL = "4360181"
 EDIT_ICON = "https://cdn3.iconfinder.com/data/icons/bold-blue-glyphs-free-samples/32/Info_Circle_Symbol_Information_Letter-512.png"
 
 admin_hook = a_hook if (a_hook := config.DISCORD_ADMIN_HOOK) else None
-first_hook = one_hook if (one_hook := config.DISCORD_FIRST_PLACE) else None
 
 
 async def log_user_edit(
@@ -215,44 +211,7 @@ async def log_user_edit(
     embed.description = (
         f"{user.name} ({user.id}) has just been {action}" f" for {reason}!"
     )
-    embed.set_author(name="USSR Score Server", icon_url=EDIT_ICON)
+    embed.set_author(name="LESS Score Server", icon_url=EDIT_ICON)
     embed.set_footer(text="This is an automated action performed by the server.")
 
     schedule_hook(admin_hook, embed)
-
-
-async def log_first_place(
-    score: Score,
-    user: User,
-    beatmap: Beatmap,
-    old_stats: Stats,
-    new_stats: Stats,
-) -> None:
-    """Logs a user's first place to the first place webhook."""
-
-    pp_gained = new_stats.pp - old_stats.pp
-
-    # Heavily inspired by Ainu's webhook style.
-    embed = Embed(color=0x0F97FF)
-    embed.set_footer(text="USSR Score Server")
-    embed.set_author(name=f"[{score.mode.relax_str}] New #1 score set by {user.name}!")
-    embed.add_field(
-        name=f"Score pp: {score.pp:.2f}pp",
-        value=f"Gained: {pp_gained:.2f}pp"
-        if pp_gained >= 0
-        else f"Lost: {pp_gained:.2f}pp",
-    )
-    embed.add_field(
-        name=f"Global Rank: {new_stats.rank}",
-        value=f"[__[Download Map]({config.SRV_URL}/d/{beatmap.set_id})__]",
-    )
-    embed.add_field(
-        name=f"Played by: {user.name}",
-        value=f"[__[User Profile]({config.SRV_URL}/u/{user.id})__]",
-    )
-
-    embed.set_image(
-        url=f"https://assets.ppy.sh/beatmaps/{beatmap.set_id}/covers/cover.jpg",
-    )
-
-    schedule_hook(first_hook, embed)

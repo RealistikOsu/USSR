@@ -7,7 +7,6 @@ from typing import Optional
 import app.state
 import app.usecases
 import app.utils
-from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.score_status import ScoreStatus
 from app.models.beatmap import Beatmap
@@ -71,6 +70,8 @@ def calculate_accuracy(score: Score) -> float:
             )
             / (total * 300.0)
         )
+    else:
+        raise NotImplementedError(f"Unknown mode: {vanilla_mode}")
 
 
 def calculate_status(score: Score) -> None:
@@ -91,7 +92,10 @@ def calculate_status(score: Score) -> None:
 async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
     new_achievements: list[str] = []
 
-    user_achievements = await app.usecases.user.fetch_achievements(score.user_id)
+    user_achievements = await app.usecases.user.fetch_achievements(
+        score.user_id,
+        score.mode,
+    )
     for achievement in app.state.cache.ACHIEVEMENTS:
         if achievement.id in user_achievements:
             continue
@@ -101,7 +105,11 @@ async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
 
             # db insertion is not required immediately, let's run it in the bg!
             asyncio.create_task(
-                app.usecases.user.unlock_achievement(score.user_id, achievement.id),
+                app.usecases.user.unlock_achievement(
+                    achievement.id,
+                    score.user_id,
+                    score.mode,
+                ),
             )
 
     return new_achievements
@@ -127,86 +135,53 @@ def get_computed_playtime(score: Score, beatmap: Beatmap) -> int:
     if beatmap.hit_length and value > beatmap.hit_length * 1.33:
         return 0
 
-    return value
+    return int(value)
 
 
 async def handle_first_place(
     score: Score,
     beatmap: Beatmap,
     user: User,
-    old_stats: Stats,
-    new_stats: Stats,
 ) -> None:
     await app.state.services.database.execute(
-        "DELETE FROM first_places WHERE beatmap_md5 = :md5 AND mode = :mode AND relax = :rx",
-        {"md5": score.map_md5, "mode": score.mode.value, "rx": score.mode.relax_int},
+        "DELETE FROM scores_first WHERE beatmap_md5 = :md5 AND mode = :mode AND rx = :rx",
+        {"md5": score.map_md5, "mode": score.mode.as_vn, "rx": score.mode.relax_int},
     )
 
     await app.state.services.database.execute(
         (
-            "INSERT INTO first_places (score_id, user_id, score, max_combo, full_combo, "
-            "mods, 300_count, 100_count, 50_count, ckatus_count, cgekis_count, miss_count, "
-            "timestamp, mode, completed, accuracy, pp, play_time, beatmap_md5, relax) VALUES "
-            "(:score_id, :user_id, :score, :max_combo, :full_combo, "
-            ":mods, :300_count, :100_count, :50_count, :ckatus_count, :cgekis_count, :miss_count, "
-            ":timestamp, :mode, :completed, :accuracy, :pp, :play_time, :beatmap_md5, :relax)"
+            "INSERT INTO scores_first (beatmap_md5, mode, rx, scoreid, userid) VALUES "
+            "(:md5, :mode, :rx, :sid, :uid)"
         ),
         {
-            "score_id": score.id,
-            "user_id": score.user_id,
-            "score": score.score,
-            "max_combo": score.max_combo,
-            "full_combo": score.full_combo,
-            "mods": score.mods.value,
-            "300_count": score.n300,
-            "100_count": score.n100,
-            "50_count": score.n50,
-            "ckatus_count": score.nkatu,
-            "cgekis_count": score.ngeki,
-            "miss_count": score.nmiss,
-            "timestamp": score.time,
+            "md5": score.map_md5,
             "mode": score.mode.as_vn,
-            "completed": score.status.value,
-            "accuracy": score.acc,
-            "pp": score.pp,
-            "play_time": score.time,
-            "beatmap_md5": score.map_md5,
-            "relax": score.mode.relax_int,
+            "rx": score.mode.relax_int,
+            "sid": score.id,
+            "uid": score.user_id,
         },
     )
 
     msg = f"[{score.mode.relax_str}] User {user.embed} has submitted a #1 place on {beatmap.embed} +{score.mods!r} ({score.pp:.2f}pp)"
     await app.utils.announce(msg)
 
-    await app.usecases.discord.log_first_place(
-        score,
-        user,
-        beatmap,
-        old_stats,
-        new_stats,
-    )
 
-
-OSU_VERSION = 20211103
+OSU_VERSION = 2021_11_03
 
 
 async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
-    replay_path = app.utils.VANILLA_REPLAYS
-    if score.mode.relax:
-        replay_path = app.utils.RELAX_REPLAYS
+    async with app.state.services.http.get(
+        f"http://localhost:3030/get?id={score.id}",
+    ) as session:
+        if not session or session.status != 200:
+            return
 
-    if score.mode.autopilot:
-        replay_path = app.utils.AUTOPILOT_REPLAYS
-
-    replay_file = replay_path / f"replay_{score.id}.osr"
-    if not replay_file.exists():
-        return
+        raw_data = await session.read()
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if not username:
         return
 
-    raw_data = replay_file.read_bytes()
     replay_md5 = hashlib.md5(
         "{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}".format(
             score.n100 + score.n300,

@@ -14,7 +14,7 @@ from config import config
 
 TILLERINO_PERCENTAGES = (100, 99, 98, 95)
 
-MAPS_PATH = Path(config.DATA_DIR) / "maps"
+MAPS_PATH = Path(config.DATA_DIR) / "beatmaps"
 
 
 async def calculate_pp(

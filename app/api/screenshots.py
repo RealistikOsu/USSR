@@ -7,7 +7,6 @@ from fastapi import Depends
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
-from fastapi import Query
 from fastapi import UploadFile
 
 import app.state
@@ -19,8 +18,8 @@ from app.usecases.user import authenticate_user
 from config import config
 
 SS_DELAY = 10  # Seconds per screenshot.
-FS_LIMIT = 500_000  # Rosu screenshots don't exceed this.
-ERR_RESP = "https://c.ussr.pl/"  # We do a lil trolley.
+FS_LIMIT = 500_000
+ERR_RESP = "https://akatsuki.pw/"
 SS_NAME_LEN = 8
 
 SS_PATH = Path(config.DATA_DIR) / "screenshots"
@@ -30,7 +29,7 @@ async def is_ratelimit(ip: str) -> bool:
     """Checks if an IP is ratelimited from taking screenshots. If not,
     it establishes the limit in Redis."""
 
-    rl_key = "ussr:ss_limit:" + ip
+    rl_key = "less:ss_limit:" + ip
     if await app.state.services.redis.get(rl_key):
         return True
 

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import os
 import time
 from base64 import b64decode
 from copy import copy
@@ -52,7 +50,7 @@ async def parse_form(score_data: FormData) -> Optional[ScoreData]:
         logger.warning(f"Failed to validate score multipart data: ({exc.args[0]})")
         return None
     else:
-        return (
+        return ScoreData(
             score_data_b64.encode(),
             replay_file,
         )
@@ -83,7 +81,7 @@ def decrypt_score_data(
 
 
 DATA_PATH = Path(config.DATA_DIR)
-MAPS_PATH = DATA_PATH / "maps"
+MAPS_PATH = DATA_PATH / "beatmaps"
 
 
 T = TypeVar("T", bound=Union[int, float])
@@ -114,7 +112,7 @@ async def submit_score(
 
     score_params = await parse_form(await request.form())
     if not score_params:
-        return
+        return b"error: no"
 
     score_data_b64, replay_file = score_params
     score_data, _ = decrypt_score_data(
@@ -130,7 +128,7 @@ async def submit_score(
 
     username = score_data[1].rstrip()
     if not (user := await app.usecases.user.auth_user(username, password_md5)):
-        return  # empty resp tells osu to retry
+        return b""  # empty resp tells osu to retry
 
     score = Score.from_submission(score_data[2:], beatmap_md5, user)
     leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
@@ -144,7 +142,6 @@ async def submit_score(
     if not token and not config.CUSTOM_CLIENTS:
         await app.usecases.user.restrict_user(
             user,
-            "Tampering with osu!auth.",
             "The client has not sent an anticheat token to the server, meaning "
             "that they either have disabled the anticheat, or are using a custom/older "
             "client. (score submit gate)",
@@ -153,7 +150,6 @@ async def submit_score(
     if user_agent != "osu!":
         await app.usecases.user.restrict_user(
             user,
-            "Score submitter or other external client behaviour emulator",
             "The expected user-agent header for an osu! client is 'osu!', while "
             f"the client sent '{user_agent}'. (score submit gate)",
         )
@@ -161,7 +157,6 @@ async def submit_score(
     if score.mods.conflict:
         await app.usecases.user.restrict_user(
             user,
-            "Illegal score mod combination.",
             "The user attempted to submit a score with the mod combination "
             f"+{score.mods!r}, which contains mutually exclusive/illegal mods. "
             "(score submit gate)",
@@ -213,12 +208,11 @@ async def submit_score(
 
     if (
         beatmap.gives_pp
-        and score.pp > score.mode.pp_cap
-        and not await app.usecases.verified.get_verified(user.id)
+        and score.pp > await app.usecases.pp_cap.get_pp_cap(score.mode, score.mods)
+        and not await app.usecases.whitelist.get_whitelisted(user.id, score.mode)
     ):
         await restrict_user(
             user,
-            f"Surpassing PP cap as unverified!",
             "The user attempted to submit a score with PP higher than the "
             f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
             f" ID: {score.id} (score submit gate)",
@@ -232,10 +226,11 @@ async def submit_score(
 
     score.id = await app.state.services.database.execute(
         (
+            # TODO: add playtime
             f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
-            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, playtime) VALUES "
+            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp) VALUES "
             "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
-            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :playtime)"
+            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp)"
         ),
         score.db_dict,
     )
@@ -243,32 +238,28 @@ async def submit_score(
     if score.passed:
         replay_data = await replay_file.read()
 
-        replay_path = app.utils.VANILLA_REPLAYS
-        if score.mode.relax:
-            replay_path = app.utils.RELAX_REPLAYS
-
-        if score.mode.autopilot:
-            replay_path = app.utils.AUTOPILOT_REPLAYS
-
         if len(replay_data) < 24:
             await restrict_user(
                 user,
-                "Score submit without replay.",
                 "The user attempted to submit a completed score without a replay "
                 "attached. This should NEVER happen and means they are likely using "
                 "a replay editor. (score submit gate)",
             )
         else:
-            replay_file = replay_path / f"replay_{score.id}.osr"
-            replay_file.write_bytes(replay_data)
-
-    asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
-    asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
+            async with app.state.services.http.post(
+                f"http://localhost:3030/save?id={score.id}",
+                data=replay_data,
+            ):
+                ...
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
+    if stats is None:
+        return b"error: no"
+
     old_stats = copy(stats)
 
     stats.playcount += 1
+    stats.playtime += score.time_elapsed
     stats.total_score += score.score
     stats.total_hits += score.n300 + score.n100 + score.n50
 
@@ -276,14 +267,15 @@ async def submit_score(
         if beatmap.status == RankedStatus.RANKED:
             stats.ranked_score += score.score
 
-            if score.old_best and score.status == ScoreStatus.BEST:
+            if score.status == ScoreStatus.BEST and score.old_best is not None:
                 stats.ranked_score -= score.old_best.score
 
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
 
-        if score.status == ScoreStatus.BEST and score.pp:
-            await app.usecases.stats.full_recalc(stats, score.pp)
+        if score.status == ScoreStatus.BEST:
+            if score.pp:
+                await app.usecases.stats.full_recalc(stats, score.pp)
 
             await leaderboard.add_score(score)
 
@@ -317,12 +309,8 @@ async def submit_score(
                 score,
                 beatmap,
                 user,
-                old_stats,
-                stats,
             ),
         )
-
-    asyncio.create_task(app.utils.notify_new_score(score.id))
 
     if score.old_best:
         beatmap_ranking_chart = (
@@ -331,7 +319,7 @@ async def submit_score(
             chart_entry("totalScore", score.old_best.score, score.score),
             chart_entry("maxCombo", score.old_best.max_combo, score.max_combo),
             chart_entry("accuracy", round(score.old_best.acc, 2), round(score.acc, 2)),
-            chart_entry("pp", round(score.old_best.pp, 2), round(score.pp, 2)),
+            chart_entry("pp", round(score.old_best.pp), round(score.pp)),
         )
     else:
         beatmap_ranking_chart = (
@@ -340,7 +328,7 @@ async def submit_score(
             chart_entry("totalScore", None, score.score),
             chart_entry("maxCombo", None, score.max_combo),
             chart_entry("accuracy", None, round(score.acc, 2)),
-            chart_entry("pp", None, round(score.pp, 2)),
+            chart_entry("pp", None, round(score.pp)),
         )
 
     overall_ranking_chart = (
@@ -349,7 +337,7 @@ async def submit_score(
         chart_entry("totalScore", old_stats.total_score, stats.total_score),
         chart_entry("maxCombo", old_stats.max_combo, stats.max_combo),
         chart_entry("accuracy", round(old_stats.accuracy, 2), round(stats.accuracy, 2)),
-        chart_entry("pp", old_stats.pp, stats.pp),
+        chart_entry("pp", round(old_stats.pp), round(stats.pp)),
     )
 
     new_achievements: list[str] = []

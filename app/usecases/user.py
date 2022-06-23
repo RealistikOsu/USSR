@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from typing import Any
+from typing import Awaitable
 from typing import Callable
 from typing import Optional
 
@@ -16,10 +17,7 @@ import app.utils
 import logger
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
-from app.models.beatmap import Beatmap
-from app.models.score import Score
 from app.models.user import User
-from config import config
 
 
 async def fetch_db(username: str) -> Optional[User]:
@@ -108,7 +106,7 @@ def authenticate_user(
     name_arg: str = "u",
     password_arg: str = "p",
     error_text: Optional[Any] = None,
-) -> Optional[User]:
+) -> Callable[[str, str], Awaitable[User]]:
     async def wrapper(
         username: str = param_function(..., alias=name_arg),
         password: str = param_function(..., alias=password_arg),
@@ -140,19 +138,19 @@ async def remove_from_leaderboard(user: User) -> None:
 
     for mode in ("std", "taiko", "ctb", "mania"):
         await app.state.services.redis.zrem(f"ripple:leaderboard:{mode}", uid)
-        await app.state.services.redis.zrem(f"ripple:leaderboard_relax:{mode}", uid)
-        await app.state.services.redis.zrem(f"ripple:leaderboard_ap:{mode}", uid)
+        await app.state.services.redis.zrem(f"ripple:relaxboard:{mode}", uid)
+        await app.state.services.redis.zrem(f"ripple:autoboard:{mode}", uid)
 
         if user.country and (c := user.country.lower()) != "xx":
             await app.state.services.redis.zrem(f"ripple:leaderboard:{mode}:{c}", uid)
 
             await app.state.services.redis.zrem(
-                f"ripple:leaderboard_relax:{mode}:{c}",
+                f"ripple:relaxboard:{mode}:{c}",
                 uid,
             )
 
             await app.state.services.redis.zrem(
-                f"ripple:leaderboard_ap:{mode}:{c}",
+                f"ripple:autoboard:{mode}:{c}",
                 uid,
             )
 
@@ -161,36 +159,34 @@ async def notify_ban(user: User) -> None:
     await app.state.services.redis.publish("peppy:ban", user.id)
 
 
-async def insert_ban_log(user: User, summary: str, detail: str) -> None:
+async def insert_ban_log(user: User, detail: str) -> None:
     """Inserts a ban log into the database.
 
     Note:
-        This function prefixes the detail with `"USSR Autoban: "` before
+        This function prefixes the detail with `"LESS Autoban: "` before
         inserting it into the database.
     """
 
-    # Prefix the detail with a ussr autoban.
-    detail = "USSR Autoban: " + detail
+    # Prefix the detail with a less autoban.
+    detail = "LESS Autoban: " + detail
 
     await app.state.services.database.execute(
-        "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (:from_id, :to_id, :summary, :detail)",
+        "INSERT INTO rap_logs (userid, text, datetime, through) VALUES (:uid, :text, :time, :thru)",
         {
-            "from_id": config.BOT_USER_ID,
-            "to_id": user.id,
-            "summary": summary,
-            "detail": detail,
+            "uid": user.id,
+            "text": detail,
+            "time": int(time.time()),
+            "thru": "LESS",
         },
     )
 
 
 DEFAULT_SUMMARY = "No summary available."
-DEFAULT_DETAIL = "No detail available."
 
 
 async def restrict_user(
     user: User,
     summary: str = DEFAULT_SUMMARY,
-    detail: str = DEFAULT_DETAIL,
 ) -> None:
     if user.privileges.is_restricted:
         return
@@ -206,7 +202,7 @@ async def restrict_user(
         },
     )
 
-    await insert_ban_log(user, summary, detail)
+    await insert_ban_log(user, summary)
     await notify_ban(user)
     await remove_from_leaderboard(user)
 
@@ -216,38 +212,23 @@ async def restrict_user(
     logger.info(f"{user} has been restricted for {summary}!")
 
 
-async def fetch_achievements(user_id: int) -> list[int]:
+async def fetch_achievements(user_id: int, mode: Mode) -> list[int]:
     db_achievements = await app.state.services.database.fetch_all(
-        "SELECT achievement_id FROM users_achievements WHERE user_id = :id",
-        {"id": user_id},
+        "SELECT achievement_id FROM users_achievements WHERE user_id = :id AND mode = :mode",
+        {"id": user_id, "mode": mode.value},
     )
 
     return [ach["achievement_id"] for ach in db_achievements]
 
 
-async def unlock_achievement(user_id: int, ach_id: int) -> None:
+async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> None:
     await app.state.services.database.execute(
-        "INSERT INTO users_achievements (achievement_id, user_id, time) VALUES (:aid, :uid, :timestamp)",
-        {"aid": ach_id, "uid": user_id, "timestamp": int(time.time())},
-    )
-
-
-async def increment_playtime(score: Score, beatmap: Beatmap) -> None:
-    await app.state.services.database.execute(
-        f"UPDATE {score.mode.stats_table} SET playtime_{score.mode.stats_prefix} = playtime_{score.mode.stats_prefix} + :new WHERE id = :id",
+        "INSERT INTO users_achievements (achievement_id, user_id, mode, created_at) "
+        "VALUES (:achievement_id, :user_id, :mode, :timestamp)",
         {
-            "new": app.usecases.score.get_non_computed_playtime(score, beatmap),
-            "id": score.user_id,
-        },
-    )
-
-
-async def increment_replays_watched(user_id: int, mode: Mode) -> None:
-    await app.state.services.database.execute(
-        "UPDATE users_stats SET replays_watched_{0} = replays_watched_{0} + 1 WHERE id = :id".format(
-            mode.stats_prefix,
-        ),
-        {
-            "id": user_id,
+            "achievement_id": achievement_id,
+            "user_id": user_id,
+            "mode": mode.value,
+            "timestamp": int(time.time()),
         },
     )

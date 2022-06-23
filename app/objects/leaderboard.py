@@ -66,12 +66,10 @@ class Leaderboard:
 
         for score in self.scores:
             user_privilege = await app.usecases.privileges.get_privilege(score.user_id)
-            if user_privilege.is_restricted and not (
-                score.user_id == user_id and include_self
+            if not user_privilege.is_restricted or (
+                include_self and score.user_id == user_id
             ):
-                continue
-
-            scores.append(score)
+                scores.append(score)
 
         return scores
 
@@ -89,7 +87,11 @@ class Leaderboard:
 
         self.scores = sorted(self.scores, key=sort, reverse=True)
 
-    async def whatif_placement(self, user_id: int, sort_value: Union[int, float]) -> int:
+    async def whatif_placement(
+        self,
+        user_id: int,
+        sort_value: Union[int, float],
+    ) -> int:
         unrestricted_scores = await self.get_unrestricted_scores(user_id)
 
         for idx, score in enumerate(unrestricted_scores):
