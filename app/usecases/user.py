@@ -171,7 +171,8 @@ async def insert_ban_log(user: User, detail: str) -> None:
     detail = "LESS Autoban: " + detail
 
     await app.state.services.database.execute(
-        "INSERT INTO rap_logs (userid, text, datetime, through) VALUES (:uid, :text, :time, :thru)",
+        "INSERT INTO rap_logs (userid, text, datetime, through) "
+        "VALUES (:uid, :text, :time, :thru)",
         {
             "uid": user.id,
             "text": detail,
@@ -216,7 +217,8 @@ async def restrict_user(
 
 async def fetch_achievements(user_id: int, mode: Mode) -> list[int]:
     db_achievements = await app.state.services.database.fetch_all(
-        "SELECT achievement_id FROM users_achievements WHERE user_id = :id AND mode = :mode",
+        "SELECT achievement_id FROM users_achievements "
+        "WHERE user_id = :id AND mode = :mode",
         {"id": user_id, "mode": mode.value},
     )
 

@@ -16,8 +16,8 @@ mode_str = (
     "std!ap",
 )
 
-RELAX_OFFSET = 1_073_741_823
-AP_OFFSET = 2_000_000_000
+RELAX_OFFSET = 500000000
+AP_OFFSET = 6148914691236517204
 
 
 class Mode(IntEnum):
@@ -120,9 +120,9 @@ class Mode(IntEnum):
     @classmethod
     def from_offset(cls, score_id: int) -> Mode:
         # IMPORTANT NOTE: this does not return the correct MODE, just the correct vn/rx/ap representation
-        if RELAX_OFFSET < score_id < AP_OFFSET:
+        if score_id < RELAX_OFFSET:
             return Mode.STD_RX
-        elif score_id > AP_OFFSET:
+        elif score_id >= AP_OFFSET:
             return Mode.STD_AP
 
         return Mode.STD
