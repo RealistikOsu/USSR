@@ -323,7 +323,7 @@ async def submit_score(
             chart_entry("totalScore", score.old_best.score, score.score),
             chart_entry("maxCombo", score.old_best.max_combo, score.max_combo),
             chart_entry("accuracy", round(score.old_best.acc, 2), round(score.acc, 2)),
-            chart_entry("pp", round(score.old_best.pp, 2), round(score.pp, 2)),
+            chart_entry("pp", round(score.old_best.pp), round(score.pp)),
         )
     else:
         beatmap_ranking_chart = (
@@ -332,7 +332,7 @@ async def submit_score(
             chart_entry("totalScore", None, score.score),
             chart_entry("maxCombo", None, score.max_combo),
             chart_entry("accuracy", None, round(score.acc, 2)),
-            chart_entry("pp", None, round(score.pp, 2)),
+            chart_entry("pp", None, round(score.pp)),
         )
 
     overall_ranking_chart = (
@@ -341,7 +341,7 @@ async def submit_score(
         chart_entry("totalScore", old_stats.total_score, stats.total_score),
         chart_entry("maxCombo", old_stats.max_combo, stats.max_combo),
         chart_entry("accuracy", round(old_stats.accuracy, 2), round(stats.accuracy, 2)),
-        chart_entry("pp", old_stats.pp, stats.pp),
+        chart_entry("pp", round(old_stats.pp), round(stats.pp)),
     )
 
     new_achievements: list[str] = []
