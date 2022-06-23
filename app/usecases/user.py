@@ -191,13 +191,15 @@ async def restrict_user(
     if user.privileges.is_restricted:
         return
 
+    # TODO: add ban reason?
     user.privileges = user.privileges & ~Privileges.USER_PUBLIC
     await app.state.services.database.execute(
-        "UPDATE users SET privileges = :new_priv, ban_datetime = :ban_time, ban_reason = :ban_reason WHERE id = :id",
+        "UPDATE users SET privileges = :new_priv, ban_datetime = :ban_time "
+        "WHERE id = :id",  # ban_reason = :ban_reason
         {
             "new_priv": user.privileges,
             "ban_time": int(time.time()),
-            "ban_reason": summary,
+            # "ban_reason": summary,
             "id": user.id,
         },
     )
