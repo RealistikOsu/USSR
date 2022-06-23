@@ -40,7 +40,7 @@ class Score:
     status: ScoreStatus
 
     time: int
-    time_elapsed: int
+    time_elapsed: int = 0  # TODO: store this in db
 
     rank: int = 0
     old_best: Optional[Score] = None
@@ -77,7 +77,7 @@ class Score:
             "completed": self.status.value,
             "accuracy": self.acc,
             "pp": self.pp,
-            "playtime": self.time_elapsed,
+            # "playtime": self.time_elapsed,
         }
 
     @classmethod
@@ -102,7 +102,7 @@ class Score:
             acc=result["accuracy"],
             pp=result["pp"],
             sr=0.0,  # irrelevant in this case
-            time_elapsed=result["playtime"],
+            # time_elapsed=result["playtime"],
             passed=result["completed"] > ScoreStatus.FAILED,
             quit=result["completed"] == ScoreStatus.QUIT,
         )

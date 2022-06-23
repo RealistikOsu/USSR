@@ -129,7 +129,7 @@ def get_computed_playtime(score: Score, beatmap: Beatmap) -> int:
     if beatmap.hit_length and value > beatmap.hit_length * 1.33:
         return 0
 
-    return value
+    return int(value)
 
 
 async def handle_first_place(
