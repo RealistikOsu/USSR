@@ -10,7 +10,6 @@ from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
 from . import direct
-from . import error
 from . import lastfm
 from . import leaderboards
 from . import pp
@@ -47,8 +46,6 @@ router.add_api_route("/d/{set_id}", direct.download_map)
 router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
 
 router.add_api_route("/web/lastfm.php", lastfm.lastfm)
-
-router.add_api_route("/web/osu-error.php", error.error)
 
 router.add_api_route("/web/osu-rate.php", rate.rate_map)
 

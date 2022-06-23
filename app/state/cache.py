@@ -10,7 +10,7 @@ ACHIEVEMENTS: list[Achievement] = []
 
 async def init_cache() -> None:
     db_achievements = await app.state.services.database.fetch_all(
-        "SELECT * FROM ussr_achievements",
+        "SELECT * FROM less_achievements",
     )
 
     for achievement in db_achievements:

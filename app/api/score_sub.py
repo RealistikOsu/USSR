@@ -12,6 +12,8 @@ from typing import Optional
 from typing import TypeVar
 from typing import Union
 
+import aiohttp
+from aiohttp import ClientSession
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
@@ -83,7 +85,7 @@ def decrypt_score_data(
 
 
 DATA_PATH = Path(config.DATA_DIR)
-MAPS_PATH = DATA_PATH / "maps"
+MAPS_PATH = DATA_PATH / "beatmaps"
 
 
 T = TypeVar("T", bound=Union[int, float])
@@ -213,8 +215,8 @@ async def submit_score(
 
     if (
         beatmap.gives_pp
-        and score.pp > score.mode.pp_cap
-        and not await app.usecases.verified.get_verified(user.id)
+        and score.pp > await app.usecases.pp_cap.get_pp_cap(score.mode, score.mods)
+        and not await app.usecases.whitelist.get_whitelisted(user.id, score.mode)
     ):
         await restrict_user(
             user,
@@ -243,13 +245,6 @@ async def submit_score(
     if score.passed:
         replay_data = await replay_file.read()
 
-        replay_path = app.utils.VANILLA_REPLAYS
-        if score.mode.relax:
-            replay_path = app.utils.RELAX_REPLAYS
-
-        if score.mode.autopilot:
-            replay_path = app.utils.AUTOPILOT_REPLAYS
-
         if len(replay_data) < 24:
             await restrict_user(
                 user,
@@ -259,8 +254,11 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            replay_file = replay_path / f"replay_{score.id}.osr"
-            replay_file.write_bytes(replay_data)
+            async with ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
+                await session.post(
+                    f"http://localhost:3030/save?id={score.id}",
+                    data=replay_data,
+                )
 
     asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
     asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
@@ -317,12 +315,8 @@ async def submit_score(
                 score,
                 beatmap,
                 user,
-                old_stats,
-                stats,
             ),
         )
-
-    asyncio.create_task(app.utils.notify_new_score(score.id))
 
     if score.old_best:
         beatmap_ranking_chart = (

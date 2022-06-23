@@ -66,16 +66,6 @@ class Mode(IntEnum):
         return "scores"
 
     @cached_property
-    def pp_cap(self) -> int:
-        if self.relax:
-            return config.PP_CAP_RX
-
-        if self.autopilot:
-            return config.PP_CAP_AP
-
-        return config.PP_CAP_VN
-
-    @cached_property
     def stats_table(self) -> str:
         if self.relax:
             return "rx_stats"
@@ -98,14 +88,12 @@ class Mode(IntEnum):
 
     @cached_property
     def redis_leaderboard(self) -> str:
-        suffix = ""
-
         if self.relax:
-            suffix = "_relax"
+            return "relaxboard"
         elif self.autopilot:
-            suffix = "_ap"
+            return "autoboard"
 
-        return f"leaderboard{suffix}"
+        return "leaderboard"
 
     @cached_property
     def relax_int(self) -> int:

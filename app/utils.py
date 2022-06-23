@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from typing import Union
+from urllib.parse import urlencode
 
 import orjson
 
@@ -12,17 +13,11 @@ from config import config
 
 REQUIRED_FOLDERS = (
     config.DATA_DIR,
-    f"{config.DATA_DIR}/replays/",
-    f"{config.DATA_DIR}/replays_relax/",
-    f"{config.DATA_DIR}/replays_ap/",
-    f"{config.DATA_DIR}/maps/",
+    f"{config.DATA_DIR}/beatmaps/",
     f"{config.DATA_DIR}/screenshots/",
 )
 
 DATA_PATH = Path(config.DATA_DIR)
-RELAX_REPLAYS = DATA_PATH / "replays_relax"
-AUTOPILOT_REPLAYS = DATA_PATH / "replays_ap"
-VANILLA_REPLAYS = DATA_PATH / "replays"
 
 
 def ensure_folders():
@@ -50,22 +45,23 @@ def format_time(time: Union[int, float]) -> str:
 
 
 async def channel_message(channel: str, message: str) -> None:
-    msg = orjson.dumps(
+    params = urlencode(
         {
             "to": channel,
-            "message": message,
+            "msg": message,
+            "k": config.FOKABOT_KEY,
         },
     )
 
-    await app.state.services.redis.publish("peppy:bot_msg", msg)
+    async with ClientSession() as sesh:
+        await sesh.get(
+            f"http://localhost:5001/api/v1/fokabotMessage?{params}",
+            timeout=2,
+        )
 
 
 async def announce(message: str) -> None:
     await channel_message("#announce", message)
-
-
-async def notify_new_score(score_id: int) -> None:
-    await app.state.services.redis.publish("api:score_submission", score_id)
 
 
 async def check_online(user_id: int, ip: str = None) -> bool:

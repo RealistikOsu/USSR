@@ -17,6 +17,7 @@ from app.objects.path import Path
 OPPAI_DIR = Path.cwd() / "akatsuki-pp"
 OPPAI_LIB = OPPAI_DIR / "liboppai.so"
 
+
 def ensure_oppai() -> None:
     if not OPPAI_DIR.exists():
         logger.error(f"Oppai folder {OPPAI_DIR} does not exist!")

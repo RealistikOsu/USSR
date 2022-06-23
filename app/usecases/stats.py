@@ -72,14 +72,14 @@ class RankInfo(NamedTuple):
 
 async def get_redis_rank(user_id: int, mode: Mode) -> RankInfo:
     redis_global_rank = await app.state.services.redis.zrevrank(
-        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}",
+        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}",
         user_id,
     )
     global_rank = int(redis_global_rank) + 1 if redis_global_rank else 0
 
     country = await app.usecases.countries.get_country(user_id)
     redis_country_rank = await app.state.services.redis.zrevrank(
-        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}:{country.lower()}",
+        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}:{country.lower()}",
         user_id,
     )
     country_rank = int(redis_country_rank) + 1 if redis_country_rank else 0
@@ -160,13 +160,13 @@ async def update_rank(stats: Stats) -> None:
     mode = stats.mode
 
     await app.state.services.redis.zadd(
-        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}",
+        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}",
         {stats.user_id: stats.pp},
     )
 
     country = await app.usecases.countries.get_country(stats.user_id)
     await app.state.services.redis.zadd(
-        f"ripple:{mode.redis_leaderboard}:{mode.stats_prefix}:{country.lower()}",
+        f"ripple:{mode.redis_leaderboard}:{mode.as_vn}:{country.lower()}",
         {stats.user_id: stats.pp},
     )
 

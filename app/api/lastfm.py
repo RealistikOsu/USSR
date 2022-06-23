@@ -85,7 +85,7 @@ async def log_lastfm_flag(user_id: int, flag: int, flag_text: str) -> None:
 
 
 async def lastfm(
-    user: User = Depends(authenticate_user(Query, "u", "h")),
+    user: User = Depends(authenticate_user(Query, "us", "ha")),
     map_id_or_anticheat_flag: str = Query(..., alias="b"),
 ):
     if not map_id_or_anticheat_flag.startswith("a"):

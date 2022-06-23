@@ -5,6 +5,8 @@ from typing import Union
 from logger import debug
 from logger import info
 
+import os
+
 __name__ = "ConfigModule"
 __author__ = "RealistikDash"
 __version__ = "v2.0.0"
@@ -17,6 +19,9 @@ class JsonFile:
 
     def __post_init__(self) -> None:
         """Reloads the file fully into memory."""
+
+        if not os.path.exists(self.file_name):
+            return
 
         with open(self.file_name) as f:
             self.file = loads(f.read())
@@ -142,6 +147,7 @@ class Config(ConfigReader):
     SRV_NAME: str = "osu!Akatsuki"
     DISCORD_ADMIN_HOOK: str = ""
     BOT_USER_ID: int = 999
+    FOKABOT_KEY: str = ""
 
 
 config = Config()
