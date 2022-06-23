@@ -1,4 +1,4 @@
-# USSR
+# USSR <img src="https://user-images.githubusercontent.com/58812660/175291577-ec344af0-6d56-49aa-aba6-27b0a369577b.png" align="right" width="150">
 Ultimate Score Server for RealistikOsu (well not just us but it makes the acronym work.)
 *Also I wonder how long this name will last*.
 
