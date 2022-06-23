@@ -1,9 +1,9 @@
-# USSR <img src="https://user-images.githubusercontent.com/58812660/175291577-ec344af0-6d56-49aa-aba6-27b0a369577b.png" align="right" width="150">
+# USSR <img src="https://user-images.githubusercontent.com/58812660/175291577-ec344af0-6d56-49aa-aba6-27b0a369577b.png" align="right" width="110">
 Ultimate Score Server for RealistikOsu (well not just us but it makes the acronym work.)
 *Also I wonder how long this name will last*.
 
-![Speed Flex](https://i.tsunyoku.xyz/raw_uploads/b4fdb5a5-8a58-45d4-9fd0-19e6531ac5c5)
 
+![Speed Flex](https://i.tsunyoku.xyz/raw_uploads/b4fdb5a5-8a58-45d4-9fd0-19e6531ac5c5)
 
 ## What is this?
 
