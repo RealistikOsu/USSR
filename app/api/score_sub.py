@@ -239,8 +239,7 @@ async def submit_score(
         ),
         score.db_dict,
     )
-    
-    
+
     if (
         beatmap.gives_pp
         and score.pp > await app.usecases.pp_cap.get_pp_cap(score.mode, score.mods)

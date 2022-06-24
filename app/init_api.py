@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import pprint
 
+import aiobotocore.session
 import aiohttp
 import orjson
 from fastapi import FastAPI
@@ -14,13 +16,10 @@ from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
 from starlette.middleware.base import RequestResponseEndpoint
 
-import contextlib
-import aiobotocore.session
 import app.redis
 import app.state
 import app.usecases
 import logger
-
 from config import config
 
 ctx_stack = contextlib.AsyncExitStack()

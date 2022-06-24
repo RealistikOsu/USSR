@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime
 from typing import Any
 from typing import Awaitable
 from typing import Callable
@@ -15,7 +16,6 @@ import app.usecases.privileges
 import app.usecases.score
 import app.utils
 import logger
-from datetime import datetime
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.user import User
@@ -170,7 +170,7 @@ async def insert_restrict_log(user: User, detail: str) -> None:
 
     # Prefix the detail with a less autoban.
     detail = f"[{datetime.utcnow()}] LESS Restrict: " + detail
-    
+
     await app.state.services.database.execute(
         f"UPDATE users SET notes = CONCAT(IFNULL(notes, ''), :detail) WHERE id = :id",
         {
@@ -201,7 +201,9 @@ async def restrict_user(
     if user.privileges.is_restricted:
         return
 
-    user.privileges = (user.privileges | Privileges.USER_NORMAL) & ~Privileges.USER_PUBLIC
+    user.privileges = (
+        user.privileges | Privileges.USER_NORMAL
+    ) & ~Privileges.USER_PUBLIC
     await app.state.services.database.execute(
         "UPDATE users SET privileges = :new_priv, ban_datetime = UNIX_TIMESTAMP() "
         "WHERE id = :id",

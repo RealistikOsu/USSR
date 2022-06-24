@@ -78,7 +78,7 @@ class Score:
             "completed": self.status.value,
             "accuracy": self.acc,
             "pp": self.pp,
-            "patcher": self.using_patcher
+            "patcher": self.using_patcher,
             # "playtime": self.time_elapsed,
         }
 
