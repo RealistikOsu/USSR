@@ -284,8 +284,8 @@ async def submit_score(
         if beatmap.status == RankedStatus.RANKED and score.status == ScoreStatus.BEST:
             stats.ranked_score += score.score
                 
-                if score.old_best is not None:
-                    stats.ranked_score -= score.old_best.score
+            if score.old_best is not None:
+                stats.ranked_score -= score.old_best.score
 
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
