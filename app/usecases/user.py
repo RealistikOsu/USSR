@@ -15,6 +15,7 @@ import app.usecases.privileges
 import app.usecases.score
 import app.utils
 import logger
+from datetime import datetime
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.user import User
@@ -159,23 +160,31 @@ async def notify_ban(user: User) -> None:
     await app.state.services.redis.publish("peppy:ban", user.id)
 
 
-async def insert_ban_log(user: User, detail: str) -> None:
-    """Inserts a ban log into the database.
+async def insert_restrict_log(user: User, detail: str) -> None:
+    """Inserts a restrict log into the database.
 
     Note:
-        This function prefixes the detail with `"LESS Autoban: "` before
+        This function prefixes the detail with `"LESS Restrict: "` before
         inserting it into the database.
     """
 
     # Prefix the detail with a less autoban.
-    detail = "LESS Autoban: " + detail
+    detail = f"[{datetime.utcnow()}] LESS Restrict: " + detail
+    
+    await app.state.services.database.execute(
+        f"UPDATE users SET notes = CONCAT(IFNULL(notes, ''), :detail) WHERE id = :id",
+        {
+            "detail": f"\n{detail}",
+            "id": user.id,
+        },
+    )
 
     await app.state.services.database.execute(
         "INSERT INTO rap_logs (userid, text, datetime, through) "
         "VALUES (:uid, :text, :time, :thru)",
         {
-            "uid": user.id,
-            "text": detail,
+            "uid": config.BOT_USER_ID,
+            "text": f"restricted user {user.id}",
             "time": int(time.time()),
             "thru": "LESS",
         },
@@ -192,20 +201,18 @@ async def restrict_user(
     if user.privileges.is_restricted:
         return
 
-    # TODO: add ban reason?
     user.privileges = user.privileges & ~Privileges.USER_PUBLIC
     await app.state.services.database.execute(
         "UPDATE users SET privileges = :new_priv, ban_datetime = :ban_time "
-        "WHERE id = :id",  # ban_reason = :ban_reason
+        "WHERE id = :id",
         {
             "new_priv": user.privileges,
             "ban_time": int(time.time()),
-            # "ban_reason": summary,
             "id": user.id,
         },
     )
 
-    await insert_ban_log(user, summary)
+    await insert_restrict_log(user, summary)
     await notify_ban(user)
     await remove_from_leaderboard(user)
 
