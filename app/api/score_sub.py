@@ -214,7 +214,7 @@ async def submit_score(
         )
 
     try:
-        decoded = base64.b64decode(visual_settings_b64).decode(errors="ignore")
+        decoded = b64decode(visual_settings_b64).decode(errors="ignore")
 
         if (
             decoded[8] == "-"
@@ -281,11 +281,11 @@ async def submit_score(
     stats.total_hits += score.n300 + score.n100 + score.n50
 
     if score.passed and beatmap.has_leaderboard:
-        if beatmap.status == RankedStatus.RANKED:
+        if beatmap.status == RankedStatus.RANKED and score.status == ScoreStatus.BEST:
             stats.ranked_score += score.score
-
-            if score.status == ScoreStatus.BEST and score.old_best is not None:
-                stats.ranked_score -= score.old_best.score
+                
+                if score.old_best is not None:
+                    stats.ranked_score -= score.old_best.score
 
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
