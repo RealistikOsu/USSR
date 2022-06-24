@@ -134,20 +134,34 @@ class Config(ConfigReader):
     """The main class for the storage of config values.
     These values are read directly from the `config.json` file."""
 
-    PORT: int = 2137
-    SQL_HOST: str = "localhost"
-    SQL_USER: str = "root"
-    SQL_DB: str = "akatsuki"
-    SQL_PASS: str = "db password"
-    DATA_DIR: str = ".data"
-    DIRECT_URL: str = "https://catboy.best/api"
-    API_KEYS_POOL: list = ["keys here"]
-    CUSTOM_CLIENTS: bool = False  # Allow custom clients on
-    SRV_URL: str = "https://akatsuki.pw"
-    SRV_NAME: str = "osu!Akatsuki"
-    DISCORD_ADMIN_HOOK: str = ""
-    BOT_USER_ID: int = 999
-    FOKABOT_KEY: str = ""
+    PORT: int  # 7000
+
+    DB_HOST: str  # "localhost"
+    DB_USER: str  # "root"
+    DB_NAME: str  # "akatsuki"
+    DB_PASS: str  # "your_db_password"
+
+    DATA_DIR: str  # ".data"
+
+    DIRECT_URL: str  # "https://catboy.best/api"
+
+    API_KEYS_POOL: list[str]  # ["keys here"]
+
+    ALLOW_CUSTOM_CLIENTS: bool  # False  # Allow custom clients on
+
+    SRV_URL: str  # "https://akatsuki.pw"
+    SRV_NAME: str  # "osu!Akatsuki"
+
+    DISCORD_ADMIN_HOOK: str  # ""
+
+    BOT_USER_ID: int  # 999
+    FOKABOT_KEY: str  # ""
+
+    AWS_REGION: str  # "ca-central-1"
+    AWS_ACCESS_KEY_ID: str  # "your_access_key_id"
+    AWS_SECRET_ACCESS_KEY: str  # "your_secret_access_key"
+    AWS_ENDPOINT_URL: str  # f"https://s3.ca-central-1.wasabisys.com"
+    AWS_BUCKET_NAME: str  # "akatsuki.pw"
 
 
 config = Config()

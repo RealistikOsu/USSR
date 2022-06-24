@@ -14,10 +14,16 @@ from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
 from starlette.middleware.base import RequestResponseEndpoint
 
+import contextlib
+import aiobotocore.session
 import app.redis
 import app.state
 import app.usecases
 import logger
+
+from config import config
+
+ctx_stack = contextlib.AsyncExitStack()
 
 
 def init_events(asgi_app: FastAPI) -> None:
@@ -28,6 +34,16 @@ def init_events(asgi_app: FastAPI) -> None:
 
         app.state.services.http = aiohttp.ClientSession(
             json_serialize=lambda x: orjson.dumps(x).decode(),
+        )
+
+        app.state.services.s3_client = await ctx_stack.enter_async_context(
+            aiobotocore.session.get_session().create_client(  # type: ignore
+                "s3",
+                region_name=config.AWS_REGION,
+                aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+                endpoint_url=config.AWS_ENDPOINT_URL,
+            ),
         )
 
         await app.state.cache.init_cache()
@@ -55,6 +71,8 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.redis.close()
 
         await app.state.services.http.close()
+
+        await ctx_stack.aclose()
 
         logger.info("Server has shutdown!")
 
