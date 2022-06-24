@@ -24,8 +24,7 @@ async def update_privilege(user_id: int) -> Privileges:
     )
 
     if not db_privilege:
-        PRIVILEGES[user_id] = Privileges(2)
-        return Privileges(2)  # assume restricted? xd
+        raise Exception(f"User {user_id} not found in database!")
 
     privilege = Privileges(db_privilege)
     PRIVILEGES[user_id] = privilege
