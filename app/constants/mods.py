@@ -83,6 +83,9 @@ class Mods(IntFlag):
         if self & Mods.AUTOPLAY:
             return False
 
+        if self & Mods.SCOREV2:
+            return False
+
         return True
 
     @property
