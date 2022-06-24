@@ -207,18 +207,6 @@ async def submit_score(
         # duplicate score detected
         return b"error: no"
 
-    if (
-        beatmap.gives_pp
-        and score.pp > await app.usecases.pp_cap.get_pp_cap(score.mode, score.mods)
-        and not await app.usecases.whitelist.get_whitelisted(user.id, score.mode)
-    ):
-        await restrict_user(
-            user,
-            "The user attempted to submit a score with PP higher than the "
-            f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
-            f" ID: {score.id} (score submit gate)",
-        )
-
     if score.status == ScoreStatus.BEST:
         await app.state.services.database.execute(
             f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
@@ -235,6 +223,19 @@ async def submit_score(
         ),
         score.db_dict,
     )
+    
+    
+    if (
+        beatmap.gives_pp
+        and score.pp > await app.usecases.pp_cap.get_pp_cap(score.mode, score.mods)
+        and not await app.usecases.whitelist.get_whitelisted(user.id, score.mode)
+    ):
+        await restrict_user(
+            user,
+            "The user attempted to submit a score with PP higher than the "
+            f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
+            f" ID: {score.id} (score submit gate)",
+        )
 
     if score.passed:
         replay_data = await replay_file.read()
