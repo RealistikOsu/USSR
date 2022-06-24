@@ -149,7 +149,7 @@ class Config(ConfigReader):
 
     ALLOW_CUSTOM_CLIENTS: bool  # False  # Allow custom clients on
 
-    SRV_URL: str  # "https://akatsuki.pw"
+    SRV_URL: str  # "akatsuki.pw"
     SRV_NAME: str  # "osu!Akatsuki"
 
     DISCORD_ADMIN_HOOK: str  # ""

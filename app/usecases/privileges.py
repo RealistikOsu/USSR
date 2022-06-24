@@ -23,7 +23,7 @@ async def update_privilege(user_id: int) -> Privileges:
         {"id": user_id},
     )
 
-    if not db_privilege:
+    if db_privilege is None:
         raise Exception(f"User {user_id} not found in database!")
 
     privilege = Privileges(db_privilege)
