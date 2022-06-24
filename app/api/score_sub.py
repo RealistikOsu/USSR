@@ -213,13 +213,29 @@ async def submit_score(
             {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
         )
 
+    try:
+        decoded = base64.b64decode(visual_settings_b64).decode(errors="ignore")
+
+        if (
+            decoded[8] == "-"
+            and decoded[13] == "-"
+            and decoded[18] == "-"
+            and decoded[23] == "-"
+            and len(decoded) == 36
+        ):
+            score.using_patcher = True
+        else:
+            score.using_patcher = False
+    except Exception:
+        score.using_patcher = False
+
     score.id = await app.state.services.database.execute(
         (
             # TODO: add playtime
             f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
-            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp) VALUES "
+            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, patcher) VALUES "
             "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
-            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp)"
+            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :patcher)"
         ),
         score.db_dict,
     )
