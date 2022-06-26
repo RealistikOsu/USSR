@@ -43,6 +43,9 @@ async def osu_direct(
 
     params: dict[str, Any] = {"amount": 101, "offset": page_num}
 
+    if "akatsuki.pw" in config.DIRECT_URL or "akatest.space" in config.DIRECT_URL:
+        params["osu_direct"] = True
+
     if unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
         params["query"] = query
 
