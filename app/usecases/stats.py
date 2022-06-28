@@ -116,7 +116,7 @@ async def full_recalc(stats: Stats, score_pp: float) -> None:
 
         last_idx = idx
 
-    if last_idx == 99:
+    if last_idx == 99 and score_pp is not None:
         stats._required_recalc_pp = score_pp
 
     stats.accuracy = (total_acc * (100.0 / (20 * (1 - 0.95 ** (last_idx + 1))))) / 100
