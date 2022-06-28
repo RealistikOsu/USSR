@@ -18,6 +18,7 @@ from app.usecases.user import authenticate_user
 from config import config
 
 USING_CHIMU = "https://api.chimu.moe/v1" == config.DIRECT_URL
+CHIMU_SET_ID_SPELLING ="SetId" if USING_CHIMU else "SetID"
 
 DIRECT_SET_INFO_FMTSTR = (
     "{{{chimu_set_id_spelling}}}.osz|{{Artist}}|{{Title}}|{{Creator}}|"
