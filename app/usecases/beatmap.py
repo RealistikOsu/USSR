@@ -35,6 +35,14 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
                 ),
             )
 
+            for table in ("scores", "scores_relax", "scores_ap"):
+                asyncio.create_task(
+                    app.state.services.database.execute(
+                        f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
+                        {"old_md5": beatmap.md5},
+                    )
+                )
+
             if beatmap.frozen:
                 # if the previous version is status frozen, we should force the old status on the new version
                 new_beatmap.status = beatmap.status
@@ -46,6 +54,14 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
                 {"old_md5": beatmap.md5},
             ),
         )
+
+        for table in ("scores", "scores_relax", "scores_ap"):
+            asyncio.create_task(
+                app.state.services.database.execute(
+                    f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
+                    {"old_md5": beatmap.md5},
+                )
+            )
 
         return None
 
