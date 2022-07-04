@@ -115,29 +115,6 @@ async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
     return new_achievements
 
 
-def get_non_computed_playtime(score: Score, beatmap: Beatmap) -> int:
-    if score.passed:
-        return beatmap.hit_length
-
-    return score.time_elapsed // 1000
-
-
-def get_computed_playtime(score: Score, beatmap: Beatmap) -> int:
-    if score.passed:
-        return beatmap.hit_length
-
-    value = score.time_elapsed
-    if score.mods & Mods.DOUBLETIME:
-        value //= 1.5
-    elif score.mods & Mods.HALFTIME:
-        value //= 0.75
-
-    if beatmap.hit_length and value > beatmap.hit_length * 1.33:
-        return 0
-
-    return int(value)
-
-
 async def handle_first_place(
     score: Score,
     beatmap: Beatmap,

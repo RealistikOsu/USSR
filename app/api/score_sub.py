@@ -276,14 +276,14 @@ async def submit_score(
     old_stats = copy(stats)
 
     stats.playcount += 1
-    stats.playtime += score.time_elapsed
+    stats.playtime += score.time_elapsed // 1000
     stats.total_score += score.score
     stats.total_hits += score.n300 + score.n100 + score.n50
 
     if score.passed and beatmap.has_leaderboard:
         if beatmap.status == RankedStatus.RANKED and score.status == ScoreStatus.BEST:
             stats.ranked_score += score.score
-                
+
             if score.old_best is not None:
                 stats.ranked_score -= score.old_best.score
 
