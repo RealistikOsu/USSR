@@ -240,6 +240,17 @@ async def submit_score(
         score.db_dict,
     )
 
+    # update most played
+    await app.state.services.database.execute(
+        "INSERT INTO user_beatmaps (userid, map, rx, mode, count) VALUES (:uid, :md5, :rx, :mode, 1) ON DUPLICATE KEY UPDATE count = count + 1",
+        {
+            "uid": user.id,
+            "md5": score.map_md5,
+            "rx": score.mode.relax_int,
+            "mode": score.mode.as_vn,
+        },
+    )
+
     if (
         beatmap.gives_pp
         and score.pp > await app.usecases.pp_cap.get_pp_cap(score.mode, score.mods)
