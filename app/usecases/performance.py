@@ -83,7 +83,15 @@ def calculate_rosu(
     nmiss: int,
     osu_file_path: Path,
 ) -> tuple[float, float]:
-    calculator = Calculator(str(osu_file_path))
+    try:
+        calculator = Calculator(str(osu_file_path))
+    except Exception as e:
+        # messed up .osu file
+        if "osu file format" in str(e):
+            return (0.0, 0.0)
+
+        raise e
+
     params = ScoreParams(
         mods=mods,
         combo=max_combo,
