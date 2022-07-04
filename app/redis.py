@@ -96,7 +96,7 @@ async def handle_clan_change(payload: str) -> None:
     )
 
     for clan_user in clan_users:
-        await app.usecases.clans.update_clan(clan_user["id"])
+        await app.usecases.clans.update_clan(clan_user["user"])
 
     logger.info(f"Updated tag for clan ID {clan_id}")
 
