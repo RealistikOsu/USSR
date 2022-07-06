@@ -125,8 +125,8 @@ def calculate_performance(
 ) -> tuple[float, float]:
 
     calc_func = calculate_oppai if (mode.relax or mode.autopilot) and mode.as_vn == 0 \
-        else calculate_rosu;
-    return calc_func(mode, mods, max_combo, acc, nmiss, osu_file_path);
+        else calculate_rosu
+    return calc_func(mode, mods, max_combo, acc, nmiss, osu_file_path)
 
 
 def calculate_score(score: Score, osu_file_path: Path) -> None:
