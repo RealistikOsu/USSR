@@ -84,6 +84,7 @@ def calculate_oppai(
 
 
 def calculate_rosu(
+    mode: Mode,
     mods: int,
     max_combo: int,
     score: int,
@@ -93,6 +94,7 @@ def calculate_rosu(
 ) -> tuple[float, float]:
     calculator = Calculator(str(osu_file_path))
     params = ScoreParams(
+        mode=mode.value,
         mods=mods,
         combo=max_combo,
         score=score,
@@ -121,10 +123,10 @@ def calculate_performance(
     nmiss: int,
     osu_file_path: Path,
 ) -> tuple[float, float]:
-    if (mode.relax or mode.autopilot) and mode.as_vn == 0:
-        return calculate_oppai(mode, mods, max_combo, acc, nmiss, osu_file_path)
-    else:
-        return calculate_rosu(mods, max_combo, score, acc, nmiss, osu_file_path)
+
+    calc_func = calculate_oppai if (mode.relax or mode.autopilot) and mode.as_vn == 0 \
+        else calculate_rosu;
+    return calc_func(mode, mods, max_combo, acc, nmiss, osu_file_path);
 
 
 def calculate_score(score: Score, osu_file_path: Path) -> None:
