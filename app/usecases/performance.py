@@ -6,6 +6,7 @@ import os
 
 from rosu_pp_py import Calculator
 from rosu_pp_py import ScoreParams
+from rosu_pp_py import GameMode
 
 import app.state
 import logger
@@ -94,7 +95,7 @@ def calculate_rosu(
 ) -> tuple[float, float]:
     calculator = Calculator(str(osu_file_path))
     params = ScoreParams(
-        mode=mode.value,
+        mode=GameMode(mode.as_vn),
         mods=mods,
         combo=max_combo,
         score=score,
