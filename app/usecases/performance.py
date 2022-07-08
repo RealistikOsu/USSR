@@ -20,12 +20,8 @@ OPPAI_DIRS = (
     "oppai-rx",
 )
 
-ROSU_GAMEMODES = (
-    GameMode.Osu,
-    GameMode.Taiko,
-    GameMode.Catch,
-    GameMode.Mania
-)
+ROSU_GAMEMODES = (GameMode.Osu, GameMode.Taiko, GameMode.Catch, GameMode.Mania)
+
 
 def ensure_oppai() -> None:
     for dir in OPPAI_DIRS:
