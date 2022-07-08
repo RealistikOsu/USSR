@@ -20,6 +20,12 @@ OPPAI_DIRS = (
     "oppai-rx",
 )
 
+ROSU_GAMEMODES = (
+    GameMode.Osu,
+    GameMode.Taiko,
+    GameMode.Catch,
+    GameMode.Mania
+)
 
 def ensure_oppai() -> None:
     for dir in OPPAI_DIRS:
@@ -95,7 +101,7 @@ def calculate_rosu(
 ) -> tuple[float, float]:
     calculator = Calculator(str(osu_file_path))
     params = ScoreParams(
-        mode=GameMode(mode.as_vn),
+        mode=ROSU_GAMEMODES[mode.as_vn],
         mods=mods,
         combo=max_combo,
         score=score,
