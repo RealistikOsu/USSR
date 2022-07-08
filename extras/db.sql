@@ -1,8 +1,19 @@
 /*
 The RealistikOsu Database Structure.
 This is a Ripple based db schema around which USSR was designed.
-Dump: 20/6/22
+Dump: 8/7/22
 */
+
+CREATE TABLE `2fa_totp` (
+  `userid` int(11) NOT NULL,
+  `enabled` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `achievements`
+--
 
 CREATE TABLE `achievements` (
   `id` int(11) NOT NULL,
@@ -69,6 +80,7 @@ CREATE TABLE `ap_stats` (
   `pp_mania` int(11) NOT NULL DEFAULT '0',
   `pp_ctb` int(11) NOT NULL DEFAULT '0',
   `pp_taiko` int(11) NOT NULL DEFAULT '0',
+  `country` char(2) NOT NULL DEFAULT 'XX',
   `unrestricted_pp` int(11) NOT NULL DEFAULT '0',
   `ppboard` int(11) NOT NULL DEFAULT '1',
   `replays_watched_std` int(11) NOT NULL DEFAULT '0',
@@ -148,10 +160,75 @@ CREATE TABLE `bancho_tokens` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `banned_hwid`
+--
+
+CREATE TABLE `banned_hwid` (
+  `id` int(11) NOT NULL,
+  `mac_md5` char(32) NOT NULL,
+  `disk_md5` char(32) NOT NULL,
+  `unique_md5` char(32) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ban_logs`
+--
+
+CREATE TABLE `ban_logs` (
+  `id` int(11) NOT NULL,
+  `from_id` int(11) NOT NULL,
+  `to_id` int(11) NOT NULL,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `summary` varchar(256) NOT NULL,
+  `detail` varchar(2048) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `beatmaps`
 --
 
 CREATE TABLE `beatmaps` (
+  `beatmap_id` int(11) NOT NULL DEFAULT '0',
+  `beatmapset_id` int(11) NOT NULL DEFAULT '0',
+  `beatmap_md5` varchar(32) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `song_name` text CHARACTER SET latin1 NOT NULL,
+  `ar` float NOT NULL DEFAULT '0',
+  `od` float NOT NULL DEFAULT '0',
+  `mode` int(11) NOT NULL DEFAULT '0',
+  `rating` int(11) NOT NULL DEFAULT '10',
+  `difficulty_std` float NOT NULL DEFAULT '0',
+  `difficulty_taiko` float NOT NULL DEFAULT '0',
+  `difficulty_ctb` float NOT NULL DEFAULT '0',
+  `difficulty_mania` float NOT NULL DEFAULT '0',
+  `max_combo` int(11) NOT NULL DEFAULT '0',
+  `hit_length` int(11) NOT NULL DEFAULT '0',
+  `bpm` int(11) NOT NULL DEFAULT '0',
+  `playcount` int(11) NOT NULL DEFAULT '0',
+  `passcount` int(11) NOT NULL DEFAULT '0',
+  `ranked` tinyint(4) NOT NULL DEFAULT '0',
+  `latest_update` int(11) NOT NULL DEFAULT '0',
+  `ranked_status_freezed` tinyint(1) NOT NULL DEFAULT '0',
+  `pp_100` int(11) NOT NULL DEFAULT '0',
+  `pp_99` int(11) NOT NULL DEFAULT '0',
+  `pp_98` int(11) NOT NULL DEFAULT '0',
+  `pp_95` int(11) NOT NULL DEFAULT '0',
+  `disable_pp` tinyint(4) NOT NULL DEFAULT '0',
+  `file_name` longtext,
+  `rankedby` varchar(16) NOT NULL DEFAULT 'IDK',
+  `priv_crawler` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `beatmaps_old`
+--
+
+CREATE TABLE `beatmaps_old` (
   `id` int(11) NOT NULL,
   `beatmap_id` int(11) NOT NULL DEFAULT '0',
   `beatmapset_id` int(11) NOT NULL DEFAULT '0',
@@ -195,6 +272,34 @@ CREATE TABLE `beatmaps_rating` (
   `beatmap_md5` varchar(32) NOT NULL,
   `rating` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chat_chan_logs`
+--
+
+CREATE TABLE `chat_chan_logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `target_chan` varchar(64) NOT NULL,
+  `content` varchar(2048) NOT NULL,
+  `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chat_logs`
+--
+
+CREATE TABLE `chat_logs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `target_id` int(11) NOT NULL,
+  `content` varchar(2048) NOT NULL,
+  `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -262,6 +367,31 @@ CREATE TABLE `comments` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `discord_oauth`
+--
+
+CREATE TABLE `discord_oauth` (
+  `id` int(11) NOT NULL,
+  `user_id` int(12) NOT NULL,
+  `discord_id` varchar(32) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `discord_roles`
+--
+
+CREATE TABLE `discord_roles` (
+  `id` int(11) NOT NULL,
+  `userid` int(11) NOT NULL,
+  `discordid` bigint(19) NOT NULL,
+  `roleid` bigint(19) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `first_places`
 --
 
@@ -276,8 +406,8 @@ CREATE TABLE `first_places` (
   `300_count` int(11) NOT NULL,
   `100_count` int(11) NOT NULL,
   `50_count` int(11) NOT NULL,
-  `ckatus_count` INT(11) NOT NULL,
-  `cgekis_count` INT(11) NOT NULL,
+  `ckatus_count` int(11) NOT NULL DEFAULT '0',
+  `cgekis_count` int(11) NOT NULL DEFAULT '0',
   `miss_count` int(11) NOT NULL,
   `timestamp` int(11) NOT NULL,
   `mode` tinyint(4) NOT NULL,
@@ -332,6 +462,17 @@ CREATE TABLE `ip_user` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `irc_tokens`
+--
+
+CREATE TABLE `irc_tokens` (
+  `userid` int(11) NOT NULL DEFAULT '0',
+  `token` varchar(32) CHARACTER SET latin1 NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `lastfm_flags`
 --
 
@@ -356,6 +497,20 @@ CREATE TABLE `main_menu_icons` (
   `name` varchar(256) NOT NULL,
   `url` text CHARACTER SET utf8 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `merger_links`
+--
+
+CREATE TABLE `merger_links` (
+  `id` int(11) NOT NULL,
+  `source_id` int(11) NOT NULL,
+  `rosu_id` int(11) NOT NULL,
+  `merged` tinyint(1) NOT NULL DEFAULT '0',
+  `src_server` tinyint(2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -526,6 +681,7 @@ CREATE TABLE `rx_stats` (
   `pp_mania` int(11) NOT NULL DEFAULT '0',
   `pp_ctb` int(11) NOT NULL DEFAULT '0',
   `pp_taiko` int(11) NOT NULL DEFAULT '0',
+  `country` char(2) NOT NULL DEFAULT 'XX',
   `unrestricted_pp` int(11) NOT NULL DEFAULT '0',
   `ppboard` int(11) NOT NULL DEFAULT '1',
   `replays_watched_std` int(11) NOT NULL DEFAULT '0',
@@ -626,6 +782,18 @@ CREATE TABLE `scores_relax` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `seasonal_bg`
+--
+
+CREATE TABLE `seasonal_bg` (
+  `id` int(11) NOT NULL,
+  `enabled` tinyint(1) NOT NULL,
+  `url` varchar(256) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `system_settings`
 --
 
@@ -686,7 +854,8 @@ CREATE TABLE `users` (
   `firstloginafterfrozen` int(11) NOT NULL DEFAULT '0',
   `bypass_hwid` tinyint(1) NOT NULL DEFAULT '0',
   `ban_reason` varchar(128) NOT NULL DEFAULT '',
-  `country` VARCHAR(2) NOT NULL DEFAULT 'XX'
+  `disabled_comments` tinyint(2) NOT NULL DEFAULT '0',
+  `country` varchar(2) NOT NULL DEFAULT 'XX'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -760,6 +929,7 @@ CREATE TABLE `users_stats` (
   `total_hits_taiko` int(11) NOT NULL DEFAULT '0',
   `total_hits_ctb` int(11) NOT NULL DEFAULT '0',
   `total_hits_mania` int(11) NOT NULL DEFAULT '0',
+  `country` char(2) CHARACTER SET latin1 NOT NULL DEFAULT 'XX',
   `unrestricted_pp` int(11) NOT NULL DEFAULT '0',
   `ppboard` int(11) NOT NULL DEFAULT '0',
   `show_country` tinyint(4) NOT NULL DEFAULT '1',
@@ -825,6 +995,45 @@ CREATE TABLE `user_clans` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `user_comments`
+--
+
+CREATE TABLE `user_comments` (
+  `id` int(11) NOT NULL,
+  `op` int(11) NOT NULL,
+  `prof` int(11) NOT NULL,
+  `msg` varchar(400) NOT NULL,
+  `comment_date` varchar(30) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_pinned`
+--
+
+CREATE TABLE `user_pinned` (
+  `userid` int(11) NOT NULL,
+  `scoreid` int(11) NOT NULL,
+  `pin_date` varchar(30) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_statuses`
+--
+
+CREATE TABLE `user_statuses` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `status` varchar(256) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT '1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `ussr_achievements`
 --
 
@@ -837,39 +1046,8 @@ CREATE TABLE `ussr_achievements` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Table structure for table `seasonal_bg`
+-- Indexes for dumped tables
 --
-
-CREATE TABLE `seasonal_bg` (
-  `id` int(11) NOT NULL,
-  `enabled` tinyint(1) NOT NULL,
-  `url` varchar(256) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE user_pinned (
-    userid int NOT NULL,
-    scoreid int NOT NULL UNIQUE,
-    pin_date VARCHAR(30) NOT NULL DEFAULT '0'
-);
-
-ALTER TABLE `user_pinned` ADD INDEX(`userid`);
-
-CREATE TABLE `ban_logs` (
-  `id` int(11) NOT NULL,
-  `from_id` int(11) NOT NULL,
-  `to_id` int(11) NOT NULL,
-  `ts` datetime NOT NULL,
-  `summary` varchar(256) NOT NULL,
-  `detail` varchar(2048) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-ALTER TABLE `ban_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `to_id` (`to_id`);
-
-ALTER TABLE `ban_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
 
 --
 -- Indexes for table `achievements`
@@ -908,9 +1086,32 @@ ALTER TABLE `bancho_tokens`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `banned_hwid`
+--
+ALTER TABLE `banned_hwid`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `ban_logs`
+--
+ALTER TABLE `ban_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `to_id` (`to_id`);
+
+--
 -- Indexes for table `beatmaps`
 --
 ALTER TABLE `beatmaps`
+  ADD PRIMARY KEY (`beatmap_id`),
+  ADD UNIQUE KEY `beatmap_md5` (`beatmap_md5`),
+  ADD KEY `index2` (`beatmap_md5`),
+  ADD KEY `index3` (`beatmap_id`),
+  ADD KEY `bmap_id` (`beatmapset_id`,`ranked`);
+
+--
+-- Indexes for table `beatmaps_old`
+--
+ALTER TABLE `beatmaps_old`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id` (`id`),
   ADD KEY `id_2` (`id`),
@@ -923,6 +1124,22 @@ ALTER TABLE `beatmaps`
 --
 ALTER TABLE `beatmaps_rating`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `chat_chan_logs`
+--
+ALTER TABLE `chat_chan_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `target_chan` (`target_chan`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `chat_logs`
+--
+ALTER TABLE `chat_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `target_id` (`target_id`);
 
 --
 -- Indexes for table `clans`
@@ -946,6 +1163,20 @@ ALTER TABLE `client_err_logs`
 -- Indexes for table `comments`
 --
 ALTER TABLE `comments`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `discord_oauth`
+--
+ALTER TABLE `discord_oauth`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `discord_id` (`discord_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `discord_roles`
+--
+ALTER TABLE `discord_roles`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -974,6 +1205,12 @@ ALTER TABLE `ip_user`
   ADD UNIQUE KEY `userid` (`userid`);
 
 --
+-- Indexes for table `irc_tokens`
+--
+ALTER TABLE `irc_tokens`
+  ADD UNIQUE KEY `userid` (`userid`);
+
+--
 -- Indexes for table `lastfm_flags`
 --
 ALTER TABLE `lastfm_flags`
@@ -985,6 +1222,13 @@ ALTER TABLE `lastfm_flags`
 --
 ALTER TABLE `main_menu_icons`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `merger_links`
+--
+ALTER TABLE `merger_links`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `source_id` (`source_id`);
 
 --
 -- Indexes for table `new_achievements`
@@ -1076,6 +1320,13 @@ ALTER TABLE `scores_relax`
   ADD KEY `beatmap_md5` (`beatmap_md5`);
 
 --
+-- Indexes for table `seasonal_bg`
+--
+ALTER TABLE `seasonal_bg`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `enabled` (`enabled`);
+
+--
 -- Indexes for table `system_settings`
 --
 ALTER TABLE `system_settings`
@@ -1131,14 +1382,31 @@ ALTER TABLE `user_clans`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `user_comments`
+--
+ALTER TABLE `user_comments`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `user_pinned`
+--
+ALTER TABLE `user_pinned`
+  ADD UNIQUE KEY `scoreid` (`scoreid`),
+  ADD KEY `userid` (`userid`);
+
+--
+-- Indexes for table `user_statuses`
+--
+ALTER TABLE `user_statuses`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_id` (`user_id`),
+  ADD KEY `enabled` (`enabled`);
+
+--
 -- Indexes for table `ussr_achievements`
 --
 ALTER TABLE `ussr_achievements`
   ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `seasonal_bg`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `enabled` (`enabled`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -1175,15 +1443,39 @@ ALTER TABLE `bancho_tokens`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `beatmaps`
+-- AUTO_INCREMENT for table `banned_hwid`
 --
-ALTER TABLE `beatmaps`
+ALTER TABLE `banned_hwid`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `ban_logs`
+--
+ALTER TABLE `ban_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `beatmaps_old`
+--
+ALTER TABLE `beatmaps_old`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `beatmaps_rating`
 --
 ALTER TABLE `beatmaps_rating`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `chat_chan_logs`
+--
+ALTER TABLE `chat_chan_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `chat_logs`
+--
+ALTER TABLE `chat_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1211,6 +1503,18 @@ ALTER TABLE `comments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `discord_oauth`
+--
+ALTER TABLE `discord_oauth`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `discord_roles`
+--
+ALTER TABLE `discord_roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `first_places`
 --
 ALTER TABLE `first_places`
@@ -1232,6 +1536,12 @@ ALTER TABLE `lastfm_flags`
 -- AUTO_INCREMENT for table `main_menu_icons`
 --
 ALTER TABLE `main_menu_icons`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `merger_links`
+--
+ALTER TABLE `merger_links`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -1298,13 +1608,19 @@ ALTER TABLE `scores`
 -- AUTO_INCREMENT for table `scores_ap`
 --
 ALTER TABLE `scores_ap`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2000000000;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `scores_relax`
 --
 ALTER TABLE `scores_relax`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1073741824;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `seasonal_bg`
+--
+ALTER TABLE `seasonal_bg`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `system_settings`
@@ -1359,15 +1675,22 @@ ALTER TABLE `user_badges`
 --
 ALTER TABLE `user_clans`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-COMMIT;
 
--- AUTO_INCREMENT for table `seasonal_bg`
 --
-ALTER TABLE `seasonal_bg`
+-- AUTO_INCREMENT for table `user_comments`
+--
+ALTER TABLE `user_comments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `user_statuses`
+--
+ALTER TABLE `user_statuses`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
--- Default Values
+-- Inserting default values for the database.
+
 INSERT INTO `bancho_channels` (`id`, `name`, `description`, `public_read`, `public_write`, `status`, `temp`, `hidden`) VALUES
 (1, '#osu', 'The primary general RealistikOsu chat channel.', 1, 1, 1, 0, 0),
 (2, '#announce', 'The channel where all announcements are sent (such as new number 1 scores).', 1, 0, 1, 0, 0),
@@ -1482,17 +1805,6 @@ INSERT INTO `ussr_achievements` (`id`, `file`, `name`, `desc`, `cond`) VALUES
 (95, 'all-intro-halftime', 'Slowboat', 'You got there. Eventually.', '(score.mods & 256 != 0) and score.passed'),
 (96, 'all-intro-spunout', 'Burned Out', 'One cannot always spin to win.', '(score.mods & 4096 != 0) and score.passed');
 
--- Bot
-INSERT INTO `users` (`id`, `osuver`, `username`, `username_safe`, `ban_datetime`, `password_md5`, `salt`, `email`, `register_datetime`, `rank`, `allowed`, `latest_activity`, `silence_end`, `silence_reason`, `password_version`, `privileges`, `donor_expire`, `flags`, `achievements_version`, `achievements_0`, `achievements_1`, `notes`, `frozen`, `freezedate`, `firstloginafterfrozen`, `bypass_hwid`, `ban_reason`, `country`) VALUES (999, NULL, 'RealistikBot', 'realistikbot', '0', 'ferdiuhgerggerger', '', 'rel@es.to', '1578160000', '4', '1', '1578160000', '0', '', '1', '942669823', '2147483647', '0', '0', '1', '1', 'Why are you running?', '0', '0', '0', '0', '', 'GB');
-INSERT INTO `users_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `ranked_score_std`, `playcount_std`, `total_score_std`, `replays_watched_std`, `ranked_score_taiko`, `playcount_taiko`, `total_score_taiko`, `replays_watched_taiko`, `ranked_score_ctb`, `playcount_ctb`, `total_score_ctb`, `replays_watched_ctb`, `ranked_score_mania`, `playcount_mania`, `total_score_mania`, `replays_watched_mania`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `unrestricted_pp`, `ppboard`, `show_country`, `level_std`, `level_taiko`, `level_ctb`, `level_mania`, `playtime_std`, `playtime_taiko`, `playtime_ctb`, `playtime_mania`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_ctb`, `avg_accuracy_mania`, `pp_std`, `pp_taiko`, `pp_ctb`, `pp_mania`, `badges_shown`, `safe_title`, `userpage_content`, `play_style`, `favourite_mode`, `prefer_relax`, `custom_badge_icon`, `custom_badge_name`, `can_custom_badge`, `show_custom_badge`, `current_status`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
-(999, 'RealistikBot', '', 'black', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0.000000000000, 0.000000000000, 0.000000000000, 0.000000000000, 0, 0, 0, 0, '3,4,11,0,0,0', 0, NULL, 0, 0, 0, '', '', 1, 1, 'Dead', 0, 0, 0, 0, 0);
-INSERT INTO `rx_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
-(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-INSERT INTO `ap_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
-(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-
--- These aren't really used...
 INSERT INTO `bancho_settings` (`id`, `name`, `value_int`, `value_string`) VALUES
 (1, 'bancho_maintenance', 0, ''),
 (2, 'free_direct', 0, ''),
@@ -1502,3 +1814,13 @@ INSERT INTO `bancho_settings` (`id`, `name`, `value_int`, `value_string`) VALUES
 (6, 'login_notification', 1, 'You have connected to RealistikOsu!'),
 (7, 'osu_versions', 0, ''),
 (8, 'osu_md5s', 0, '');
+
+-- The Bot
+INSERT INTO `users` (`id`, `osuver`, `username`, `username_safe`, `ban_datetime`, `password_md5`, `salt`, `email`, `register_datetime`, `rank`, `allowed`, `latest_activity`, `silence_end`, `silence_reason`, `password_version`, `privileges`, `donor_expire`, `flags`, `achievements_version`, `achievements_0`, `achievements_1`, `notes`, `frozen`, `freezedate`, `firstloginafterfrozen`, `bypass_hwid`, `ban_reason`, `disabled_comments`, `country`) VALUES
+(999, NULL, 'RealistikBot', 'realistikbot', '0', 'roigneroigjneroignreiogneroginertge', '', 'rel@es.to', 1578160000, 4, 1, 1578160000, 0, '', 1, 942669823, 2147483647, 0, 0, 1, 1, 'Why are you running?', 0, 0, 0, 0, '', 0, 'GB');
+INSERT INTO `ap_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `country`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
+(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'GB', 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `rx_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `favourite_mode`, `level_std`, `level_taiko`, `level_mania`, `level_ctb`, `total_score_std`, `total_score_taiko`, `total_score_mania`, `total_score_ctb`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `playtime_std`, `playtime_taiko`, `playtime_mania`, `playtime_ctb`, `ranked_score_std`, `ranked_score_taiko`, `ranked_score_mania`, `ranked_score_ctb`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_mania`, `avg_accuracy_ctb`, `playcount_std`, `playcount_taiko`, `playcount_mania`, `playcount_ctb`, `pp_std`, `pp_mania`, `pp_ctb`, `pp_taiko`, `country`, `unrestricted_pp`, `ppboard`, `replays_watched_std`, `replays_watched_taiko`, `replays_watched_ctb`, `replays_watched_mania`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
+(999, 'RealistikBot', '', 'black', '', 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'GB', 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `users_stats` (`id`, `username`, `username_aka`, `user_color`, `user_style`, `ranked_score_std`, `playcount_std`, `total_score_std`, `replays_watched_std`, `ranked_score_taiko`, `playcount_taiko`, `total_score_taiko`, `replays_watched_taiko`, `ranked_score_ctb`, `playcount_ctb`, `total_score_ctb`, `replays_watched_ctb`, `ranked_score_mania`, `playcount_mania`, `total_score_mania`, `replays_watched_mania`, `total_hits_std`, `total_hits_taiko`, `total_hits_ctb`, `total_hits_mania`, `country`, `unrestricted_pp`, `ppboard`, `show_country`, `level_std`, `level_taiko`, `level_ctb`, `level_mania`, `playtime_std`, `playtime_taiko`, `playtime_ctb`, `playtime_mania`, `avg_accuracy_std`, `avg_accuracy_taiko`, `avg_accuracy_ctb`, `avg_accuracy_mania`, `pp_std`, `pp_taiko`, `pp_ctb`, `pp_mania`, `badges_shown`, `safe_title`, `userpage_content`, `play_style`, `favourite_mode`, `prefer_relax`, `custom_badge_icon`, `custom_badge_name`, `can_custom_badge`, `show_custom_badge`, `current_status`, `achievements`, `max_combo_std`, `max_combo_taiko`, `max_combo_ctb`, `max_combo_mania`) VALUES
+(999, 'RealistikBot', '', 'black', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'GB', 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0.000000000000, 0.000000000000, 0.000000000000, 0.000000000000, 0, 0, 0, 0, '3,4,11,0,0,0', 0, NULL, 0, 0, 0, '', '', 1, 1, 'Dead', 0, 0, 0, 0, 0);
