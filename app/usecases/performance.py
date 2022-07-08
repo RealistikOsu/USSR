@@ -5,8 +5,8 @@ import math
 import os
 
 from rosu_pp_py import Calculator
-from rosu_pp_py import ScoreParams
 from rosu_pp_py import GameMode
+from rosu_pp_py import ScoreParams
 
 import app.state
 import logger
