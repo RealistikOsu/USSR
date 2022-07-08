@@ -225,44 +225,6 @@ CREATE TABLE `beatmaps` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `beatmaps_old`
---
-
-CREATE TABLE `beatmaps_old` (
-  `id` int(11) NOT NULL,
-  `beatmap_id` int(11) NOT NULL DEFAULT '0',
-  `beatmapset_id` int(11) NOT NULL DEFAULT '0',
-  `beatmap_md5` varchar(32) CHARACTER SET latin1 NOT NULL DEFAULT '',
-  `song_name` text CHARACTER SET latin1 NOT NULL,
-  `ar` float NOT NULL DEFAULT '0',
-  `od` float NOT NULL DEFAULT '0',
-  `mode` int(11) NOT NULL DEFAULT '0',
-  `rating` int(11) NOT NULL DEFAULT '10',
-  `difficulty_std` float NOT NULL DEFAULT '0',
-  `difficulty_taiko` float NOT NULL DEFAULT '0',
-  `difficulty_ctb` float NOT NULL DEFAULT '0',
-  `difficulty_mania` float NOT NULL DEFAULT '0',
-  `max_combo` int(11) NOT NULL DEFAULT '0',
-  `hit_length` int(11) NOT NULL DEFAULT '0',
-  `bpm` int(11) NOT NULL DEFAULT '0',
-  `playcount` int(11) NOT NULL DEFAULT '0',
-  `passcount` int(11) NOT NULL DEFAULT '0',
-  `ranked` tinyint(4) NOT NULL DEFAULT '0',
-  `latest_update` int(11) NOT NULL DEFAULT '0',
-  `ranked_status_freezed` tinyint(1) NOT NULL DEFAULT '0',
-  `pp_100` int(11) NOT NULL DEFAULT '0',
-  `pp_99` int(11) NOT NULL DEFAULT '0',
-  `pp_98` int(11) NOT NULL DEFAULT '0',
-  `pp_95` int(11) NOT NULL DEFAULT '0',
-  `disable_pp` tinyint(4) NOT NULL DEFAULT '0',
-  `file_name` longtext,
-  `rankedby` varchar(16) NOT NULL DEFAULT 'IDK',
-  `priv_crawler` tinyint(1) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `beatmaps_rating`
 --
 
@@ -1109,17 +1071,6 @@ ALTER TABLE `beatmaps`
   ADD KEY `bmap_id` (`beatmapset_id`,`ranked`);
 
 --
--- Indexes for table `beatmaps_old`
---
-ALTER TABLE `beatmaps_old`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `id` (`id`),
-  ADD KEY `id_2` (`id`),
-  ADD KEY `index2` (`beatmap_md5`),
-  ADD KEY `index3` (`beatmap_id`),
-  ADD KEY `bmap_id` (`beatmapset_id`,`ranked`);
-
---
 -- Indexes for table `beatmaps_rating`
 --
 ALTER TABLE `beatmaps_rating`
@@ -1452,12 +1403,6 @@ ALTER TABLE `banned_hwid`
 -- AUTO_INCREMENT for table `ban_logs`
 --
 ALTER TABLE `ban_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `beatmaps_old`
---
-ALTER TABLE `beatmaps_old`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
