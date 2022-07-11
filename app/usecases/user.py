@@ -207,7 +207,7 @@ async def restrict_user(
         "UPDATE users SET privileges = :new_priv, ban_datetime = UNIX_TIMESTAMP() "
         "WHERE id = :id",
         {
-            "new_priv": user.privileges,
+            "new_priv": user.privileges.value,
             "id": user.id,
         },
     )
