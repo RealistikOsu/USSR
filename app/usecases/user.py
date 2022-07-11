@@ -201,9 +201,7 @@ async def restrict_user(
     if user.privileges.is_restricted:
         return
 
-    user.privileges = (
-        user.privileges | Privileges.USER_NORMAL
-    ) & ~Privileges.USER_PUBLIC
+    user.privileges &= ~Privileges.USER_PUBLIC
     await app.state.services.database.execute(
         "UPDATE users SET privileges = :new_priv, ban_datetime = UNIX_TIMESTAMP() "
         "WHERE id = :id",
