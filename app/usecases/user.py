@@ -199,7 +199,7 @@ async def restrict_user(
     await app.state.services.database.execute(
         "UPDATE users SET privileges = :new_priv, ban_datetime = :ban_time, ban_reason = :ban_reason WHERE id = :id",
         {
-            "new_priv": user.privileges,
+            "new_priv": user.privileges.value,
             "ban_time": int(time.time()),
             "ban_reason": summary,
             "id": user.id,
