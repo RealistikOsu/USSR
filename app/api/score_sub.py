@@ -396,8 +396,8 @@ async def submit_score(
 
     end = time.perf_counter_ns()
     formatted_time = app.utils.format_time(end - start)
-    logger.info(
-        f"{user} submitted a {score.pp:.2f}pp {score.mode!r} score on {beatmap.song_name} in {formatted_time}",
-    )
+    # logger.info(
+    #     f"{user} submitted a {score.pp:.2f}pp {score.mode!r} score on {beatmap.song_name} in {formatted_time}",
+    # )
 
     return "|".join(submission_charts).encode()
