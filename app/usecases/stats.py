@@ -90,16 +90,6 @@ async def get_redis_rank(user_id: int, mode: Mode) -> RankInfo:
 
 
 async def full_recalc(stats: Stats, score_pp: float) -> None:
-    if (
-        stats._required_recalc_pp
-        and score_pp is not None
-        and score_pp < stats._required_recalc_pp
-    ):
-        stats.pp -= stats._cur_bonus_pp
-        stats.pp += await calc_bonus(stats)
-
-        return
-
     db_scores = await app.state.services.database.fetch_all(
         f"SELECT s.accuracy, s.pp FROM {stats.mode.scores_table} s RIGHT JOIN beatmaps b USING(beatmap_md5) "
         "WHERE s.completed = 3 AND s.play_mode = :mode AND b.ranked IN (3, 2) AND s.userid = :id ORDER BY s.pp DESC LIMIT 100",
@@ -113,11 +103,8 @@ async def full_recalc(stats: Stats, score_pp: float) -> None:
     for idx, score in enumerate(db_scores):
         total_pp += score["pp"] * (0.95**idx)
         total_acc += score["accuracy"] * (0.95**idx)
-
+        
         last_idx = idx
-
-    if last_idx == 99:
-        stats._required_recalc_pp = score_pp
 
     stats.accuracy = (total_acc * (100.0 / (20 * (1 - 0.95 ** (last_idx + 1))))) / 100
     stats.pp = total_pp + await calc_bonus(stats)
@@ -135,8 +122,7 @@ async def calc_bonus(stats: Stats) -> float:
         },
     )
 
-    stats._cur_bonus_pp = 416.6667 * (1 - (0.9994**count))
-    return stats._cur_bonus_pp
+    return 416.6667 * (1 - (0.9994**count))
 
 
 async def save(stats: Stats) -> None:
