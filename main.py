@@ -12,6 +12,11 @@ import app.utils
 import logger
 from config import config
 
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(asctime)s %(message)s",
+)
+
 uvloop.install()
 
 DEBUG = "debug" in sys.argv
