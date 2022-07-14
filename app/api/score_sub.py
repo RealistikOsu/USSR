@@ -169,10 +169,7 @@ async def submit_score(
         beatmap.id,
         beatmap.md5,
     ):
-        if beatmap.mode.as_vn == score.mode.as_vn:
-            # only get pp if the map is not a convert
-            # convert support will come later
-            app.usecases.performance.calculate_score(score, osu_file_path)
+        app.usecases.performance.calculate_score(score, osu_file_path)
 
         if score.passed:
             old_best = await leaderboard.find_user_score(user.id)
