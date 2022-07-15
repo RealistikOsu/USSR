@@ -1,10 +1,6 @@
-from dataclasses import dataclass
-from dataclasses import field
 from json import dump
 from json import loads
-from typing import Union
 from typing import Optional
-from typing import Any
 from typing import TypeVar
 import os
 
@@ -101,7 +97,7 @@ class Config(ConfigReader):
     PORT: int = 2137
     SQL_HOST: str = "localhost"
     SQL_USER: str = "root"
-    SQL_DB: str = "ripple"
+    SQL_DB: str = "rosu"
     SQL_PASS: str = "db password"
     DATA_DIR: str = ".data"
     DIRECT_URL: str = "https://catboy.best/api"
