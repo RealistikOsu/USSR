@@ -68,12 +68,12 @@ class Mode(IntEnum):
     @cached_property
     def pp_cap(self) -> int:
         if self.relax:
-            return config.PP_CAP_RX
+            return config.pp_cap_rx
 
         if self.autopilot:
-            return config.PP_CAP_AP
+            return config.pp_cap_ap
 
-        return config.PP_CAP_VN
+        return config.pp_cap_vn
 
     @cached_property
     def stats_table(self) -> str:

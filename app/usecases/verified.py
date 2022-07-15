@@ -16,7 +16,7 @@ async def get_verified(user_id: int) -> bool:
 
     has_badge = await app.state.services.database.fetch_val(
         "SELECT 1 FROM user_badges WHERE user = :uid AND badge = :bid",
-        {"uid": user_id, "bid": config.SRV_VERIFIED_BADGE},
+        {"uid": user_id, "bid": config.srv_verified_badge},
     )
 
     if not has_badge:
@@ -32,7 +32,7 @@ async def load_verified() -> None:
 
     db_verified = await app.state.services.database.fetch_all(
         "SELECT user FROM user_badges WHERE badge = :bid",
-        {"bid": config.SRV_VERIFIED_BADGE},
+        {"bid": config.srv_verified_badge},
     )
 
     verified = [b["user"] for b in db_verified]

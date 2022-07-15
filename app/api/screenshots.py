@@ -23,7 +23,7 @@ FS_LIMIT = 500_000  # Rosu screenshots don't exceed this.
 ERR_RESP = "https://c.ussr.pl/"  # We do a lil trolley.
 SS_NAME_LEN = 8
 
-SS_PATH = Path(config.DATA_DIR) / "screenshots"
+SS_PATH = Path(config.data_dir) / "screenshots"
 
 
 async def is_ratelimit(ip: str) -> bool:

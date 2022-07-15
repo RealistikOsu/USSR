@@ -21,7 +21,7 @@ class User:
     @property
     def url(self) -> str:
         # i hate this
-        server_url = config.SRV_URL.replace("https://", "").replace("http://", "")
+        server_url = config.srv_url.replace("https://", "").replace("http://", "")
 
         return f"https://{server_url}/u/{self.id}"
 
