@@ -55,11 +55,14 @@ def load_config() -> Config:
         key for key in Config.__dict__ if key not in config_dict
     ]
     
-    config = Config(**config_dict) # Will be populated with defaults
+    # Create config regardless, populating it with missing keys and removing
+    # unnecessary keys.
+    config = Config(**config_dict)
     
     if missing_keys:
         info(f"Your config has been updated with {len(missing_keys)} new keys.")
         debug("Missing keys: " + ", ".join(missing_keys))
+        write_config(config)
         raise SystemExit(0)
     
     return config

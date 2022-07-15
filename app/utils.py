@@ -11,15 +11,15 @@ from app.objects.path import Path
 from config import config
 
 REQUIRED_FOLDERS = (
-    config.DATA_DIR,
-    f"{config.DATA_DIR}/replays/",
-    f"{config.DATA_DIR}/replays_relax/",
-    f"{config.DATA_DIR}/replays_ap/",
-    f"{config.DATA_DIR}/maps/",
-    f"{config.DATA_DIR}/screenshots/",
+    config.data_dir,
+    f"{config.data_dir}/replays/",
+    f"{config.data_dir}/replays_relax/",
+    f"{config.data_dir}/replays_ap/",
+    f"{config.data_dir}/maps/",
+    f"{config.data_dir}/screenshots/",
 )
 
-DATA_PATH = Path(config.DATA_DIR)
+DATA_PATH = Path(config.data_dir)
 RELAX_REPLAYS = DATA_PATH / "replays_relax"
 AUTOPILOT_REPLAYS = DATA_PATH / "replays_ap"
 VANILLA_REPLAYS = DATA_PATH / "replays"

@@ -175,7 +175,7 @@ async def insert_ban_log(user: User, summary: str, detail: str) -> None:
     await app.state.services.database.execute(
         "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (:from_id, :to_id, :summary, :detail)",
         {
-            "from_id": config.BOT_USER_ID,
+            "from_id": config.bot_user_id,
             "to_id": user.id,
             "summary": summary,
             "detail": detail,

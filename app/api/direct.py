@@ -18,7 +18,7 @@ from app.models.user import User
 from app.usecases.user import authenticate_user
 from config import config
 
-USING_CHIMU = "https://api.chimu.moe/v1" == config.DIRECT_URL
+USING_CHIMU = "https://api.chimu.moe/v1" == config.direct_url
 CHIMU_SPELL = "SetId" if USING_CHIMU else "SetID"
 
 DIRECT_SET_INFO_FMTSTR = (
@@ -40,7 +40,7 @@ async def osu_direct(
     mode: int = Query(..., alias="m", ge=-1, le=3),
     page_num: int = Query(..., alias="p"),
 ):
-    search_url = f"{config.DIRECT_URL}/search"
+    search_url = f"{config.direct_url}/search"
 
     params: dict[str, Any] = {"amount": 101, "offset": page_num}
 
@@ -97,7 +97,7 @@ async def beatmap_card(
 
         map_set_id = bmap.set_id
 
-    url = f"{config.DIRECT_URL}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
+    url = f"{config.direct_url}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
     async with app.state.services.http.get(url) as response:
         if not response or response.status != 200:
             return
@@ -114,7 +114,7 @@ async def beatmap_card(
 
 
 async def download_map(set_id: str = Path(...)):
-    domain = config.DIRECT_URL.split("/")[2]
+    domain = config.direct_url.split("/")[2]
 
     return RedirectResponse(
         url=f"https://{domain}/d/{set_id}",

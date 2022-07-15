@@ -29,7 +29,7 @@ def main() -> int:
         server_header=False,
         date_header=False,
         host="127.0.0.1",
-        port=config.PORT,
+        port=config.port,
     )
 
     return 0

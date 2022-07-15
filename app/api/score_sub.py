@@ -82,7 +82,7 @@ def decrypt_score_data(
     return score_data, client_hash_decoded
 
 
-DATA_PATH = Path(config.DATA_DIR)
+DATA_PATH = Path(config.data_dir)
 MAPS_PATH = DATA_PATH / "maps"
 
 
@@ -141,7 +141,7 @@ async def submit_score(
     if not score.mods.rankable:
         return b"error: no"
 
-    if not token and not config.CUSTOM_CLIENTS:
+    if not token and not config.custom_clients:
         await app.usecases.user.restrict_user(
             user,
             "Tampering with osu!auth.",

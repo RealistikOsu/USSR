@@ -192,7 +192,7 @@ async def save(beatmap: Beatmap) -> None:
 
 
 async def md5_from_api(md5: str) -> Optional[Beatmap]:
-    api_key = random.choice(config.API_KEYS_POOL)
+    api_key = random.choice(config.api_keys_pool)
 
     async with app.state.services.http.get(
         GET_BEATMAP_URL,
@@ -217,7 +217,7 @@ async def md5_from_api(md5: str) -> Optional[Beatmap]:
 
 
 async def id_from_api(id: int) -> Optional[Beatmap]:
-    api_key = random.choice(config.API_KEYS_POOL)
+    api_key = random.choice(config.api_keys_pool)
 
     async with app.state.services.http.get(
         GET_BEATMAP_URL,
@@ -242,7 +242,7 @@ async def id_from_api(id: int) -> Optional[Beatmap]:
 
 
 async def set_from_api(id: int) -> Optional[list[Beatmap]]:
-    api_key = random.choice(config.API_KEYS_POOL)
+    api_key = random.choice(config.api_keys_pool)
 
     async with app.state.services.http.get(
         GET_BEATMAP_URL,
