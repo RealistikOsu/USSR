@@ -18,7 +18,7 @@ class ConfigReader:
     of a configuration `JSON` file."""
     
     _json: dict
-    updated_keys: Optional[list[str]] = None
+    updated_keys: list[str]
     updated: bool = False
 
     def __init_subclass__(cls, config_path: str = "config.json") -> None:
@@ -45,16 +45,15 @@ class ConfigReader:
         info(
             "The config has just been updated! Please edit according to your preferences!",
         )
-        debug("Keys added: " + ", ".join(self.updated_keys)) # type: ignore
+        debug("Keys added: " + ", ".join(self.updated_keys))
 
         raise SystemExit(0)
     
     def read(self, file_path: str) -> None:
         """Reads the JSON file and sets it within the object."""
         
+        self._json = {}
         if not os.path.exists(file_path):
-            # The updater will handle populating the schema
-            self._json = {}
             return
 
         # Read the file.
@@ -80,8 +79,6 @@ class ConfigReader:
         value = self._json.get(key)
         
         if value is None:
-            if not self.updated_keys:
-                self.updated_keys = []
             self.updated = True
             self.updated_keys.append(key)
             return default
