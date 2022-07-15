@@ -52,8 +52,13 @@ def load_config() -> Config:
     
     # Compare config json attributes with config class attributes
     missing_keys = [
-        key for key in Config.__dict__ if key not in config_dict
+        key for key in Config.__annotations__ if key not in config_dict
     ]
+    
+    # Remove extra fields
+    for key in tuple(config_dict): # Tuple cast is necessary to create a copy of the keys.
+        if key not in Config.__annotations__:
+            del config_dict[key]
     
     # Create config regardless, populating it with missing keys and removing
     # unnecessary keys.
