@@ -8,6 +8,6 @@ fastapi
 orjson
 py3rijndael
 # Specifying this version is important
-rosu-pp-py==0.6.0
+rosu-pp-py==0.7.2
 uvicorn
 uvloop
