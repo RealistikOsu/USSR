@@ -5,7 +5,6 @@ import math
 import os
 
 from rosu_pp_py import Calculator
-from rosu_pp_py import GameMode
 from rosu_pp_py import ScoreParams
 
 import app.state
@@ -19,9 +18,6 @@ OPPAI_DIRS = (
     "oppai-ap",
     "oppai-rx",
 )
-
-ROSU_GAMEMODES = (GameMode.Osu, GameMode.Taiko, GameMode.Catch, GameMode.Mania)
-
 
 def ensure_oppai() -> None:
     for dir in OPPAI_DIRS:
@@ -97,7 +93,7 @@ def calculate_rosu(
 ) -> tuple[float, float]:
     calculator = Calculator(str(osu_file_path))
     params = ScoreParams(
-        mode=ROSU_GAMEMODES[mode.as_vn],
+        mode=mode.as_vn,
         mods=mods,
         combo=max_combo,
         score=score,
