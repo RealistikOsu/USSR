@@ -136,6 +136,8 @@ async def submit_score(
     score.acc = app.usecases.score.calculate_accuracy(score)
     score.quit = exited_out
 
+    await app.usecases.user.update_latest_activity(user.id)
+
     if not score.mods.rankable:
         return b"error: no"
 
