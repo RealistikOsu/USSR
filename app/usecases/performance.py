@@ -19,6 +19,7 @@ OPPAI_DIRS = (
     "oppai-rx",
 )
 
+
 def ensure_oppai() -> None:
     for dir in OPPAI_DIRS:
         if not os.path.exists(dir):

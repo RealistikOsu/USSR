@@ -252,9 +252,10 @@ async def increment_replays_watched(user_id: int, mode: Mode) -> None:
         },
     )
 
+
 async def update_latest_activity(user_id: int) -> None:
     await app.state.services.database.execute(
-        "UPDATE users SET latest_activity = UNIX_TIMESTAMP(NOW()) WHERE id = :id",
+        "UPDATE users SET latest_activity = UNIX_TIMESTAMP() WHERE id = :id",
         {
             "id": user_id,
         },
