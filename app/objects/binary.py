@@ -17,14 +17,12 @@ class BinaryWriter:
             return
 
         ret = bytearray()
-        length = 0
 
         while value > 0:
             ret.append(value & 0b01111111)
             value >>= 7
             if value != 0:
-                ret[length] |= 0b10000000
-            length += 1
+                ret[-1] |= 0b10000000
 
         self.buffer.extend(ret)
 
