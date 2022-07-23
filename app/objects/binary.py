@@ -80,8 +80,9 @@ class BinaryWriter:
         """
         if string:
             self.buffer += b"\x0B"
-            self.write_uleb128(len(string))
-            self.write_raw(string.encode("utf-8"))
+            encoded_string = string.encode("utf-8")
+            self.write_uleb128(len(encoded_string))
+            self.write_raw(encoded_string)
         else:
             self.buffer += b"\x00"
         return self
