@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-import logger
+import logging
 from . import cache
 from . import services
 
@@ -16,7 +16,7 @@ PUBSUBS: dict[str, PUBSUB_HANDLER] = {}
 
 
 async def cancel_tasks() -> None:
-    logger.info(f"Cancelling {len(tasks)} tasks.")
+    logging.info(f"Cancelling {len(tasks)} tasks.")
 
     for task in tasks:
         task.cancel()

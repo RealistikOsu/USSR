@@ -11,7 +11,7 @@ import orjson
 
 import app.state
 import app.usecases
-import logger
+import logging
 from app.constants.ranked_status import RankedStatus
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
@@ -29,7 +29,7 @@ async def handle_privilege_change(payload: str) -> None:
     user_id = int(payload)
     await app.usecases.privileges.update_privilege(user_id)
 
-    logger.info(f"Updated privileges for user ID {user_id}")
+    logging.info(f"Updated privileges for user ID {user_id}")
 
 
 class UsernameChange(TypedDict):
@@ -42,7 +42,7 @@ async def handle_username_change(payload: str) -> None:
     user_id = int(data["userID"])
 
     username = await app.usecases.usernames.update_username(user_id)
-    logger.info(f"Updated user ID {user_id}'s username to {username}")
+    logging.info(f"Updated user ID {user_id}'s username to {username}")
 
 
 @register_pubsub("cache:map_update")
@@ -83,14 +83,14 @@ async def handle_beatmap_status_change(payload: str) -> None:
         app.usecases.beatmap.ID_CACHE[cached_beatmap.id] = cached_beatmap
         app.usecases.beatmap.add_to_set_cache(cached_beatmap)
 
-    logger.info(f"Updated {cached_beatmap.song_name} in cache!")
+    logging.info(f"Updated {cached_beatmap.song_name} in cache!")
 
 
 @register_pubsub("api:update_clan")
 async def handle_clan_change(payload: str) -> None:
     clan_id = int(payload)
 
-    clan_users = await app.state.services.database.fetch_all(
+    clan_users = await app.state.services.read_database.fetch_all(
         "SELECT user FROM user_clans WHERE clan = :id",
         {"id": clan_id},
     )
@@ -98,7 +98,7 @@ async def handle_clan_change(payload: str) -> None:
     for clan_user in clan_users:
         await app.usecases.clans.update_clan(clan_user["user"])
 
-    logger.info(f"Updated tag for clan ID {clan_id}")
+    logging.info(f"Updated tag for clan ID {clan_id}")
 
 
 class RedisMessage(TypedDict):

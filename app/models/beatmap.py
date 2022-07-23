@@ -3,12 +3,12 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from dataclasses import field
-from typing import Optional
+from typing import Any, Mapping, Optional
 
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.objects.leaderboard import Leaderboard
-from config import config
+import config
 
 ONE_DAY = 86_400
 
@@ -92,7 +92,7 @@ class Beatmap:
         )
 
     @property
-    def db_dict(self) -> dict:
+    def to_mapping(self) -> Mapping[str, Any]:
         return {
             "beatmap_md5": self.md5,
             "beatmap_id": self.id,
@@ -118,7 +118,7 @@ class Beatmap:
         }
 
     @classmethod
-    def from_dict(cls, result: dict) -> Beatmap:
+    def from_mapping(cls, result: Mapping[str, Any]) -> Beatmap:
         return cls(
             md5=result["beatmap_md5"],
             id=result["beatmap_id"],

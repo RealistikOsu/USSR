@@ -9,7 +9,7 @@ from fastapi import Query
 import app.state
 import app.usecases
 import app.utils
-import logger
+import logging
 from app.constants.leaderboard_type import LeaderboardType
 from app.constants.mode import Mode
 from app.constants.mods import Mods
@@ -72,7 +72,7 @@ async def get_leaderboard(
             else:
                 map_exists = False
         else:
-            map_exists = await app.state.services.database.fetch_val(
+            map_exists = await app.state.services.read_database.fetch_val(
                 "SELECT 1 FROM beatmaps WHERE file_name = :filename",
                 {"filename": filename},
             )
@@ -165,8 +165,8 @@ async def get_leaderboard(
 
     end = time.perf_counter_ns()
     formatted_time = app.utils.format_time(end - start)
-    # logger.info(
-    #     f"Served {user} leaderboard for {beatmap.song_name} in {formatted_time}",
-    # )
+    logging.info(
+        f"Served {user} leaderboard for {beatmap.song_name} in {formatted_time}",
+    )
 
     return "\n".join(response_lines).encode()

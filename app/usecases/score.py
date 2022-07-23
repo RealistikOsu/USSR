@@ -120,12 +120,12 @@ async def handle_first_place(
     beatmap: Beatmap,
     user: User,
 ) -> None:
-    await app.state.services.database.execute(
+    await app.state.services.write_database.execute(
         "DELETE FROM scores_first WHERE beatmap_md5 = :md5 AND mode = :mode AND rx = :rx",
         {"md5": score.map_md5, "mode": score.mode.as_vn, "rx": score.mode.relax_int},
     )
 
-    await app.state.services.database.execute(
+    await app.state.services.write_database.execute(
         (
             "INSERT INTO scores_first (beatmap_md5, mode, rx, scoreid, userid) VALUES "
             "(:md5, :mode, :rx, :sid, :uid)"

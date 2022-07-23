@@ -10,20 +10,29 @@ import aiohttp
 import aioredis
 import databases
 
-from config import config
+import config
 
 
 redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 
-url = databases.DatabaseURL(
-    "mysql+asyncmy://{username}:{password}@{host}:3306/{db}".format(
-        username=config.DB_USER,
-        password=config.DB_PASS,
-        host=config.DB_HOST,
-        db=config.DB_NAME,
-    ),
+write_database: databases.Database = databases.Database(
+    "mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
+        username=config.WRITE_DB_USER,
+        password=config.WRITE_DB_PASS,
+        host=config.WRITE_DB_HOST,
+        port=config.WRITE_DB_PORT,
+        db=config.WRITE_DB_NAME,
+    )
 )
-database: databases.Database = databases.Database(url)
+read_database: databases.Database = databases.Database(
+    "mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
+        username=config.READ_DB_USER,
+        password=config.READ_DB_PASS,
+        host=config.READ_DB_HOST,
+        port=config.READ_DB_PORT,
+        db=config.READ_DB_NAME,
+    )
+)
 
 http: aiohttp.ClientSession
 

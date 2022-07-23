@@ -4,7 +4,7 @@ import asyncio
 from typing import NamedTuple
 
 import app.state
-import logger
+import logging
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 
@@ -39,7 +39,7 @@ async def update_pp_cap(mode: Mode, mods: Mods) -> int:
     if mods & Mods.FLASHLIGHT:
         prefix += "flashlight_"
 
-    pp_cap = await app.state.services.database.fetch_val(
+    pp_cap = await app.state.services.read_database.fetch_val(
         f"SELECT {prefix}pp FROM pp_limits WHERE gamemode = :mode",
         {"mode": mode.as_vn},
     )
@@ -77,7 +77,7 @@ async def load_pp_caps() -> None:
     ):
         await update_pp_cap(mode, mods)
 
-    logger.info(f"Cached pp caps!")
+    logging.info(f"Cached pp caps!")
 
 
 async def update_pp_cap_task() -> None:
