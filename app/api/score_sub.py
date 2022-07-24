@@ -124,11 +124,10 @@ async def submit_score(
         osu_version,
     )
 
-
     username = score_data[1].rstrip()
     if not (user := await app.usecases.user.auth_user(username, password_md5)):
         return  # empty resp tells osu to retry
-    
+
     beatmap_md5 = score_data[0]
     if not (beatmap := await app.usecases.beatmap.fetch_by_md5(beatmap_md5)):
         return b"error: beatmap"
@@ -138,7 +137,7 @@ async def submit_score(
 
     score.acc = app.usecases.score.calculate_accuracy(score)
     score.quit = exited_out
-    
+
     await app.usecases.user.update_latest_activity(user.id)
 
     if not score.mods.rankable:
