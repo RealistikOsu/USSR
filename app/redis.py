@@ -12,6 +12,7 @@ import orjson
 import app.state
 import app.usecases
 import logger
+from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
@@ -30,6 +31,27 @@ async def handle_privilege_change(payload: str) -> None:
     await app.usecases.privileges.update_privilege(user_id)
 
     logger.info(f"Updated privileges for user ID {user_id}")
+
+
+@register_pubsub("peppy:wipe")
+async def handle_player_wipe(payload: str) -> None:
+    user_id, rx_int, mode_int = [int(part) for part in payload.split(".")]
+    mods_int = {
+        0: 0,  # vn = nomod
+        1: 128,  # rx = relax
+        2: 8192,  # ap = autopilot
+    }[rx_int]
+
+    mode = Mode.from_lb(mode_int, mods_int)
+    beatmaps = await app.usecases.beatmap.fetch_all_cache()
+
+    for beatmap in beatmaps:
+        if not (leaderboard := beatmap.leaderboards.get(mode)):
+            continue
+
+        await leaderboard.remove_user(user_id)
+
+    logger.info(f"Handled wipe for user ID {user_id} on {mode!r}")
 
 
 class UsernameChange(TypedDict):
