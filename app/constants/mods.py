@@ -80,7 +80,7 @@ class Mods(IntFlag):
     def rankable(self) -> bool:
         """Checks if the mod combo is rank-worthy."""
 
-        return self not in UNRANKABLE_MODS
+        return self & UNRANKABLE_MODS == Mods.NOMOD
 
     @property
     def conflict(self) -> bool:
@@ -97,8 +97,8 @@ class Mods(IntFlag):
 
 
 UNRANKABLE_MODS = (
-    Mods.AUTOPLAY,
-    Mods.SCOREV2,
+    Mods.AUTOPLAY
+    | Mods.SCOREV2
 )
 
 str_mods = {
