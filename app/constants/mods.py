@@ -96,10 +96,7 @@ class Mods(IntFlag):
         return False
 
 
-UNRANKABLE_MODS = (
-    Mods.AUTOPLAY
-    | Mods.SCOREV2
-)
+UNRANKABLE_MODS = Mods.AUTOPLAY | Mods.SCOREV2
 
 str_mods = {
     Mods.NOFAIL: "NF",
