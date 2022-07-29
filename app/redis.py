@@ -36,7 +36,7 @@ class UsernameChange(TypedDict):
     userID: str
 
 
-@register_pubsub("less:change_username")
+@register_pubsub("peppy:change_username")
 async def handle_username_change(payload: str) -> None:
     data: UsernameChange = orjson.loads(payload)
     user_id = int(data["userID"])
