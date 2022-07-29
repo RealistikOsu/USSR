@@ -16,6 +16,10 @@ ID_CACHE: dict[int, Beatmap] = {}
 SET_CACHE: dict[int, list[Beatmap]] = {}
 
 
+async def fetch_all_cache() -> list[Beatmap]:
+    return [beatmap for beatmap in MD5_CACHE.values()]
+
+
 async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     if not beatmap.deserves_update:
         return beatmap
