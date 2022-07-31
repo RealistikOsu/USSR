@@ -35,7 +35,7 @@ async def handle_privilege_change(payload: str) -> None:
 
 @register_pubsub("peppy:wipe")
 async def handle_player_wipe(payload: str) -> None:
-    user_id, rx_int, mode_int = [int(part) for part in payload.split(".")]
+    user_id, rx_int, mode_int = [int(part) for part in payload.split(",")]
     mods_int = {
         0: 0,  # vn = nomod
         1: 128,  # rx = relax
