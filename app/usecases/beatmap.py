@@ -163,7 +163,7 @@ async def id_from_database(id: int) -> Optional[Beatmap]:
     return Beatmap.from_dict(db_result)
 
 
-async def set_from_database(set_id: str) -> Optional[list[Beatmap]]:
+async def set_from_database(set_id: int) -> Optional[list[Beatmap]]:
     db_results = await app.state.services.database.fetch_all(
         "SELECT * FROM beatmaps WHERE beatmapset_id = :id",
         {"id": set_id},

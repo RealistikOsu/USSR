@@ -265,6 +265,7 @@ async def submit_score(
     asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
+    assert stats is not None, "The stats of the user have not been found!"
     old_stats = copy(stats)
 
     stats.playcount += 1
