@@ -143,14 +143,15 @@ async def submit_score(
     if not score.mods.rankable:
         return b"error: no"
 
-    if not token and not config.custom_clients:
-        await app.usecases.user.restrict_user(
-            user,
-            "Tampering with osu!auth.",
-            "The client has not sent an anticheat token to the server, meaning "
-            "that they either have disabled the anticheat, or are using a custom/older "
-            "client. (score submit gate)",
-        )
+    # This can be unreliable with devserver.
+    #if not token and not config.custom_clients:
+    #    await app.usecases.user.restrict_user(
+    #        user,
+    #        "Tampering with osu!auth.",
+    #        "The client has not sent an anticheat token to the server, meaning "
+    #        "that they either have disabled the anticheat, or are using a custom/older "
+    #        "client. (score submit gate)",
+    #    )
 
     if user_agent != "osu!":
         await app.usecases.user.restrict_user(
