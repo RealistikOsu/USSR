@@ -23,3 +23,5 @@ Don't believe us? There are countless servers already running their instances of
 
 - [RealistikOsu!](https://ussr.pl/) <img width="16" height="16" src="https://ussr.pl/static/image/newlogo2.png">
 - [EZ-PP Farm](https://ez-pp.farm/) <img width="16" height="16" src="https://cdn.discordapp.com/attachments/871795833413189665/995062486061568080/circle.png">
+- [Kawata](https://kawata.pw) <img width="16" height="16" src="https://raw.githubusercontent.com/kawatapw/hanayo/master/static/logos/logo.png">
+- [Akatsuki](https://akatsuki.pw) <img width="16" height="16" src="https://avatars.githubusercontent.com/u/45724130?s=280&v=4">
