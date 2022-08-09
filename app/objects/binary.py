@@ -77,10 +77,10 @@ class BinaryWriter:
         by a uleb128 length, followed by the string itself.
         """
         if string:
-            self.buffer += b"\x0B"
+            self.buffer.append(0xb)
             str_encoded = string.encode("utf-8")
             self.write_uleb128(len(str_encoded))
             self.write_raw(str_encoded)
         else:
-            self.buffer += b"\x00"
+            self.buffer.append(0)
         return self
