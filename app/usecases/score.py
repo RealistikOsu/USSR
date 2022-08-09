@@ -71,6 +71,12 @@ def calculate_accuracy(score: Score) -> float:
             )
             / (total * 300.0)
         )
+    
+    else:
+        raise ValueError(
+            "The score has a vanilla mode for which accuracy calculation is "
+            "unsupported."
+        )
 
 
 def calculate_status(score: Score) -> None:

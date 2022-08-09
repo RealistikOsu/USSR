@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import NamedTuple
 from typing import Optional
-from typing import TypedDict
 
 import app.state
 import app.usecases
@@ -84,7 +83,7 @@ async def get_redis_rank(user_id: int, mode: Mode) -> RankInfo:
     )
     country_rank = int(redis_country_rank) + 1 if redis_country_rank else 0
 
-    return global_rank, country_rank
+    return RankInfo(global_rank, country_rank)
 
 
 async def full_recalc(stats: Stats, score_pp: Optional[int] = None) -> None:
@@ -114,7 +113,7 @@ async def full_recalc(stats: Stats, score_pp: Optional[int] = None) -> None:
 
         last_idx = idx
 
-    if last_idx == 99:
+    if last_idx == 99 and score_pp:
         stats._required_recalc_pp = score_pp
 
     stats.accuracy = (total_acc * (100.0 / (20 * (1 - 0.95 ** (last_idx + 1))))) / 100
