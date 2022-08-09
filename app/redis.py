@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Awaitable
 from typing import Callable
 from typing import Optional
@@ -11,7 +12,7 @@ import orjson
 
 import app.state
 import app.usecases
-import logging
+from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
@@ -32,11 +33,32 @@ async def handle_privilege_change(payload: str) -> None:
     logging.info(f"Updated privileges for user ID {user_id}")
 
 
+@register_pubsub("peppy:wipe")
+async def handle_player_wipe(payload: str) -> None:
+    user_id, rx_int, mode_int = [int(part) for part in payload.split(",")]
+    mods_int = {
+        0: 0,  # vn = nomod
+        1: 128,  # rx = relax
+        2: 8192,  # ap = autopilot
+    }[rx_int]
+
+    mode = Mode.from_lb(mode_int, mods_int)
+    beatmaps = await app.usecases.beatmap.fetch_all_cache()
+
+    for beatmap in beatmaps:
+        if not (leaderboard := beatmap.leaderboards.get(mode)):
+            continue
+
+        await leaderboard.remove_user(user_id)
+
+    logging.info(f"Handled wipe for user ID {user_id} on {mode!r}")
+
+
 class UsernameChange(TypedDict):
     userID: str
 
 
-@register_pubsub("less:change_username")
+@register_pubsub("peppy:change_username")
 async def handle_username_change(payload: str) -> None:
     data: UsernameChange = orjson.loads(payload)
     user_id = int(data["userID"])

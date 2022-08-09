@@ -1,4 +1,4 @@
-# osuAkatsuki's score service
+# Akatsuki's score service
 
 ## What is this?
 
