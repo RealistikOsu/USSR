@@ -144,7 +144,7 @@ async def submit_score(
         return b"error: no"
 
     # This can be unreliable with devserver.
-    #if not token and not config.custom_clients:
+    # if not token and not config.custom_clients:
     #    await app.usecases.user.restrict_user(
     #        user,
     #        "Tampering with osu!auth.",
