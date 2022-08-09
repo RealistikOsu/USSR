@@ -59,6 +59,10 @@ def calculate_oppai(
         lib_path = "oppai-rx/liboppai.so"
     elif mode.autopilot:
         lib_path = "oppai-ap/liboppai.so"
+    else:
+        raise ValueError(
+            "Could not find a matching oppai lib for this specific mode combo.",
+        )
 
     with OppaiWrapper(lib_path) as ezpp:
         ezpp.configure(

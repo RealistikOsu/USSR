@@ -13,17 +13,16 @@ class BinaryWriter:
     def write_uleb128(self, value: int) -> None:
         """Write a uleb128 value to the buffer."""
         if value == 0:
-            return b"\x00"
+            self.buffer.append(0)
+            return
 
         ret = bytearray()
-        length = 0
 
         while value > 0:
             ret.append(value & 0b01111111)
             value >>= 7
             if value != 0:
-                ret[length] |= 0b10000000
-            length += 1
+                ret[-1] |= 0b10000000
 
         self.buffer.extend(ret)
 
@@ -78,9 +77,10 @@ class BinaryWriter:
         by a uleb128 length, followed by the string itself.
         """
         if string:
-            self.buffer += b"\x0B"
-            self.write_uleb128(len(string))
-            self.write_raw(string.encode("utf-8"))
+            self.buffer.append(0xB)
+            str_encoded = string.encode("utf-8")
+            self.write_uleb128(len(str_encoded))
+            self.write_raw(str_encoded)
         else:
-            self.buffer += b"\x00"
+            self.buffer.append(0)
         return self

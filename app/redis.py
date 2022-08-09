@@ -59,6 +59,8 @@ async def handle_beatmap_status_change(payload: str) -> None:
         return
 
     new_beatmap = await app.usecases.beatmap.md5_from_database(payload)
+    if new_beatmap is None:
+        return
 
     if new_beatmap.status != cached_beatmap.status:
         # map's status changed, reflect it

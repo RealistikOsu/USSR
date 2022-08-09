@@ -21,7 +21,7 @@ class RankedStatus(IntEnum):
             self.APPROVED: 2,
             self.QUALIFIED: 3,
             self.LOVED: 4,
-        }.get(self)
+        }[self]
 
     @classmethod
     @functools.cache

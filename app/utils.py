@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import Optional
 from typing import Union
 
 import orjson
@@ -68,7 +69,7 @@ async def notify_new_score(score_id: int) -> None:
     await app.state.services.redis.publish("api:score_submission", score_id)
 
 
-async def check_online(user_id: int, ip: str = None) -> bool:
+async def check_online(user_id: int, ip: Optional[str] = None) -> bool:
     key = f"peppy:sessions:{user_id}"
 
     if ip:

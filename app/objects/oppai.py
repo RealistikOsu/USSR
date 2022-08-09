@@ -6,6 +6,8 @@ from types import TracebackType
 from typing import Optional
 from typing import Type
 
+from app.objects.path import Path
+
 
 class OppaiWrapper:
     """Lightweight wrapper around franc[e]sco's c89 oppai-ng library.
