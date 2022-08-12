@@ -30,6 +30,7 @@ from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.score import Score
 from app.objects.path import Path
+from app.objects.redis_lock import RedisLock
 from app.usecases.user import restrict_user
 from config import config
 
@@ -133,7 +134,6 @@ async def submit_score(
         return b"error: beatmap"
 
     score = Score.from_submission(score_data[2:], beatmap_md5, user)
-    leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
 
     score.acc = app.usecases.score.calculate_accuracy(score)
     score.quit = exited_out
@@ -170,31 +170,6 @@ async def submit_score(
             "(score submit gate)",
         )
 
-    osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
-    if await app.usecases.performance.check_local_file(
-        osu_file_path,
-        beatmap.id,
-        beatmap.md5,
-    ):
-        app.usecases.performance.calculate_score(score, osu_file_path)
-
-        if score.passed:
-            old_best = await leaderboard.find_user_score(user.id)
-
-            if old_best:
-                score.old_best = old_best["score"]
-
-                if score.old_best:
-                    score.old_best.rank = old_best["rank"]
-
-            app.usecases.score.calculate_status(score)
-        elif score.quit:
-            score.status = ScoreStatus.QUIT
-        else:
-            score.status = ScoreStatus.FAILED
-
-    score.time_elapsed = score_time if score.passed else fail_time
-
     if await app.state.services.database.fetch_val(
         (
             f"SELECT 1 FROM {score.mode.scores_table} WHERE userid = :id AND beatmap_md5 = :md5 AND score = :score "
@@ -210,6 +185,32 @@ async def submit_score(
     ):
         # duplicate score detected
         return b"error: no"
+
+    osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
+    if await app.usecases.performance.check_local_file(
+        osu_file_path,
+        beatmap.id,
+        beatmap.md5,
+    ):
+        app.usecases.performance.calculate_score(score, osu_file_path)
+
+        if score.passed:
+            leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
+            old_best = await leaderboard.find_user_score(user.id)
+
+            if old_best:
+                score.old_best = old_best["score"]
+
+                if score.old_best:
+                    score.old_best.rank = old_best["rank"]
+
+            app.usecases.score.calculate_status(score)
+        elif score.quit:
+            score.status = ScoreStatus.QUIT
+        else:
+            score.status = ScoreStatus.FAILED
+
+    score.time_elapsed = score_time if score.passed else fail_time
 
     if (
         beatmap.gives_pp
@@ -284,8 +285,13 @@ async def submit_score(
 
         if score.status == ScoreStatus.BEST and score.pp:
             await app.usecases.stats.full_recalc(stats, score.pp)
-
-            await leaderboard.add_score(score)
+            async with RedisLock(
+                app.state.services.redis,
+                f"ussr:leaderboard_lock:{beatmap.md5}:{score.mode.value}",
+            ):
+                leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
+                await leaderboard.add_score(score)
+                await app.usecases.leaderboards.insert_cache(beatmap, leaderboard)
 
     await app.usecases.stats.save(stats)
 

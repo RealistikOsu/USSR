@@ -15,6 +15,7 @@ from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.models.score import Score
 from app.models.user import User
+from app.objects.redis_lock import RedisLock
 from app.usecases.user import authenticate_user
 
 CUR_LB_VER = 4
@@ -98,7 +99,12 @@ async def get_leaderboard(
         response_lines.append(beatmap.osu_string(score_count=0, rating=beatmap.rating))
     else:
         # real leaderboard, let's get some scores!
-        leaderboard = await app.usecases.leaderboards.fetch(beatmap, mode)
+        # Wait for any scores that are still submitting.
+        async with RedisLock(
+            app.state.services.redis,
+            f"ussr:leaderboard_lock:{beatmap.md5}:{mode.value}",
+        ):
+            leaderboard = await app.usecases.leaderboards.fetch(beatmap, mode)
 
         response_lines.append(
             beatmap.osu_string(

@@ -112,3 +112,6 @@ class Leaderboard:
 
         self.scores.append(score)
         self.sort()
+
+    def scores_list(self) -> list[dict]:
+        return [score.db_dict for score in self.scores]
