@@ -61,17 +61,7 @@ async def get_redis_rank(user_id: int, mode: Mode) -> RankInfo:
     return RankInfo(global_rank, country_rank)
 
 
-async def full_recalc(stats: Stats, score_pp: Optional[int] = None) -> None:
-    if (
-        stats._required_recalc_pp
-        and score_pp is not None
-        and score_pp < stats._required_recalc_pp
-    ):
-        stats.pp -= stats._cur_bonus_pp
-        stats.pp += await calc_bonus(stats)
-
-        return
-
+async def full_recalc(stats: Stats) -> None:
     db_scores = await app.state.services.database.fetch_all(
         f"SELECT s.accuracy, s.pp FROM {stats.mode.scores_table} s RIGHT JOIN beatmaps b USING(beatmap_md5) "
         "WHERE s.completed = 3 AND s.play_mode = :mode AND b.ranked IN (3, 2) AND s.userid = :id ORDER BY s.pp DESC LIMIT 100",
@@ -87,9 +77,6 @@ async def full_recalc(stats: Stats, score_pp: Optional[int] = None) -> None:
         total_acc += score["accuracy"] * (0.95**idx)
 
         last_idx = idx
-
-    if last_idx == 99 and score_pp:
-        stats._required_recalc_pp = score_pp
 
     stats.accuracy = (total_acc * (100.0 / (20 * (1 - 0.95 ** (last_idx + 1))))) / 100
     stats.pp = total_pp + await calc_bonus(stats)

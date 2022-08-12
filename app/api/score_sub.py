@@ -284,7 +284,7 @@ async def submit_score(
             stats.max_combo = score.max_combo
 
         if score.status == ScoreStatus.BEST and score.pp:
-            await app.usecases.stats.full_recalc(stats, score.pp)
+            await app.usecases.stats.full_recalc(stats)
             async with RedisLock(
                 app.state.services.redis,
                 f"ussr:leaderboard_lock:{beatmap.md5}:{score.mode.value}",
