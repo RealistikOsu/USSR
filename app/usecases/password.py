@@ -1,15 +1,32 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import timedelta
+from typing import Optional
 
 import bcrypt
 
-CACHE: dict[str, str] = {}
+import app.state
+
+# Cache management
+async def cache_known(plain_password: str, hashed_password: str) -> None:
+    await app.state.services.redis.set(
+        f"ussr:passwords:{hashed_password}",
+        plain_password,
+        timedelta(days=1),
+    )
 
 
-async def verify_password(plain_password: str, hashed_password: str) -> bool:
-    if hashed_password in CACHE:
-        return CACHE[hashed_password] == plain_password
+async def get_cached(hashed_password: str) -> Optional[str]:
+    return await app.state.services.redis.get(
+        f"ussr:passwords:{hashed_password}",
+    )
+
+
+async def verify(plain_password: str, hashed_password: str) -> bool:
+    cached_pw = await get_cached(hashed_password)
+    if cached_pw:
+        return cached_pw == plain_password
 
     result = await asyncio.to_thread(
         bcrypt.checkpw,
@@ -18,6 +35,6 @@ async def verify_password(plain_password: str, hashed_password: str) -> bool:
     )
 
     if result:
-        CACHE[hashed_password] = plain_password
+        await cache_known(plain_password, hashed_password)
 
     return result
