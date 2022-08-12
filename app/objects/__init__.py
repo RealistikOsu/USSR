@@ -4,3 +4,4 @@ from . import binary
 from . import leaderboard
 from . import oppai
 from . import path
+from . import redis_lock
