@@ -266,7 +266,7 @@ async def submit_score(
     asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
     asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
 
-    stats = await app.usecases.stats.fetch(user.id, score.mode)
+    stats = await app.usecases.stats.fetch_db(user.id, score.mode)
     old_stats = copy(stats)
 
     stats.playcount += 1
