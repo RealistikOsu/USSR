@@ -35,7 +35,6 @@ def init_events(asgi_app: FastAPI) -> None:
 
         for _task in (
             app.usecases.privileges.update_privileges_task,
-            app.usecases.usernames.update_usernames_task,
             app.usecases.clans.update_clans_task,
         ):
             task = asyncio.create_task(_task())

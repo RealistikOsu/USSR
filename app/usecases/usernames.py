@@ -1,17 +1,29 @@
 from __future__ import annotations
 
-import asyncio
+from datetime import timedelta
+from typing import Optional
 
 import app.state
-import logger
 
-USERNAMES: dict[int, str] = {}
-FIVE_MINUTES = 60 * 5
+
+async def cache(user_id: int, name: str) -> None:
+    await app.state.services.redis.set(
+        f"ussr:usernames:{user_id}",
+        name,
+        timedelta(days=1),
+    )
+
+
+async def get_cache(user_id: int) -> Optional[str]:
+    return await app.state.services.redis.get(
+        f"ussr:usernames:{user_id}",
+    )
 
 
 async def get_username(user_id: int) -> str:
-    if user_id in USERNAMES:
-        return USERNAMES[user_id]
+    redis_name = await get_cache(user_id)
+    if redis_name:
+        return redis_name
 
     return await update_username(user_id)
 
@@ -23,25 +35,8 @@ async def update_username(user_id: int) -> str:
     )
 
     if not username:
-        USERNAMES[user_id] = ""
+        username = ""
         return ""  # xd
 
-    USERNAMES[user_id] = username
+    await cache(user_id, username)
     return username
-
-
-async def load_usernames() -> None:
-    db_usernames = await app.state.services.database.fetch_all(
-        "SELECT id, username FROM users",
-    )
-
-    for db_user in db_usernames:
-        USERNAMES[db_user["id"]] = db_user["username"]
-
-    logger.info(f"Cached usernames for {len(db_usernames)} users!")
-
-
-async def update_usernames_task() -> None:
-    while True:
-        await load_usernames()
-        await asyncio.sleep(FIVE_MINUTES)
