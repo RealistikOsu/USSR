@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
+import aioftp
 from fastapi import Path
 from fastapi import Query
 from fastapi import Response
