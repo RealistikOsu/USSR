@@ -34,6 +34,20 @@ async def get_replay(
         f"http://localhost:3030/get?id={score_id}",
     ) as session:
         if not session or session.status != 200:
+            try:
+                stream = await app.state.services.ftp_client.download_stream(
+                    source=f"/replays/replay_{score_id}.osr",
+                )
+                replay_data = await stream.read()
+                print(len(replay_data), "replay bytes from ftp")
+                return replay_data
+            except Exception as e:
+                import traceback
+
+                print("\n\nYEAAA")
+                traceback.print_exc()
+                pass
+
             logging.error(
                 f"Requested replay ID {score_id}, but no file could be found",
             )

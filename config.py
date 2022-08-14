@@ -20,7 +20,7 @@ READ_DB_USER = config("READ_DB_USER")
 READ_DB_PASS = config("READ_DB_PASS")
 READ_DB_NAME = config("READ_DB_NAME")
 
-DATA_DIR = config("DATA_DIR", default=".data") # TODO: where should this go?
+DATA_DIR = config("DATA_DIR", default=".data")  # TODO: where should this go?
 
 DIRECT_URL = config("DIRECT_URL", default="https://catboy.best/api")
 
@@ -41,3 +41,8 @@ AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
 AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL")
 AWS_BUCKET_NAME = config("AWS_BUCKET_NAME")
+
+FTP_HOST = config("FTP_HOST")
+FTP_PORT = config("FTP_PORT", cast=int)
+FTP_USER = config("FTP_USER")
+FTP_PASS = config("FTP_PASS")
