@@ -16,7 +16,6 @@ from starlette.middleware.base import RequestResponseEndpoint
 
 import app.redis
 import app.state
-import app.usecases
 import logger
 
 
@@ -32,13 +31,6 @@ def init_events(asgi_app: FastAPI) -> None:
 
         await app.state.cache.init_cache()
         await app.redis.initialise_pubsubs()
-
-        for _task in (
-            app.usecases.privileges.update_privileges_task,
-            app.usecases.clans.update_clans_task,
-        ):
-            task = asyncio.create_task(_task())
-            app.state.tasks.add(task)
 
         logger.info("Server has started!")
         logger.write_log_file("Server has started!")
