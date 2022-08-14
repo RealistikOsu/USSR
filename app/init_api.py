@@ -47,6 +47,15 @@ def init_events(asgi_app: FastAPI) -> None:
             ),
         )
 
+        await app.state.services.ftp_client.connect(
+            host=config.FTP_HOST,
+            port=config.FTP_PORT,
+        )
+        await app.state.services.ftp_client.login(
+            user=config.FTP_USER,
+            password=config.FTP_PASS,
+        )
+
         await app.state.cache.init_cache()
         await app.redis.initialise_pubsubs()
 
@@ -73,6 +82,8 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.redis.close()
 
         await app.state.services.http.close()
+
+        await app.state.services.ftp_client.quit()
 
         await ctx_stack.aclose()
 

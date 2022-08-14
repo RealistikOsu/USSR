@@ -1,7 +1,13 @@
+aiobotocore
+aioftp
 aiohttp[speedups]
 aioredis
 bcrypt
 cryptography
 databases[asyncmy]
 fastapi
+orjson
+py3rijndael
+python-multipart
+rosu_pp_py
 uvicorn[standard]

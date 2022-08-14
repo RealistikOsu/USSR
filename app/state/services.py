@@ -5,7 +5,7 @@ from typing import Mapping
 from typing import Optional
 from typing import Protocol
 
-import aiobotocore.client
+import aioftp
 import aiohttp
 import aioredis
 import databases
@@ -14,6 +14,10 @@ import config
 
 
 redis: aioredis.Redis = aioredis.from_url("redis://localhost")
+
+ftp_client = aioftp.Client(
+    # TODO: allow further configuration?
+)
 
 write_database: databases.Database = databases.Database(
     "mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(

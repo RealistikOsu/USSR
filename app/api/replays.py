@@ -33,13 +33,21 @@ async def get_replay(
     async with app.state.services.http.get(
         f"http://localhost:3030/get?id={score_id}",
     ) as session:
-        if not session or session.status != 200:
-            logging.error(
-                f"Requested replay ID {score_id}, but no file could be found",
-            )
-            return b""
-
-        replay_data = await session.read()
+        if session.status == 200:
+            replay_data = await session.read()
+        else:
+            try:
+                stream = await app.state.services.ftp_client.download_stream(
+                    source=f"/replays/replay_{score_id}.osr",
+                )
+            except aioftp.errors.StatusCodeError:
+                # TODO: assert the error code is "not found"?
+                logging.error(
+                    f"Requested replay ID {score_id}, but no file could be found",
+                )
+                return b""
+            else:
+                replay_data = await stream.read()
 
     asyncio.create_task(
         app.usecases.user.increment_replays_watched(db_score["userid"], mode),
