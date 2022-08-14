@@ -1,13 +1,18 @@
 from __future__ import annotations
 
-import asyncio
+from datetime import timedelta
 
 import app.state
 import logger
 from app.constants.privileges import Privileges
 
-PRIVILEGES: dict[int, Privileges] = {}
-FIVE_MINUTES = 60 * 5
+
+async def cache(user_id: int, privileges: Privileges) -> None:
+    await app.state.services.redis.set(
+        f"ussr:privileges:{user_id}",
+        privileges.value,
+        timedelta(days=1),
+    )
 
 
 async def get_privilege(user_id: int) -> Privileges:
@@ -35,20 +40,3 @@ async def update_privilege(user_id: int) -> Privileges:
 
 def set_privilege(user_id: int, privileges: Privileges) -> None:
     PRIVILEGES[user_id] = privileges
-
-
-async def load_privileges() -> None:
-    db_privileges = await app.state.services.database.fetch_all(
-        "SELECT id, privileges FROM users",
-    )
-
-    for db_user in db_privileges:
-        PRIVILEGES[db_user["id"]] = Privileges(db_user["privileges"])
-
-    logger.info(f"Cached privileges for {len(db_privileges)} users!")
-
-
-async def update_privileges_task() -> None:
-    while True:
-        await load_privileges()
-        await asyncio.sleep(FIVE_MINUTES)

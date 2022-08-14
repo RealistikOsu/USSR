@@ -1,17 +1,32 @@
 from __future__ import annotations
 
-import asyncio
+from datetime import timedelta
+from typing import Optional
 
 import app.state
-import logger
 
 CLANS: dict[int, str] = {}
 FIVE_MINUTES = 60 * 5
 
 
+async def cache(user_id: int, clan_tag: str) -> None:
+    await app.state.services.redis.set(
+        f"ussr:clan_tags:{user_id}",
+        clan_tag,
+        timedelta(days=1),
+    )
+
+
+async def get_cache(user_id: int) -> Optional[str]:
+    return await app.state.services.redis.get(
+        f"ussr:clan_tags:{user_id}",
+    )
+
+
 async def get_clan(user_id: int) -> str:
-    if user_id in CLANS:
-        return CLANS[user_id]
+    cached_tag = await get_cache(user_id)
+    if cached_tag is not None:
+        return cached_tag
 
     return await update_clan(user_id)
 
@@ -23,25 +38,7 @@ async def update_clan(user_id: int) -> str:
     )
 
     if not clan_tag:
-        CLANS[user_id] = ""
-        return ""
+        clan_tag = ""
 
-    CLANS[user_id] = clan_tag
+    await cache(user_id, clan_tag)
     return clan_tag
-
-
-async def load_clans() -> None:
-    db_usernames = await app.state.services.database.fetch_all(
-        "SELECT user, tag FROM user_clans LEFT JOIN clans ON user_clans.clan = clans.id",
-    )
-
-    for db_user in db_usernames:
-        CLANS[db_user["user"]] = db_user["tag"]
-
-    logger.info(f"Cached clan tags for {len(db_usernames)} users!")
-
-
-async def update_clans_task() -> None:
-    while True:
-        await load_clans()
-        await asyncio.sleep(FIVE_MINUTES)
