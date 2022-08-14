@@ -25,7 +25,7 @@ def main() -> int:
         log_level=config.LOG_LEVEL, # type: ignore
         server_header=False,
         date_header=False,
-        port=80,
+        port=config.APP_PORT,
     )
 
     return 0

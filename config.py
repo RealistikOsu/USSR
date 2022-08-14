@@ -4,6 +4,8 @@ from starlette.datastructures import CommaSeparatedStrings
 
 config = Config(".env")
 
+APP_PORT = config("APP_PORT", cast=int)
+
 LOG_LEVEL = config("LOG_LEVEL", cast=int, default=logging.WARNING)
 
 WRITE_DB_HOST = config("WRITE_DB_HOST")
