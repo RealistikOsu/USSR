@@ -1,3 +1,4 @@
+aioftp
 aiohttp[speedups]
 aioredis
 bcrypt
