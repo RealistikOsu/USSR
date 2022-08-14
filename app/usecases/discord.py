@@ -5,9 +5,9 @@ import traceback
 from typing import Optional
 
 import app.state
-import logger
+import logging
 from app.models.user import User
-from config import config
+import config
 
 # This portion is based off cmyui's discord hooks code
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/discord/webhook.py
@@ -164,20 +164,20 @@ class Webhook:
                 res = await req.json()
 
         if res:
-            logger.debug(f"Webhook response: {res}")
+            logging.debug(f"Webhook response: {res}")
 
 
 async def wrap_hook(hook: str, embed: Embed) -> None:
     """Handles sending the webhook to discord."""
 
-    logger.info("Sending Discord webhook!")
+    logging.info("Sending Discord webhook!")
 
     try:
         wh = Webhook(hook, tts=False, username="LESS Score Server")
         wh.add_embed(embed)
         await wh.post()
     except Exception:
-        logger.error(
+        logging.error(
             "Failed sending Discord webhook with exception " + traceback.format_exc(),
         )
 
@@ -191,7 +191,7 @@ def schedule_hook(hook: str, embed: Embed):
     loop = asyncio.get_event_loop()
     loop.create_task(wrap_hook(hook, embed))
 
-    logger.debug("Scheduled the performing of a discord webhook!")
+    logging.debug("Scheduled the performing of a discord webhook!")
 
 
 EDIT_COL = "4360181"

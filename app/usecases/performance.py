@@ -8,7 +8,7 @@ from rosu_pp_py import Calculator
 from rosu_pp_py import ScoreParams
 
 import app.state
-import logger
+import logging
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.objects.oppai import OppaiWrapper
@@ -20,11 +20,11 @@ OPPAI_LIB = OPPAI_DIR / "liboppai.so"
 
 def ensure_oppai() -> None:
     if not OPPAI_DIR.exists():
-        logger.error(f"Oppai folder {OPPAI_DIR} does not exist!")
+        logging.error(f"Oppai folder {OPPAI_DIR} does not exist!")
         raise RuntimeError
 
     if not OPPAI_LIB.exists():
-        logger.warning(f"Oppai ({OPPAI_DIR}) not built, building...")
+        logging.warning(f"Oppai ({OPPAI_DIR}) not built, building...")
         os.system(f"cd {OPPAI_DIR} && chmod +x libbuild && ./libbuild && cd ..")
 
 
@@ -60,7 +60,7 @@ def calculate_oppai(
             combo=max_combo,
             nmiss=nmiss,
         )
-        ezpp.calculate(str(osu_file_path))
+        ezpp.calculate(osu_file_path)
 
         pp = ezpp.get_pp()
         sr = ezpp.get_sr()
@@ -73,6 +73,8 @@ def calculate_oppai(
                 return (0.0, 0.0)
 
         return (round(pp, 2), round(sr, 2))
+
+    return 0.0, 0.0
 
 
 def calculate_rosu(
@@ -114,6 +116,7 @@ def calculate_rosu(
     return (round(res.pp, 2), round(res.stars, 2))
 
 
+# TODO: split sr & pp calculations
 def calculate_performance(
     mode: Mode,
     mods: int,

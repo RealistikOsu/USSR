@@ -10,7 +10,7 @@ from app.objects.leaderboard import Leaderboard
 async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
     leaderboard = Leaderboard(mode)
 
-    db_scores = await app.state.services.database.fetch_all(
+    db_scores = await app.state.services.read_database.fetch_all(
         f"SELECT * FROM {mode.scores_table} WHERE beatmap_md5 = :md5 AND play_mode = :mode AND completed = 3",
         {
             "md5": beatmap.md5,
@@ -19,7 +19,7 @@ async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
     )
 
     for db_score in db_scores:
-        score = Score.from_dict(db_score)
+        score = Score.from_mapping(db_score)
         leaderboard.scores.append(score)
 
     leaderboard.sort()

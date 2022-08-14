@@ -19,8 +19,8 @@ from starlette.middleware.base import RequestResponseEndpoint
 import app.redis
 import app.state
 import app.usecases
-import logger
-from config import config
+import logging
+import config
 
 ctx_stack = contextlib.AsyncExitStack()
 
@@ -28,7 +28,9 @@ ctx_stack = contextlib.AsyncExitStack()
 def init_events(asgi_app: FastAPI) -> None:
     @asgi_app.on_event("startup")
     async def on_startup() -> None:
-        await app.state.services.database.connect()
+        await app.state.services.write_database.connect()
+        await app.state.services.read_database.connect()
+
         await app.state.services.redis.initialize()
 
         app.state.services.http = aiohttp.ClientSession(
@@ -59,21 +61,22 @@ def init_events(asgi_app: FastAPI) -> None:
             task = asyncio.create_task(_task())
             app.state.tasks.add(task)
 
-        logger.info("Server has started!")
-        logger.write_log_file("Server has started!")
+        logging.info("Server has started!")
 
     @asgi_app.on_event("shutdown")
     async def on_shutdown() -> None:
         await app.state.cancel_tasks()
 
-        await app.state.services.database.disconnect()
+        await app.state.services.write_database.disconnect()
+        await app.state.services.read_database.disconnect()
+
         await app.state.services.redis.close()
 
         await app.state.services.http.close()
 
         await ctx_stack.aclose()
 
-        logger.info("Server has shutdown!")
+        logging.info("Server has shutdown!")
 
     @asgi_app.middleware("http")
     async def http_middleware(
@@ -93,7 +96,7 @@ def init_events(asgi_app: FastAPI) -> None:
         request: Request,
         e: RequestValidationError,
     ) -> Response:
-        logger.write_log_file(
+        logging.error(
             f"Validation error on {request.url}:\n{pprint.pformat(e.errors())}",
         )
 

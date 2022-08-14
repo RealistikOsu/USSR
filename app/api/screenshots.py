@@ -11,11 +11,11 @@ from fastapi import UploadFile
 
 import app.state
 import app.utils
-import logger
+import logging
 from app.models.user import User
 from app.objects.path import Path
 from app.usecases.user import authenticate_user
-from config import config
+import config
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000
@@ -52,15 +52,15 @@ async def upload_screenshot(
     x_real_ip: str = Header(...),
 ):
     if not await app.utils.check_online(user.id):
-        logger.error(f"{user} tried to upload a screenshot while offline")
+        logging.error(f"{user} tried to upload a screenshot while offline")
         return ERR_RESP
 
     if user_agent != "osu!":
-        logger.error(f"{user} tried to upload a screenshot using a bot")
+        logging.error(f"{user} tried to upload a screenshot using a bot")
         return ERR_RESP
 
     if await is_ratelimit(x_real_ip):
-        logger.error(f"{user} tried to upload a screenshot while ratelimited")
+        logging.error(f"{user} tried to upload a screenshot while ratelimited")
         return ERR_RESP
 
     content = await screenshot_file.read()
@@ -72,7 +72,7 @@ async def upload_screenshot(
     elif content.startswith(b"\211PNG\r\n\032\n"):
         ext = "png"
     else:
-        logger.error(f"{user} tried to upload unknown extension file")
+        logging.error(f"{user} tried to upload unknown extension file")
         return ERR_RESP
 
     while True:
@@ -84,5 +84,5 @@ async def upload_screenshot(
 
     ss_path.write_bytes(content)
 
-    logger.info(f"{user} has uploaded screenshot {file_name}")
+    logging.info(f"{user} has uploaded screenshot {file_name}")
     return file_name

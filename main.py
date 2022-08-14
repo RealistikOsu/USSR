@@ -1,40 +1,31 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3.10
 from __future__ import annotations
 
 import logging
-import sys
 
 import uvicorn
-import uvloop
 
 import app.usecases.performance
 import app.utils
-import logger
-from config import config
+import config
 
 logging.basicConfig(
     level=logging.WARNING,
     format="%(asctime)s %(message)s",
 )
 
-uvloop.install()
-
-DEBUG = "debug" in sys.argv
-
 
 def main() -> int:
-    logger.ensure_log_file()
     app.usecases.performance.ensure_oppai()
-    app.utils.ensure_folders()
+    app.utils.ensure_directory_structure()
 
     uvicorn.run(
         "app.init_api:asgi_app",
-        reload=DEBUG,
-        log_level=logging.WARNING,
+        reload=config.LOG_LEVEL == logging.DEBUG,
+        log_level=config.LOG_LEVEL, # type: ignore
         server_header=False,
         date_header=False,
-        host="127.0.0.1",
-        port=config.PORT,
+        port=80,
     )
 
     return 0

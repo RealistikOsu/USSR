@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import os
+import logging
 from typing import Optional
 from typing import Union
-from urllib.parse import urlencode
 
 from aiohttp import ClientSession
 
 import app.state
-import logger
 from app.objects.path import Path
-from config import config
+import config
 
 REQUIRED_FOLDERS = (
     config.DATA_DIR,
@@ -21,10 +20,10 @@ REQUIRED_FOLDERS = (
 DATA_PATH = Path(config.DATA_DIR)
 
 
-def ensure_folders():
+def ensure_directory_structure() -> None:
     for folder in REQUIRED_FOLDERS:
         if not os.path.exists(folder):
-            logger.warning(f"Creating data folder {folder}...")
+            logging.warning(f"Creating data folder {folder}...")
             os.makedirs(folder, exist_ok=True)
 
 
@@ -42,21 +41,18 @@ def format_time(time: Union[int, float]) -> str:
 
         time /= 1000
 
-    return f"{time:.2f}{suffix}"
+    return f"{time:.2f}{suffix}"  # type: ignore
 
 
 async def channel_message(channel: str, message: str) -> None:
-    params = urlencode(
-        {
-            "to": channel,
-            "msg": message,
-            "k": config.FOKABOT_KEY,
-        },
-    )
-
     async with ClientSession() as sesh:
         await sesh.get(
-            f"http://localhost:5001/api/v1/fokabotMessage?{params}",
+            "http://localhost:5001/api/v1/fokabotMessage",
+            params={
+                "to": channel,
+                "msg": message,
+                "k": config.FOKABOT_KEY,
+            },
             timeout=2,
         )
 

@@ -7,31 +7,34 @@ from fastapi import Query
 
 import app.state
 import app.usecases
-import logger
+import logging
 from app.models.beatmap import Beatmap
 from app.models.user import User
 from app.usecases.user import authenticate_user
 
 
-async def check_user_rated(user: User, beatmap: Beatmap):
-    return await app.state.services.database.fetch_val(
-        "SELECT 1 FROM beatmaps_rating WHERE user_id = :uid AND beatmap_md5 = :md5",
-        {"uid": user.id, "md5": beatmap.md5},
+async def check_user_rated(user: User, beatmap: Beatmap) -> bool:
+    return (
+        await app.state.services.read_database.fetch_val(
+            "SELECT 1 FROM beatmaps_rating WHERE user_id = :uid AND beatmap_md5 = :md5",
+            {"uid": user.id, "md5": beatmap.md5},
+        )
+        == 1
     )
 
 
 async def add_rating(user_id: int, map_md5: str, rating: int) -> float:
-    await app.state.services.database.execute(
+    await app.state.services.write_database.execute(
         "INSERT INTO beatmaps_rating (user_id, rating, beatmap_md5) VALUES (:id, :rating, :md5)",
         {"id": user_id, "rating": rating, "md5": map_md5},
     )
 
-    new_rating = await app.state.services.database.fetch_val(
+    new_rating = await app.state.services.read_database.fetch_val(
         "SELECT AVG(rating) FROM beatmaps_rating WHERE beatmap_md5 = :md5",
         {"md5": map_md5},
     )
 
-    await app.state.services.database.execute(
+    await app.state.services.write_database.execute(
         "UPDATE beatmaps SET rating = :rating WHERE beatmap_md5 = :md5",
         {"rating": new_rating, "md5": map_md5},
     )
@@ -43,7 +46,7 @@ async def rate_map(
     user: User = Depends(authenticate_user(Query, "u", "p")),
     map_md5: str = Query(..., alias="c"),
     rating: Optional[int] = Query(None, alias="v", ge=1, le=10),
-):
+) -> bytes:
     beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
     if not beatmap:
         return b"no exist"
@@ -58,7 +61,7 @@ async def rate_map(
         new_rating = await add_rating(user.id, map_md5, rating)
         beatmap.rating = new_rating
 
-        logger.info(
+        logging.info(
             f"{user} has rated {beatmap.song_name} with rating {rating} (new average: {new_rating:.2f})",
         )
         return f"alreadyvoting\n{new_rating:.2f}".encode()

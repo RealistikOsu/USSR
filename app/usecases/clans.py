@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import app.state
-import logger
+import logging
 
 CLANS: dict[int, str] = {}
 FIVE_MINUTES = 60 * 5
@@ -17,7 +17,7 @@ async def get_clan(user_id: int) -> str:
 
 
 async def update_clan(user_id: int) -> str:
-    clan_tag = await app.state.services.database.fetch_val(
+    clan_tag = await app.state.services.read_database.fetch_val(
         "SELECT tag FROM users LEFT JOIN clans ON users.clan_id = clans.id WHERE users.id = :id",
         {"id": user_id},
     )
@@ -31,14 +31,14 @@ async def update_clan(user_id: int) -> str:
 
 
 async def load_clans() -> None:
-    db_usernames = await app.state.services.database.fetch_all(
+    db_usernames = await app.state.services.read_database.fetch_all(
         "SELECT users.id AS user, tag FROM users LEFT JOIN clans ON users.clan_id = clans.id",
     )
 
     for db_user in db_usernames:
         CLANS[db_user["user"]] = db_user["tag"]
 
-    logger.info(f"Cached clan tags for {len(db_usernames)} users!")
+    logging.info(f"Cached clan tags for {len(db_usernames)} users!")
 
 
 async def update_clans_task() -> None:

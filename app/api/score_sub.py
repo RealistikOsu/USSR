@@ -22,14 +22,14 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 import app.state
 import app.usecases
 import app.utils
-import logger
+import logging
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.score import Score
 from app.objects.path import Path
 from app.usecases.user import restrict_user
-from config import config
+import config
 
 
 class ScoreData(NamedTuple):
@@ -47,7 +47,7 @@ async def parse_form(score_data: FormData) -> Optional[ScoreData]:
         replay_file = score_data.getlist("score")[1]
         assert isinstance(replay_file, StarletteUploadFile), "Invalid replay data"
     except AssertionError as exc:
-        logger.warning(f"Failed to validate score multipart data: ({exc.args[0]})")
+        logging.warning(f"Failed to validate score multipart data: ({exc.args[0]})")
         return None
     else:
         return ScoreData(
@@ -190,7 +190,7 @@ async def submit_score(
 
     score.time_elapsed = score_time if score.passed else fail_time
 
-    if await app.state.services.database.fetch_val(
+    if await app.state.services.read_database.fetch_val(
         (
             f"SELECT 1 FROM {score.mode.scores_table} WHERE userid = :id AND beatmap_md5 = :md5 AND score = :score "
             "AND play_mode = :mode AND mods = :mods"
@@ -207,7 +207,7 @@ async def submit_score(
         return b"error: no"
 
     if score.status == ScoreStatus.BEST:
-        await app.state.services.database.execute(
+        await app.state.services.write_database.execute(
             f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
             {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
         )
@@ -228,7 +228,7 @@ async def submit_score(
     except Exception:
         score.using_patcher = False
 
-    score.id = await app.state.services.database.execute(
+    score.id = await app.state.services.write_database.execute(
         (
             # TODO: add playtime
             f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
@@ -240,7 +240,7 @@ async def submit_score(
     )
 
     # update most played
-    await app.state.services.database.execute(
+    await app.state.services.write_database.execute(
         "INSERT INTO user_beatmaps (userid, map, rx, mode, count) VALUES (:uid, :md5, :rx, :mode, 1) ON DUPLICATE KEY UPDATE count = count + 1",
         {
             "uid": user.id,
@@ -395,7 +395,7 @@ async def submit_score(
 
     end = time.perf_counter_ns()
     formatted_time = app.utils.format_time(end - start)
-    # logger.info(
+    # logging.info(
     #     f"{user} submitted a {score.pp:.2f}pp {score.mode!r} score on {beatmap.song_name} in {formatted_time}",
     # )
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Mapping, Optional
 
 from app.constants.mode import Mode
 from app.constants.mods import Mods
@@ -83,7 +83,7 @@ class Score:
         }
 
     @classmethod
-    def from_dict(cls, result: dict) -> Score:
+    def from_mapping(cls, result: Mapping[str, Any]) -> Score:
         return cls(
             id=result["id"],
             map_md5=result["beatmap_md5"],

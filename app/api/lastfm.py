@@ -8,7 +8,7 @@ from fastapi import Query
 
 import app.state
 import app.usecases
-import logger
+import logging
 from app.constants.lastfm import LastFMFlags
 from app.models.user import User
 from app.usecases.user import authenticate_user
@@ -72,7 +72,7 @@ def get_flag_explanation(flag: LastFMFlags) -> list[str]:
 
 
 async def log_lastfm_flag(user_id: int, flag: int, flag_text: str) -> None:
-    await app.state.services.database.execute(
+    await app.state.services.write_database.execute(
         "INSERT INTO lastfm_flags (user_id, timestamp, flag_enum, flag_text) VALUES "
         "(:id, :timestamp, :flag, :flag_str)",
         {
@@ -96,5 +96,5 @@ async def lastfm(
 
     asyncio.create_task(log_lastfm_flag(user.id, flags.value, expl_str))
 
-    logger.info(f"{user} has been flagged with {flags!r}!\n{expl_str}")
+    logging.info(f"{user} has been flagged with {flags!r}!\n{expl_str}")
     return b"-3"

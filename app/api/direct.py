@@ -15,7 +15,7 @@ import app.usecases
 from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user
-from config import config
+import config
 
 USING_CHIMU = "https://api.chimu.moe/v1" == config.DIRECT_URL
 CHIMU_SET_ID_SPELLING ="SetId" if USING_CHIMU else "SetID"

@@ -17,14 +17,12 @@ class BinaryWriter:
             return
 
         ret = bytearray()
-        length = 0
 
         while value > 0:
             ret.append(value & 0b01111111)
             value >>= 7
             if value != 0:
-                ret[length] |= 0b10000000
-            length += 1
+                ret[-1] |= 0b10000000
 
         self.buffer.extend(ret)
 
@@ -80,8 +78,9 @@ class BinaryWriter:
         """
         if string:
             self.buffer += b"\x0B"
-            self.write_uleb128(len(string))
-            self.write_raw(string.encode("utf-8"))
+            encoded_string = string.encode("utf-8")
+            self.write_uleb128(len(encoded_string))
+            self.write_raw(encoded_string)
         else:
             self.buffer += b"\x00"
         return self

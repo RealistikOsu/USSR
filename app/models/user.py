@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from app.constants.privileges import Privileges
-from config import config
+import config
 
 
 @dataclass

@@ -6,6 +6,7 @@ from fastapi import Path
 from fastapi import Query
 from fastapi import Request
 from fastapi import Response
+from fastapi import status
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
@@ -65,7 +66,7 @@ async def peppy():
 async def osu_redirect(request: Request, _: int = Path(...)):
     return RedirectResponse(
         url=f"https://osu.ppy.sh{request['path']}",
-        status_code=301,
+        status_code=status.HTTP_301_MOVED_PERMANENTLY,
     )
 
 
@@ -82,7 +83,7 @@ for pattern in (
 async def difficulty_rating(request: Request):
     return RedirectResponse(
         url=f"https://osu.ppy.sh{request['path']}",
-        status_code=307,
+        status_code=status.HTTP_307_TEMPORARY_REDIRECT,
     )
 
 
@@ -95,6 +96,4 @@ async def get_friends(
 
 @router.get("/api/v1/status")
 async def status_handler():
-    return ORJSONResponse(
-        {"status": 200, "server_status": 1},
-    )
+    return ORJSONResponse({"server_status": 1})

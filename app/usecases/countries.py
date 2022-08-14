@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 
 import app.state
-import logger
+import logging
 
 COUNTRIES: dict[int, str] = {}
 FIVE_MINUTES = 60 * 5
@@ -13,7 +13,7 @@ async def get_country(user_id: int) -> str:
     if user_id in COUNTRIES:
         return COUNTRIES[user_id]
 
-    country = await app.state.services.database.fetch_val(
+    country = await app.state.services.read_database.fetch_val(
         "SELECT country FROM users_stats WHERE id = :id",
         {"id": user_id},
     )
@@ -27,14 +27,14 @@ async def get_country(user_id: int) -> str:
 
 
 async def load_countries() -> None:
-    db_countries = await app.state.services.database.fetch_all(
+    db_countries = await app.state.services.read_database.fetch_all(
         "SELECT id, country FROM users_stats",
     )
 
     for db_user in db_countries:
         COUNTRIES[db_user["id"]] = db_user["country"]
 
-    logger.info(f"Cached countries for {len(db_countries)} users!")
+    logging.info(f"Cached countries for {len(db_countries)} users!")
 
 
 async def update_countries_task() -> None:
