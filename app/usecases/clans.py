@@ -8,9 +8,9 @@ import app.state
 
 async def cache(user_id: int, clan_tag: str) -> None:
     await app.state.services.redis.set(
-        f"ussr:clan_tags:{user_id}",
-        clan_tag,
-        timedelta(days=1),
+        name=f"ussr:clan_tags:{user_id}",
+        value=clan_tag,
+        ex=timedelta(days=1),
     )
 
 

@@ -8,9 +8,9 @@ import app.state
 
 async def cache(user_id: int, name: str) -> None:
     await app.state.services.redis.set(
-        f"ussr:usernames:{user_id}",
-        name,
-        timedelta(days=1),
+        name=f"ussr:usernames:{user_id}",
+        value=name,
+        ex=timedelta(days=1),
     )
 
 
@@ -36,7 +36,6 @@ async def update_username(user_id: int) -> str:
 
     if not username:
         username = ""
-        return ""  # xd
 
     await cache(user_id, username)
     return username

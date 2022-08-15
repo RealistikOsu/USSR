@@ -9,9 +9,9 @@ from app.constants.privileges import Privileges
 
 async def cache(user_id: int, privileges: Privileges) -> None:
     await app.state.services.redis.set(
-        f"ussr:privileges:{user_id}",
-        privileges.value,
-        timedelta(days=1),
+        name=f"ussr:privileges:{user_id}",
+        value=privileges.value,
+        ex=timedelta(days=1),
     )
 
 

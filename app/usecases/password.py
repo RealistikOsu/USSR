@@ -11,9 +11,9 @@ import app.state
 # Cache management
 async def cache(plain_password: str, hashed_password: str) -> None:
     await app.state.services.redis.set(
-        f"ussr:passwords:{hashed_password}",
-        plain_password,
-        timedelta(days=1),
+        name=f"ussr:passwords:{hashed_password}",
+        value=plain_password,
+        ex=timedelta(days=1),
     )
 
 
