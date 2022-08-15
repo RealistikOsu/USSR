@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Optional
 
 import app.state
-import logger
 from app.constants.privileges import Privileges
 
 
@@ -15,9 +15,18 @@ async def cache(user_id: int, privileges: Privileges) -> None:
     )
 
 
-async def get_privilege(user_id: int) -> Privileges:
-    if user_id in PRIVILEGES:
-        return PRIVILEGES[user_id]
+async def get_cache(user_id: int) -> Optional[Privileges]:
+    res = await app.state.services.redis.get(
+        f"ussr:privileges:{user_id}",
+    )
+    if res:
+        return Privileges(int(res))
+
+
+async def get(user_id: int) -> Privileges:
+    res_db = await get_cache(user_id)
+    if res_db:
+        return res_db
 
     return await update_privilege(user_id)
 
@@ -29,14 +38,9 @@ async def update_privilege(user_id: int) -> Privileges:
     )
 
     if not db_privilege:
-        PRIVILEGES[user_id] = Privileges(2)
-        return Privileges(2)  # assume restricted? xd
+        db_privilege = 2
 
     privilege = Privileges(db_privilege)
-    PRIVILEGES[user_id] = privilege
+    await cache(user_id, privilege)
 
     return privilege
-
-
-def set_privilege(user_id: int, privileges: Privileges) -> None:
-    PRIVILEGES[user_id] = privileges
