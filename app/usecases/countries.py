@@ -8,9 +8,9 @@ import app.state
 
 async def cache(user_id: int, country: str) -> None:
     await app.state.services.redis.set(
-        f"ussr:countries:{user_id}",
-        country,
-        timedelta(days=1),
+        name=f"ussr:countries:{user_id}",
+        value=country,
+        ex=timedelta(days=1),
     )
 
 

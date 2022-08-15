@@ -9,9 +9,9 @@ from config import config
 
 async def cache(user_id: int, has_badge: bool) -> None:
     await app.state.services.redis.set(
-        f"ussr:verified:{user_id}",
-        int(has_badge),
-        timedelta(days=1),
+        name=f"ussr:verified:{user_id}",
+        value=int(has_badge),
+        ex=timedelta(days=1),
     )
 
 
