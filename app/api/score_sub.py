@@ -291,7 +291,7 @@ async def submit_score(
             ):
                 leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
                 await leaderboard.add_score(score)
-                await app.usecases.leaderboards.insert_cache(beatmap, leaderboard)
+                await app.usecases.leaderboards.insert(beatmap, leaderboard)
 
     await app.usecases.stats.save(stats)
 

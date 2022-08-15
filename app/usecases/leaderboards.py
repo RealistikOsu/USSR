@@ -28,7 +28,7 @@ async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
         leaderboard.scores.append(score)
 
     leaderboard.sort()
-    await insert_cache(beatmap, leaderboard)
+    await insert(beatmap, leaderboard)
     return leaderboard
 
 
@@ -64,7 +64,7 @@ async def fetch_cache(beatmap: Beatmap, mode: Mode) -> Optional[Leaderboard]:
 
 
 # Assumes the lock has already been acquired.
-async def insert_cache(beatmap: Beatmap, leaderboard: Leaderboard) -> None:
+async def insert(beatmap: Beatmap, leaderboard: Leaderboard) -> None:
     serialised_scores = json.dumps(leaderboard.scores_list())
     await app.state.services.redis.set(
         f"ussr:leaderboards:{beatmap.md5}:{leaderboard.mode.value}",

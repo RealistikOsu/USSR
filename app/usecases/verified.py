@@ -20,8 +20,7 @@ async def get_verified_cache(user_id: int) -> Optional[bool]:
         f"ussr:verified:{user_id}",
     )
 
-    if cache_badge:
-        return cache_badge == "1"
+    return cache_badge == "1"
 
 
 async def get_verified(user_id: int) -> bool:
