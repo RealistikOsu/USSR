@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import asyncio
 from datetime import timedelta
 from typing import Optional
 
 import app.state
-import logger
 
 
 async def cache(user_id: int, country: str) -> None:

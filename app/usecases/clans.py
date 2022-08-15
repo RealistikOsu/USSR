@@ -5,9 +5,6 @@ from typing import Optional
 
 import app.state
 
-CLANS: dict[int, str] = {}
-FIVE_MINUTES = 60 * 5
-
 
 async def cache(user_id: int, clan_tag: str) -> None:
     await app.state.services.redis.set(

@@ -9,7 +9,7 @@ import bcrypt
 import app.state
 
 # Cache management
-async def cache_known(plain_password: str, hashed_password: str) -> None:
+async def cache(plain_password: str, hashed_password: str) -> None:
     await app.state.services.redis.set(
         f"ussr:passwords:{hashed_password}",
         plain_password,
@@ -17,14 +17,14 @@ async def cache_known(plain_password: str, hashed_password: str) -> None:
     )
 
 
-async def get_cached(hashed_password: str) -> Optional[str]:
+async def get_cache(hashed_password: str) -> Optional[str]:
     return await app.state.services.redis.get(
         f"ussr:passwords:{hashed_password}",
     )
 
 
 async def verify(plain_password: str, hashed_password: str) -> bool:
-    cached_pw = await get_cached(hashed_password)
+    cached_pw = await get_cache(hashed_password)
     if cached_pw:
         return cached_pw == plain_password
 
@@ -35,6 +35,6 @@ async def verify(plain_password: str, hashed_password: str) -> bool:
     )
 
     if result:
-        await cache_known(plain_password, hashed_password)
+        await cache(plain_password, hashed_password)
 
     return result

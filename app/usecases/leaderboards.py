@@ -43,7 +43,6 @@ async def fetch(beatmap: Beatmap, mode: Mode) -> Leaderboard:
 
 
 async def fetch_cache(beatmap: Beatmap, mode: Mode) -> Optional[Leaderboard]:
-
     redis_cache = await app.state.services.redis.get(
         f"ussr:leaderboards:{beatmap.md5}:{mode.value}",
     )
