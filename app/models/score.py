@@ -138,5 +138,5 @@ class Score:
             status=ScoreStatus.FAILED,  # set later
             time=int(time.time()),
             time_elapsed=0,  # set later
-            checksum=data[0],
+            online_checksum=data[0],
         )

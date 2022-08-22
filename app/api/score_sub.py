@@ -192,7 +192,7 @@ async def submit_score(
 
     if await app.state.services.read_database.fetch_val(
         f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
-        {"checksum": score.checksum},
+        {"checksum": score.online_checksum},
     ):
         # duplicate score detected
         return b"error: no"
