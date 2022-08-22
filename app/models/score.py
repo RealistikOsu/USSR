@@ -42,6 +42,8 @@ class Score:
     time: int
     time_elapsed: int = 0  # TODO: store this in db
 
+    online_checksum: Optional[str] = None  # optional as checksum was not always stored
+
     rank: int = 0
     old_best: Optional[Score] = None
     using_patcher: bool = False
@@ -79,6 +81,7 @@ class Score:
             "accuracy": self.acc,
             "pp": self.pp,
             "patcher": self.using_patcher,
+            "checksum": self.online_checksum,
             # "playtime": self.time_elapsed,
         }
 
@@ -107,6 +110,7 @@ class Score:
             # time_elapsed=result["playtime"],
             passed=result["completed"] > ScoreStatus.FAILED,
             quit=result["completed"] == ScoreStatus.QUIT,
+            online_checksum=result["checksum"],
         )
 
     @classmethod
@@ -134,4 +138,5 @@ class Score:
             status=ScoreStatus.FAILED,  # set later
             time=int(time.time()),
             time_elapsed=0,  # set later
+            checksum=data[0],
         )
