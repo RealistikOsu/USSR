@@ -191,17 +191,8 @@ async def submit_score(
     score.time_elapsed = score_time if score.passed else fail_time
 
     if await app.state.services.read_database.fetch_val(
-        (
-            f"SELECT 1 FROM {score.mode.scores_table} WHERE userid = :id AND beatmap_md5 = :md5 AND score = :score "
-            "AND play_mode = :mode AND mods = :mods"
-        ),
-        {
-            "id": user.id,
-            "md5": beatmap.md5,
-            "score": score.score,
-            "mode": score.mode.as_vn,
-            "mods": score.mods.value,
-        },
+        f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
+        {"checksum": score.checksum},
     ):
         # duplicate score detected
         return b"error: no"
@@ -232,9 +223,9 @@ async def submit_score(
         (
             # TODO: add playtime
             f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
-            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, patcher) VALUES "
+            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, patcher, checksum) VALUES "
             "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
-            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :patcher)"
+            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :patcher, :checksum)"
         ),
         score.db_dict,
     )
