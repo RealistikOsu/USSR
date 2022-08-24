@@ -249,11 +249,14 @@ async def increment_replays_watched(user_id: int, mode: Mode) -> None:
     await app.state.services.write_database.execute(
         (
             """
-            UPDATE users_stats
-            SET replays_watched_{0} = replays_watched_{0} + 1
+            UPDATE {t}
+            SET replays_watched_{m} = replays_watched_{m} + 1
             WHERE id = :id
             """
-        ).format(mode.stats_prefix),
+        ).format(
+            t=mode.stats_table,
+            m=mode.stats_prefix,
+        ),
         {"id": user_id},
     )
 
