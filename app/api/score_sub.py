@@ -245,6 +245,7 @@ async def submit_score(
         beatmap.gives_pp
         and score.pp > await app.usecases.pp_cap.get_pp_cap(score.mode, score.mods)
         and not await app.usecases.whitelist.get_whitelisted(user.id, score.mode)
+        and score.passed
     ):
         await restrict_user(
             user,
