@@ -28,7 +28,7 @@ class Config:
     pp_cap_rx: int = 1200
     pp_cap_ap: int = 1200
     ws_write_key: str = ""
-    bot_user_id: int = 1000
+    bot_user_id: int = 999
     
 def read_config_json() -> dict[str, Any]:
     with open("config.json", "r") as f:
