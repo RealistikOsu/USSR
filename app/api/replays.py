@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import asyncio
 
-import aioftp
 from fastapi import Path
 from fastapi import Query
 from fastapi import Response
+from fastapi import Depends
 
 import app.state
 import app.usecases
@@ -13,9 +13,12 @@ import app.utils
 import logging
 from app.constants.mode import Mode
 from app.models.score import Score
+from app.models.user import User
+from app.usecases.user import authenticate_user
 
 
 async def get_replay(
+    user: User = Depends(authenticate_user(Query, "u", "h")),
     score_id: int = Query(..., alias="c"),
 ):
     mode_rep = Mode.from_offset(score_id)
@@ -33,26 +36,26 @@ async def get_replay(
 
     async with app.state.services.http.get(
         f"http://localhost:3030/get?id={score_id}",
-    ) as session:
-        if session.status == 200:
-            replay_data = await session.read()
-        else:
+    ) as resp:
+        replay_data = await resp.read()
+        if resp.status != 200 or not replay_data:
             try:
-                stream = await app.state.services.ftp_client.download_stream(
-                    source=f"/replays/replay_{score_id}.osr",
+                replay_data = app.state.services.ftp_client.get(
+                    f"/replays/replay_{score_id}.osr"
                 )
-            except aioftp.errors.StatusCodeError:
+                if not replay_data:
+                    raise Exception("No replay found")
+            except Exception:
                 # TODO: assert the error code is "not found"?
                 logging.error(
                     f"Requested replay ID {score_id}, but no file could be found",
                 )
                 return b""
-            else:
-                replay_data = await stream.read()
 
-    asyncio.create_task(
-        app.usecases.user.increment_replays_watched(db_score["userid"], mode),
-    )
+    if db_score["userid"] != user.id:
+        asyncio.create_task(
+            app.usecases.user.increment_replays_watched(db_score["userid"], mode),
+        )
 
     logging.info(f"Served replay ID {score_id}")
     return Response(content=replay_data)

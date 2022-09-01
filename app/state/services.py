@@ -4,8 +4,8 @@ from typing import Any
 from typing import Mapping
 from typing import Optional
 from typing import Protocol
+from ftpretty import ftpretty
 
-import aioftp
 import aiohttp
 import aioredis
 import databases
@@ -15,9 +15,7 @@ import config
 
 redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 
-ftp_client = aioftp.Client(
-    # TODO: allow further configuration?
-)
+ftp_client: ftpretty
 
 write_database: databases.Database = databases.Database(
     "mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(

@@ -15,6 +15,7 @@ from fastapi.requests import Request
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
 from starlette.middleware.base import RequestResponseEndpoint
+from ftpretty import ftpretty
 
 import app.redis
 import app.state
@@ -47,13 +48,10 @@ def init_events(asgi_app: FastAPI) -> None:
             ),
         )
 
-        await app.state.services.ftp_client.connect(
-            host=config.FTP_HOST,
-            port=config.FTP_PORT,
-        )
-        await app.state.services.ftp_client.login(
-            user=config.FTP_USER,
-            password=config.FTP_PASS,
+        app.state.services.ftp_client = ftpretty(
+            config.FTP_HOST,
+            config.FTP_USER,
+            config.FTP_PASS,
         )
 
         await app.state.cache.init_cache()
@@ -83,7 +81,7 @@ def init_events(asgi_app: FastAPI) -> None:
 
         await app.state.services.http.close()
 
-        await app.state.services.ftp_client.quit()
+        app.state.services.ftp_client.close()
 
         await ctx_stack.aclose()
 
