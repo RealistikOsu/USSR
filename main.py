@@ -9,11 +9,6 @@ import app.usecases.performance
 import app.utils
 import config
 
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(asctime)s %(message)s",
-)
-
 
 def main() -> int:
     app.usecases.performance.ensure_oppai()
@@ -22,7 +17,7 @@ def main() -> int:
     uvicorn.run(
         "app.init_api:asgi_app",
         reload=config.LOG_LEVEL == logging.DEBUG,
-        log_level=config.LOG_LEVEL, # type: ignore
+        log_level=config.LOG_LEVEL,  # type: ignore
         server_header=False,
         date_header=False,
         port=config.APP_PORT,
@@ -32,4 +27,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.WARNING,
+        format="%(asctime)s %(message)s",
+    )
+
     raise SystemExit(main())
