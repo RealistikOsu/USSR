@@ -165,6 +165,13 @@ async def submit_score(
             "(score submit gate)",
         )
 
+    if await app.state.services.read_database.fetch_val(
+        f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
+        {"checksum": score.online_checksum},
+    ):
+        # duplicate score detected
+        return b"error: no"
+
     osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
     if await app.usecases.performance.check_local_file(
         osu_file_path,
@@ -189,13 +196,6 @@ async def submit_score(
             score.status = ScoreStatus.FAILED
 
     score.time_elapsed = score_time if score.passed else fail_time
-
-    if await app.state.services.read_database.fetch_val(
-        f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
-        {"checksum": score.online_checksum},
-    ):
-        # duplicate score detected
-        return b"error: no"
 
     if score.status == ScoreStatus.BEST:
         await app.state.services.write_database.execute(
