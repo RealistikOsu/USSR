@@ -165,70 +165,71 @@ async def submit_score(
             "(score submit gate)",
         )
 
-    if await app.state.services.read_database.fetch_val(
-        f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
-        {"checksum": score.online_checksum},
-    ):
-        # duplicate score detected
-        return b"error: no"
-
-    osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
-    if await app.usecases.performance.check_local_file(
-        osu_file_path,
-        beatmap.id,
-        beatmap.md5,
-    ):
-        app.usecases.performance.calculate_score(score, osu_file_path)
-
-        if score.passed:
-            old_best = await leaderboard.find_user_score(user.id)
-
-            if old_best:
-                score.old_best = old_best["score"]
-
-                if score.old_best:
-                    score.old_best.rank = old_best["rank"]
-
-            app.usecases.score.calculate_status(score)
-        elif score.quit:
-            score.status = ScoreStatus.QUIT
-        else:
-            score.status = ScoreStatus.FAILED
-
-    score.time_elapsed = score_time if score.passed else fail_time
-
-    if score.status == ScoreStatus.BEST:
-        await app.state.services.write_database.execute(
-            f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
-            {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
-        )
-
-    try:
-        decoded = b64decode(visual_settings_b64).decode(errors="ignore")
-
-        if (
-            decoded[8] == "-"
-            and decoded[13] == "-"
-            and decoded[18] == "-"
-            and decoded[23] == "-"
-            and len(decoded) == 36
+    async with app.state.locks["score_submission"]:
+        if await app.state.services.read_database.fetch_val(
+            f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
+            {"checksum": score.online_checksum},
         ):
-            score.using_patcher = True
-        else:
-            score.using_patcher = False
-    except Exception:
-        score.using_patcher = False
+            # duplicate score detected
+            return b"error: no"
 
-    score.id = await app.state.services.write_database.execute(
-        (
-            # TODO: add playtime
-            f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
-            "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, patcher, checksum) VALUES "
-            "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
-            ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :patcher, :checksum)"
-        ),
-        score.db_dict,
-    )
+        osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
+        if await app.usecases.performance.check_local_file(
+            osu_file_path,
+            beatmap.id,
+            beatmap.md5,
+        ):
+            app.usecases.performance.calculate_score(score, osu_file_path)
+
+            if score.passed:
+                old_best = await leaderboard.find_user_score(user.id)
+
+                if old_best:
+                    score.old_best = old_best["score"]
+
+                    if score.old_best:
+                        score.old_best.rank = old_best["rank"]
+
+                app.usecases.score.calculate_status(score)
+            elif score.quit:
+                score.status = ScoreStatus.QUIT
+            else:
+                score.status = ScoreStatus.FAILED
+
+        score.time_elapsed = score_time if score.passed else fail_time
+
+        if score.status == ScoreStatus.BEST:
+            await app.state.services.write_database.execute(
+                f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
+                {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
+            )
+
+        try:
+            decoded = b64decode(visual_settings_b64).decode(errors="ignore")
+
+            if (
+                decoded[8] == "-"
+                and decoded[13] == "-"
+                and decoded[18] == "-"
+                and decoded[23] == "-"
+                and len(decoded) == 36
+            ):
+                score.using_patcher = True
+            else:
+                score.using_patcher = False
+        except Exception:
+            score.using_patcher = False
+
+        score.id = await app.state.services.write_database.execute(
+            (
+                # TODO: add playtime
+                f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
+                "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, patcher, checksum) VALUES "
+                "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
+                ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :patcher, :checksum)"
+            ),
+            score.db_dict,
+        )
 
     # update most played
     await app.state.services.write_database.execute(

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Callable, Awaitable
 
 import logging
 from . import cache
 from . import services
 
 tasks: set[asyncio.Task] = set()
-
-from typing import Callable, Awaitable
+locks: dict[str, asyncio.Lock] = {}  # TODO: make this stateless (redis)
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
 
