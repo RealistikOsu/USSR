@@ -168,7 +168,7 @@ async def md5_from_database(md5: str) -> Optional[Beatmap]:
     if not db_result:
         return None
 
-    return Beatmap.from_mapping(db_result)
+    return Beatmap.from_mapping(db_result)  # type: ignore
 
 
 async def id_from_database(id: int) -> Optional[Beatmap]:
@@ -180,19 +180,16 @@ async def id_from_database(id: int) -> Optional[Beatmap]:
     if not db_result:
         return None
 
-    return Beatmap.from_mapping(db_result)
+    return Beatmap.from_mapping(db_result)  # type: ignore
 
 
-async def set_from_database(set_id: str) -> Optional[list[Beatmap]]:
+async def set_from_database(set_id: int) -> list[Beatmap]:
     db_results = await app.state.services.read_database.fetch_all(
         "SELECT * FROM beatmaps WHERE beatmapset_id = :id",
         {"id": set_id},
     )
 
-    if not db_results:
-        return None
-
-    return [Beatmap.from_mapping(db_result) for db_result in db_results]
+    return [Beatmap.from_mapping(db_result) for db_result in db_results]  # type: ignore
 
 
 GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
@@ -207,7 +204,7 @@ async def save(beatmap: Beatmap) -> None:
             ":ar, :od, :mode, :rating, :difficulty_std, :difficulty_taiko, :difficulty_ctb, :difficulty_mania, :max_combo, :hit_length, :bpm, "
             ":playcount, :passcount, :ranked, :latest_update, :ranked_status_freezed, :file_name)"
         ),
-        beatmap.to_mapping,
+        beatmap.to_mapping,  # type: ignore
     )
 
 

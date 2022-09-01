@@ -63,7 +63,7 @@ async def peppy():
     return b"This is a peppy skill issue, please ignore."
 
 
-async def osu_redirect(request: Request, _: int = Path(...)):
+async def osu_redirect(request: Request, _: int | str = Path(...)):
     return RedirectResponse(
         url=f"https://osu.ppy.sh{request['path']}",
         status_code=status.HTTP_301_MOVED_PERMANENTLY,
