@@ -28,7 +28,7 @@ def register_pubsub(channel: str):
 @register_pubsub("peppy:ban")
 async def handle_privilege_change(payload: str) -> None:
     user_id = int(payload)
-    await app.usecases.privileges.update_privilege(user_id)
+    await app.usecases.privileges._get_privileges(user_id)
 
     logging.info(f"Updated privileges for user ID {user_id}")
 

@@ -10,30 +10,25 @@ PRIVILEGES: dict[int, Privileges] = {}
 FIVE_MINUTES = 60 * 5
 
 
-async def get_privilege(user_id: int) -> Privileges:
-    if user_id in PRIVILEGES:
-        return PRIVILEGES[user_id]
+async def get_privileges(user_id: int) -> Privileges:
+    if privileges := PRIVILEGES.get(user_id):
+        return privileges
 
-    return await update_privilege(user_id)
+    privileges = await _get_privileges(user_id)
+    PRIVILEGES[user_id] = privileges
+    return privileges
 
 
-async def update_privilege(user_id: int) -> Privileges:
-    db_privilege = await app.state.services.read_database.fetch_val(
+async def _get_privileges(user_id: int) -> Privileges:
+    db_privileges = await app.state.services.read_database.fetch_val(
         "SELECT privileges FROM users WHERE id = :id",
         {"id": user_id},
     )
 
-    if db_privilege is None:
+    if db_privileges is None:
         raise Exception(f"User {user_id} not found in database!")
 
-    privilege = Privileges(db_privilege)
-    PRIVILEGES[user_id] = privilege
-
-    return privilege
-
-
-def set_privilege(user_id: int, privileges: Privileges) -> None:
-    PRIVILEGES[user_id] = privileges
+    return Privileges(db_privileges)
 
 
 async def load_privileges() -> None:
