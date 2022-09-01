@@ -75,20 +75,6 @@ def calculate_accuracy(score: Score) -> float:
         raise NotImplementedError(f"Unknown mode: {vanilla_mode}")
 
 
-def calculate_status(score: Score) -> None:
-    if score.old_best:
-        if score.pp > score.old_best.pp:
-            score.status = ScoreStatus.BEST
-            score.old_best.status = ScoreStatus.SUBMITTED
-        elif score.pp == score.old_best.pp and score.score > score.old_best.score:
-            # spin to win!
-            score.status = ScoreStatus.BEST
-            score.old_best.status = ScoreStatus.SUBMITTED
-        else:
-            score.status = ScoreStatus.SUBMITTED
-    else:
-        score.status = ScoreStatus.BEST
-
 
 async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
     new_achievements: list[str] = []

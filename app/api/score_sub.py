@@ -166,21 +166,35 @@ async def submit_score(
         )
 
     async with app.state.locks["score_submission"]:
-        if await app.state.services.read_database.fetch_val(
-            f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
-            {"checksum": score.online_checksum},
-        ):
-            # duplicate score detected
+        score_exists = (
+            await app.state.services.read_database.fetch_val(
+                f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
+                {"checksum": score.online_checksum},
+            )
+        ) is not None
+
+        if score_exists:
             return b"error: no"
 
         osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
-        if await app.usecases.performance.check_local_file(
+        local_osu_file_exists = await app.usecases.performance.check_local_file(
             osu_file_path,
             beatmap.id,
             beatmap.md5,
-        ):
-            app.usecases.performance.calculate_score(score, osu_file_path)
+        )
 
+        if local_osu_file_exists:
+            score.pp, score.sr = app.usecases.performance.calculate_performance(
+                score.mode,
+                score.mods.value,
+                score.max_combo,
+                score.score,
+                score.acc,
+                score.nmiss,
+                osu_file_path,
+            )
+
+            # calculate the score's status
             if score.passed:
                 old_best = await leaderboard.find_user_score(user.id)
 
@@ -190,7 +204,21 @@ async def submit_score(
                     if score.old_best:
                         score.old_best.rank = old_best["rank"]
 
-                app.usecases.score.calculate_status(score)
+                if score.old_best:
+                    if score.pp > score.old_best.pp:
+                        score.status = ScoreStatus.BEST
+                        score.old_best.status = ScoreStatus.SUBMITTED
+                    elif (
+                        score.pp == score.old_best.pp
+                        and score.score > score.old_best.score
+                    ):
+                        # spin to win!
+                        score.status = ScoreStatus.BEST
+                        score.old_best.status = ScoreStatus.SUBMITTED
+                    else:
+                        score.status = ScoreStatus.SUBMITTED
+                else:
+                    score.status = ScoreStatus.BEST
             elif score.quit:
                 score.status = ScoreStatus.QUIT
             else:
