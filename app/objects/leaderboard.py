@@ -73,11 +73,11 @@ class Leaderboard:
 
         return scores
 
-    async def remove_user(self, user_id: int) -> None:
-        result = await self.find_user_score(user_id, unrestricted=False)
-
-        if result is not None:
-            self.scores.remove(result["score"])
+    def remove_user(self, user_id: int) -> None:
+        for score in self.scores:
+            if score.user_id == user_id:
+                self.scores.remove(score)
+                break
 
     def sort(self) -> None:
         if self.mode > Mode.MANIA:
@@ -105,8 +105,7 @@ class Leaderboard:
 
         return 1
 
-    async def add_score(self, score: Score) -> None:
-        await self.remove_user(score.user_id)
-
+    def replace_user_score(self, score: Score) -> None:
+        self.remove_user(score.user_id)
         self.scores.append(score)
         self.sort()

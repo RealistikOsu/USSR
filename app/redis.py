@@ -46,10 +46,8 @@ async def handle_player_wipe(payload: str) -> None:
     beatmaps = await app.usecases.beatmap.fetch_all_cache()
 
     for beatmap in beatmaps:
-        if not (leaderboard := beatmap.leaderboards.get(mode)):
-            continue
-
-        await leaderboard.remove_user(user_id)
+        if leaderboard := beatmap.leaderboards.get(mode):
+            leaderboard.remove_user(user_id)
 
     logging.info(f"Handled wipe for user ID {user_id} on {mode!r}")
 

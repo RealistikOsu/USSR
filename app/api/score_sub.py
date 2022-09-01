@@ -198,13 +198,10 @@ async def submit_score(
             if score.passed:
                 old_best = await leaderboard.find_user_score(user.id)
 
-                if old_best:
+                if old_best is not None:
                     score.old_best = old_best["score"]
+                    score.old_best.rank = old_best["rank"]
 
-                    if score.old_best:
-                        score.old_best.rank = old_best["rank"]
-
-                if score.old_best:
                     if score.pp > score.old_best.pp:
                         score.status = ScoreStatus.BEST
                         score.old_best.status = ScoreStatus.SUBMITTED
@@ -228,8 +225,19 @@ async def submit_score(
 
         if score.status == ScoreStatus.BEST:
             await app.state.services.write_database.execute(
-                f"UPDATE {score.mode.scores_table} SET completed = 2 WHERE completed = 3 AND beatmap_md5 = :md5 AND userid = :id AND play_mode = :mode",
-                {"md5": beatmap.md5, "id": user.id, "mode": score.mode.as_vn},
+                f"""\
+                UPDATE {score.mode.scores_table}
+                   SET completed = 2
+                 WHERE completed = 3
+                   AND beatmap_md5 = :beatmap_md5
+                   AND userid = :userid
+                   AND play_mode = :mode
+                """,
+                {
+                    "beatmap_md5": beatmap.md5,
+                    "userid": user.id,
+                    "mode": score.mode.as_vn,
+                },
             )
 
         try:
@@ -261,7 +269,11 @@ async def submit_score(
 
     # update most played
     await app.state.services.write_database.execute(
-        "INSERT INTO user_beatmaps (userid, map, rx, mode, count) VALUES (:uid, :md5, :rx, :mode, 1) ON DUPLICATE KEY UPDATE count = count + 1",
+        """\
+        INSERT INTO user_beatmaps (userid, map, rx, mode, count)
+        VALUES (:uid, :md5, :rx, :mode, 1)
+        ON DUPLICATE KEY UPDATE count = count + 1
+        """,
         {
             "uid": user.id,
             "md5": score.map_md5,
@@ -312,20 +324,20 @@ async def submit_score(
     stats.total_hits += score.n300 + score.n100 + score.n50
 
     if score.passed and beatmap.has_leaderboard:
-        if beatmap.status == RankedStatus.RANKED and score.status == ScoreStatus.BEST:
-            stats.ranked_score += score.score
-
-            if score.old_best is not None:
-                stats.ranked_score -= score.old_best.score
-
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
 
         if score.status == ScoreStatus.BEST:
+            leaderboard.replace_user_score(score)
+
             if score.pp:
                 await app.usecases.stats.full_recalc(stats, score.pp)
 
-            await leaderboard.add_score(score)
+            if beatmap.status == RankedStatus.RANKED:
+                stats.ranked_score += score.score
+
+                if score.old_best is not None:
+                    stats.ranked_score -= score.old_best.score
 
     await app.usecases.stats.save(stats)
 
