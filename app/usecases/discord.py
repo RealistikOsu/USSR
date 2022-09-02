@@ -165,6 +165,8 @@ class Webhook:
         async with app.state.services.http.post(self.url, data=self.json) as req:
             if req and req.status == 200:
                 res = await req.json()
+            else:
+                logger.error(f"Failed sending webhook with response code {req.status}")
 
         if res:
             logger.debug(f"Webhook response: {res}")
@@ -185,7 +187,7 @@ async def wrap_hook(hook: str, embed: Embed) -> None:
         )
 
 
-def schedule_hook(hook: str, embed: Embed):
+def schedule_hook(hook: Optional[str], embed: Embed):
     """Performs a hook execution in a non-blocking manner."""
 
     if not hook:
