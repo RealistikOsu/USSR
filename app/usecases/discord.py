@@ -163,16 +163,12 @@ class Webhook:
     async def post(self) -> None:
         """Post the webhook in JSON format."""
 
-        res: Optional[dict] = None
         async with app.state.services.http.post(
             self.url,
             json=self.json,
         ) as req:
             if req.status != 204:
                 logger.error(f"Failed sending webhook with response code {req.status}")
-
-        if res:
-            logger.debug(f"Webhook response: {res}")
 
 
 async def wrap_hook(hook: str, embed: Embed) -> None:
