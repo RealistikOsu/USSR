@@ -182,7 +182,7 @@ async def wrap_hook(hook: str, embed: Embed) -> None:
         )
 
 
-def schedule_hook(hook: str, embed: Embed):
+def schedule_hook(hook: Optional[str], embed: Embed):
     """Performs a hook execution in a non-blocking manner."""
 
     if not hook:
