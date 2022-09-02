@@ -159,12 +159,8 @@ class Webhook:
         """Post the webhook in JSON format."""
 
         res: Optional[dict] = None
-        async with app.state.services.http.post(self.url, data=self.json) as req:
-            if req and req.status == 200:
-                res = await req.json()
-
-        if res:
-            logging.debug(f"Webhook response: {res}")
+        async with app.state.services.http.post(self.url, json=self.json) as req:
+            ...
 
 
 async def wrap_hook(hook: str, embed: Embed) -> None:
