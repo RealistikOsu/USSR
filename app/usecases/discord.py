@@ -158,7 +158,6 @@ class Webhook:
     async def post(self) -> None:
         """Post the webhook in JSON format."""
 
-        res: Optional[dict] = None
         async with app.state.services.http.post(self.url, json=self.json) as req:
             ...
 
