@@ -159,7 +159,10 @@ class Webhook:
         """Post the webhook in JSON format."""
 
         async with app.state.services.http.post(self.url, json=self.json) as req:
-            ...
+            if 200 <= req.status >= 300:
+                # status code is not in the 200s range (success case)
+
+                logging.warning(f"Discord webhook failed with status {req.status}")
 
 
 async def wrap_hook(hook: str, embed: Embed) -> None:
