@@ -166,12 +166,9 @@ class Webhook:
         res: Optional[dict] = None
         async with app.state.services.http.post(
             self.url,
-            data=orjson.dumps(self.json),
-            headers={"Content-Type": "application/json"},
+            json=self.json,
         ) as req:
-            if req and req.status == 204:
-                res = await req.json()
-            else:
+            if req.status != 204:
                 logger.error(f"Failed sending webhook with response code {req.status}")
 
         if res:
