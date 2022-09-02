@@ -4,6 +4,8 @@ import asyncio
 import traceback
 from typing import Optional
 
+import orjson
+
 import app.state
 import logger
 from app.models.beatmap import Beatmap
@@ -162,8 +164,12 @@ class Webhook:
         """Post the webhook in JSON format."""
 
         res: Optional[dict] = None
-        async with app.state.services.http.post(self.url, data=self.json) as req:
-            if req and req.status == 200:
+        async with app.state.services.http.post(
+            self.url,
+            data=orjson.dumps(self.json),
+            headers={"Content-Type": "application/json"},
+        ) as req:
+            if req and req.status == 204:
                 res = await req.json()
             else:
                 logger.error(f"Failed sending webhook with response code {req.status}")
