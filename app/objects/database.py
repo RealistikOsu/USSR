@@ -52,3 +52,10 @@ class Database:
     ) -> Any:
         result = await self.write_database.execute(query, values)  # type: ignore
         return result
+
+    async def execute_many(
+        self,
+        query: ClauseElement | str,
+        values: list,
+    ) -> None:
+        await self.write_database.execute_many(query, values)
