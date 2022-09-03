@@ -22,15 +22,19 @@ class Database:
         query: ClauseElement | str,
         values: dict | None = None,
     ) -> list[Mapping]:
-        rows = await self.read_database.fetch_all(query, values)
+        rows = await self.read_database.fetch_all(query, values)  # type: ignore
         return [row._mapping for row in rows]
 
     async def fetch_one(
         self,
         query: ClauseElement | str,
         values: dict | None = None,
-    ) -> Mapping:
-        return (await self.read_database.fetch_one(query, values))._mapping
+    ) -> Mapping | None:
+        row = await self.read_database.fetch_one(query, values)  # type: ignore
+        if not row:
+            return None
+
+        return row._mapping
 
     async def fetch_val(
         self,
@@ -38,11 +42,13 @@ class Database:
         values: dict | None = None,
         column: Any = 0,
     ) -> Any:
-        return await self.read_database.fetch_val(query, values, column)
+        val = await self.read_database.fetch_val(query, values, column)  # type: ignore
+        return val
 
     async def execute(
         self,
         query: ClauseElement | str,
         values: dict | None = None,
     ) -> Any:
-        return await self.write_database.execute(query, values)
+        result = await self.write_database.execute(query, values)  # type: ignore
+        return result
