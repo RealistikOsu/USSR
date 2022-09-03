@@ -25,7 +25,7 @@ import config
 async def fetch_db(username: str) -> Optional[User]:
     safe_name = app.utils.make_safe(username)
 
-    db_user = await app.state.services.read_database.fetch_one(
+    db_user = await app.state.services.database.fetch_one(
         "SELECT * FROM users WHERE username_safe = :safe_name",
         {"safe_name": safe_name},
     )
@@ -33,12 +33,12 @@ async def fetch_db(username: str) -> Optional[User]:
     if not db_user:
         return None
 
-    country = await app.state.services.read_database.fetch_val(
+    country = await app.state.services.database.fetch_val(
         "SELECT country FROM users_stats WHERE id = :id",
         {"id": db_user["id"]},
     )
 
-    db_friends = await app.state.services.read_database.fetch_all(
+    db_friends = await app.state.services.database.fetch_all(
         "SELECT user2 FROM users_relationships WHERE user1 = :id",
         {"id": db_user["id"]},
     )
@@ -56,7 +56,7 @@ async def fetch_db(username: str) -> Optional[User]:
 
 
 async def fetch_db_id(user_id: int) -> Optional[User]:
-    db_user = await app.state.services.read_database.fetch_one(
+    db_user = await app.state.services.database.fetch_one(
         "SELECT * FROM users WHERE id = :id",
         {"id": user_id},
     )
@@ -64,12 +64,12 @@ async def fetch_db_id(user_id: int) -> Optional[User]:
     if not db_user:
         return None
 
-    country = await app.state.services.read_database.fetch_val(
+    country = await app.state.services.database.fetch_val(
         "SELECT country FROM users_stats WHERE id = :id",
         {"id": db_user["id"]},
     )
 
-    db_friends = await app.state.services.read_database.fetch_all(
+    db_friends = await app.state.services.database.fetch_all(
         "SELECT user2 FROM users_relationships WHERE user1 = :id",
         {"id": db_user["id"]},
     )
@@ -172,7 +172,7 @@ async def insert_restrict_log(user: User, detail: str) -> None:
     # Prefix the detail with a less autoban.
     detail = f"[{datetime.utcnow()}] LESS Restrict: " + detail
 
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         f"UPDATE users SET notes = CONCAT(IFNULL(notes, ''), :detail) WHERE id = :id",
         {
             "detail": f"\n{detail}",
@@ -180,7 +180,7 @@ async def insert_restrict_log(user: User, detail: str) -> None:
         },
     )
 
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         "INSERT INTO rap_logs (userid, text, datetime, through) "
         "VALUES (:uid, :text, :time, :thru)",
         {
@@ -203,7 +203,7 @@ async def restrict_user(
         return
 
     user.privileges &= ~Privileges.USER_PUBLIC
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         "UPDATE users SET privileges = :new_priv, ban_datetime = UNIX_TIMESTAMP() "
         "WHERE id = :id",
         {
@@ -224,7 +224,7 @@ async def restrict_user(
 
 
 async def fetch_achievements(user_id: int, mode: Mode) -> list[int]:
-    db_achievements = await app.state.services.read_database.fetch_all(
+    db_achievements = await app.state.services.database.fetch_all(
         "SELECT achievement_id FROM users_achievements "
         "WHERE user_id = :id AND mode = :mode",
         {"id": user_id, "mode": mode.value},
@@ -234,7 +234,7 @@ async def fetch_achievements(user_id: int, mode: Mode) -> list[int]:
 
 
 async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> None:
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         "INSERT INTO users_achievements (achievement_id, user_id, mode, created_at) "
         "VALUES (:achievement_id, :user_id, :mode, :timestamp)",
         {
@@ -247,7 +247,7 @@ async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> N
 
 
 async def increment_replays_watched(user_id: int, mode: Mode) -> None:
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         (
             """
             UPDATE {t}
@@ -263,7 +263,7 @@ async def increment_replays_watched(user_id: int, mode: Mode) -> None:
 
 
 async def update_latest_activity(user_id: int) -> None:
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         "UPDATE users SET latest_activity = UNIX_TIMESTAMP() WHERE id = :id",
         {"id": user_id},
     )

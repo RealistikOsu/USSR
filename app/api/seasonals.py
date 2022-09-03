@@ -6,7 +6,7 @@ import app.state
 
 
 async def get_seasonals():
-    db_seasonals = await app.state.services.read_database.fetch_all(
+    db_seasonals = await app.state.services.database.fetch_all(
         "SELECT url FROM seasonal_bg WHERE enabled = 1",
     )
 

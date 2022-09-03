@@ -20,7 +20,7 @@ async def get_privileges(user_id: int) -> Privileges:
 
 
 async def _get_privileges(user_id: int) -> Privileges:
-    db_privileges = await app.state.services.read_database.fetch_val(
+    db_privileges = await app.state.services.database.fetch_val(
         "SELECT privileges FROM users WHERE id = :id",
         {"id": user_id},
     )
@@ -32,7 +32,7 @@ async def _get_privileges(user_id: int) -> Privileges:
 
 
 async def load_privileges() -> None:
-    db_privileges = await app.state.services.read_database.fetch_all(
+    db_privileges = await app.state.services.database.fetch_all(
         "SELECT id, privileges FROM users",
     )
 

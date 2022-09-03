@@ -39,7 +39,7 @@ async def update_pp_cap(mode: Mode, mods: Mods) -> int:
     if mods & Mods.FLASHLIGHT:
         prefix += "flashlight_"
 
-    pp_cap = await app.state.services.read_database.fetch_val(
+    pp_cap = await app.state.services.database.fetch_val(
         f"SELECT {prefix}pp FROM pp_limits WHERE gamemode = :mode",
         {"mode": mode.as_vn},
     )

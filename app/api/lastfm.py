@@ -72,7 +72,7 @@ def get_flag_explanation(flag: LastFMFlags) -> list[str]:
 
 
 async def log_lastfm_flag(user_id: int, flag: int, flag_text: str) -> None:
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         "INSERT INTO lastfm_flags (user_id, timestamp, flag_enum, flag_text) VALUES "
         "(:id, :timestamp, :flag, :flag_str)",
         {

@@ -75,7 +75,6 @@ def calculate_accuracy(score: Score) -> float:
         raise NotImplementedError(f"Unknown mode: {vanilla_mode}")
 
 
-
 async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
     new_achievements: list[str] = []
 
@@ -107,12 +106,12 @@ async def handle_first_place(
     beatmap: Beatmap,
     user: User,
 ) -> None:
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         "DELETE FROM scores_first WHERE beatmap_md5 = :md5 AND mode = :mode AND rx = :rx",
         {"md5": score.map_md5, "mode": score.mode.as_vn, "rx": score.mode.relax_int},
     )
 
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         (
             "INSERT INTO scores_first (beatmap_md5, mode, rx, scoreid, userid) VALUES "
             "(:md5, :mode, :rx, :sid, :uid)"
@@ -140,7 +139,9 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         raw_data = await session.read()
         if session.status != 200 or not raw_data:
             try:
-                raw_data = app.state.services.ftp_client.get(f"/replays/replay_{score.id}.osr")
+                raw_data = app.state.services.ftp_client.get(
+                    f"/replays/replay_{score.id}.osr"
+                )
                 if not raw_data:
                     raise Exception("No replay found!")
             except Exception as e:

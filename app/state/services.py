@@ -8,7 +8,7 @@ from ftpretty import ftpretty
 
 import aiohttp
 import aioredis
-import databases
+from app.objects.database import Database
 
 import config
 
@@ -17,23 +17,21 @@ redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 
 ftp_client: ftpretty
 
-write_database: databases.Database = databases.Database(
-    "mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
-        username=config.WRITE_DB_USER,
-        password=config.WRITE_DB_PASS,
-        host=config.WRITE_DB_HOST,
-        port=config.WRITE_DB_PORT,
-        db=config.WRITE_DB_NAME,
-    )
-)
-read_database: databases.Database = databases.Database(
-    "mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
+database: Database = Database(
+    read_dsn="mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
         username=config.READ_DB_USER,
         password=config.READ_DB_PASS,
         host=config.READ_DB_HOST,
         port=config.READ_DB_PORT,
         db=config.READ_DB_NAME,
-    )
+    ),
+    write_dsn="mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
+        username=config.WRITE_DB_USER,
+        password=config.WRITE_DB_PASS,
+        host=config.WRITE_DB_HOST,
+        port=config.WRITE_DB_PORT,
+        db=config.WRITE_DB_NAME,
+    ),
 )
 
 http: aiohttp.ClientSession
