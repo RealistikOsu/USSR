@@ -167,7 +167,7 @@ async def submit_score(
 
     async with app.state.locks["score_submission"]:
         score_exists = (
-            await app.state.services.read_database.fetch_val(
+            await app.state.services.database.fetch_val(
                 f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
                 {"checksum": score.online_checksum},
             )
@@ -224,7 +224,7 @@ async def submit_score(
         score.time_elapsed = score_time if score.passed else fail_time
 
         if score.status == ScoreStatus.BEST:
-            await app.state.services.write_database.execute(
+            await app.state.services.database.execute(
                 f"""\
                 UPDATE {score.mode.scores_table}
                    SET completed = 2
@@ -256,7 +256,7 @@ async def submit_score(
         except Exception:
             score.using_patcher = False
 
-        score.id = await app.state.services.write_database.execute(
+        score.id = await app.state.services.database.execute(
             (
                 # TODO: add playtime
                 f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
@@ -268,7 +268,7 @@ async def submit_score(
         )
 
     # update most played
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         """\
         INSERT INTO user_beatmaps (userid, map, rx, mode, count)
         VALUES (:uid, :md5, :rx, :mode, 1)

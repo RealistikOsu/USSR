@@ -35,7 +35,7 @@ async def fetch(user_id: int, mode: Mode) -> Optional[Stats]:
 
 
 async def fetch_db(user_id: int, mode: Mode) -> Optional[Stats]:
-    db_stats = await app.state.services.read_database.fetch_one(
+    db_stats = await app.state.services.database.fetch_one(
         (
             "SELECT ranked_score_{m} ranked_score, total_score_{m} total_score, pp_{m} pp, avg_accuracy_{m} accuracy, "
             "playcount_{m} playcount, playtime_{m} playtime, max_combo_{m} max_combo, total_hits_{m} total_hits, "
@@ -90,7 +90,7 @@ async def get_redis_rank(user_id: int, mode: Mode) -> RankInfo:
 
 
 async def full_recalc(stats: Stats, score_pp: float) -> None:
-    db_scores = await app.state.services.read_database.fetch_all(
+    db_scores = await app.state.services.database.fetch_all(
         f"SELECT s.accuracy, s.pp FROM {stats.mode.scores_table} s "
         "JOIN beatmaps b USING(beatmap_md5) "
         "WHERE s.completed = 3 AND s.play_mode = :mode "
@@ -115,7 +115,7 @@ async def full_recalc(stats: Stats, score_pp: float) -> None:
 
 
 async def calc_bonus(stats: Stats) -> float:
-    count = await app.state.services.read_database.fetch_val(
+    count = await app.state.services.database.fetch_val(
         (
             f"SELECT COUNT(*) FROM {stats.mode.scores_table} s "
             "JOIN beatmaps b USING(beatmap_md5) "
@@ -133,7 +133,7 @@ async def calc_bonus(stats: Stats) -> float:
 
 
 async def save(stats: Stats) -> None:
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         (
             """
             UPDATE {t}

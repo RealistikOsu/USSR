@@ -23,7 +23,7 @@ async def get_replay(
 ):
     mode_rep = Mode.from_offset(score_id)
 
-    db_score = await app.state.services.read_database.fetch_one(
+    db_score = await app.state.services.database.fetch_one(
         f"SELECT mods, play_mode, userid FROM {mode_rep.scores_table} WHERE id = :id",
         {"id": score_id},
     )
@@ -66,7 +66,7 @@ async def get_full_replay(
 ):
     mode_rep = Mode.from_offset(score_id)
 
-    db_score = await app.state.services.read_database.fetch_one(
+    db_score = await app.state.services.database.fetch_one(
         f"SELECT * FROM {mode_rep.scores_table} WHERE id = :id",
         {"id": score_id},
     )

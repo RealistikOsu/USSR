@@ -17,7 +17,7 @@ async def get_clan(user_id: int) -> str:
 
 
 async def update_clan(user_id: int) -> str:
-    clan_tag = await app.state.services.read_database.fetch_val(
+    clan_tag = await app.state.services.database.fetch_val(
         "SELECT tag FROM users LEFT JOIN clans ON users.clan_id = clans.id WHERE users.id = :id",
         {"id": user_id},
     )
@@ -31,7 +31,7 @@ async def update_clan(user_id: int) -> str:
 
 
 async def load_clans() -> None:
-    db_usernames = await app.state.services.read_database.fetch_all(
+    db_usernames = await app.state.services.database.fetch_all(
         "SELECT users.id AS user, tag FROM users LEFT JOIN clans ON users.clan_id = clans.id",
     )
 

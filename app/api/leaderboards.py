@@ -72,7 +72,7 @@ async def get_leaderboard(
             else:
                 map_exists = False
         else:
-            map_exists = await app.state.services.read_database.fetch_val(
+            map_exists = await app.state.services.database.fetch_val(
                 "SELECT 1 FROM beatmaps WHERE file_name = :filename",
                 {"filename": filename},
             )

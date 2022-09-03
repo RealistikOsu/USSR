@@ -110,7 +110,7 @@ async def handle_beatmap_status_change(payload: str) -> None:
 async def handle_clan_change(payload: str) -> None:
     clan_id = int(payload)
 
-    clan_users = await app.state.services.read_database.fetch_all(
+    clan_users = await app.state.services.database.fetch_all(
         "SELECT user FROM user_clans WHERE clan = :id",
         {"id": clan_id},
     )

@@ -17,7 +17,7 @@ async def get_username(user_id: int) -> str:
 
 
 async def update_username(user_id: int) -> str:
-    username = await app.state.services.read_database.fetch_val(
+    username = await app.state.services.database.fetch_val(
         "SELECT username FROM users WHERE id = :id",
         {"id": user_id},
     )
@@ -31,7 +31,7 @@ async def update_username(user_id: int) -> str:
 
 
 async def load_usernames() -> None:
-    db_usernames = await app.state.services.read_database.fetch_all(
+    db_usernames = await app.state.services.database.fetch_all(
         "SELECT id, username FROM users",
     )
 

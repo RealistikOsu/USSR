@@ -33,7 +33,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
             MD5_CACHE.pop(beatmap.md5, None)
 
             asyncio.create_task(
-                app.state.services.write_database.execute(
+                app.state.services.database.execute(
                     "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
                     {"old_md5": beatmap.md5},
                 ),
@@ -41,7 +41,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
 
             for table in ("scores", "scores_relax", "scores_ap"):
                 asyncio.create_task(
-                    app.state.services.write_database.execute(
+                    app.state.services.database.execute(
                         f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
                         {"old_md5": beatmap.md5},
                     )
@@ -53,7 +53,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     else:
         # it's now unsubmitted!
         asyncio.create_task(
-            app.state.services.write_database.execute(
+            app.state.services.database.execute(
                 "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
                 {"old_md5": beatmap.md5},
             ),
@@ -61,7 +61,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
 
         for table in ("scores", "scores_relax", "scores_ap"):
             asyncio.create_task(
-                app.state.services.write_database.execute(
+                app.state.services.database.execute(
                     f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
                     {"old_md5": beatmap.md5},
                 )
@@ -160,7 +160,7 @@ def id_from_cache(id: int) -> Optional[Beatmap]:
 
 
 async def md5_from_database(md5: str) -> Optional[Beatmap]:
-    db_result = await app.state.services.read_database.fetch_one(
+    db_result = await app.state.services.database.fetch_one(
         "SELECT * FROM beatmaps WHERE beatmap_md5 = :md5",
         {"md5": md5},
     )
@@ -172,7 +172,7 @@ async def md5_from_database(md5: str) -> Optional[Beatmap]:
 
 
 async def id_from_database(id: int) -> Optional[Beatmap]:
-    db_result = await app.state.services.read_database.fetch_one(
+    db_result = await app.state.services.database.fetch_one(
         "SELECT * FROM beatmaps WHERE beatmap_id = :id",
         {"id": id},
     )
@@ -184,7 +184,7 @@ async def id_from_database(id: int) -> Optional[Beatmap]:
 
 
 async def set_from_database(set_id: int) -> list[Beatmap]:
-    db_results = await app.state.services.read_database.fetch_all(
+    db_results = await app.state.services.database.fetch_all(
         "SELECT * FROM beatmaps WHERE beatmapset_id = :id",
         {"id": set_id},
     )
@@ -196,7 +196,7 @@ GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
 
 
 async def save(beatmap: Beatmap) -> None:
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         (
             "REPLACE INTO beatmaps (beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode, rating, "
             "difficulty_std, difficulty_taiko, difficulty_ctb, difficulty_mania, max_combo, hit_length, bpm, playcount, "
@@ -362,7 +362,7 @@ async def increment_playcount(beatmap: Beatmap, passcount: bool = True) -> None:
     if passcount:
         beatmap.passes += 1
 
-    await app.state.services.write_database.execute(
+    await app.state.services.database.execute(
         "UPDATE beatmaps SET passcount = :pass, playcount = :play WHERE beatmap_md5 = :md5",
         {"play": beatmap.plays, "pass": beatmap.passes, "md5": beatmap.md5},
     )

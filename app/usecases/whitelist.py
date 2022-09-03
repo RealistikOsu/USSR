@@ -29,7 +29,7 @@ async def get_whitelisted(user_id: int, mode: Mode) -> bool:
     if whitelist_int := WHITELIST.get(user_id):
         return _match_verified(whitelist_int, mode)
 
-    whitelist_int = await app.state.services.read_database.fetch_val(
+    whitelist_int = await app.state.services.database.fetch_val(
         "SELECT whitelist FROM users WHERE id = :uid",
         {"uid": user_id},
     )
@@ -40,7 +40,7 @@ async def get_whitelisted(user_id: int, mode: Mode) -> bool:
 
 async def load_whitelist() -> None:
     # fetch all to store who don't have verified too
-    db_whitelists = await app.state.services.read_database.fetch_all(
+    db_whitelists = await app.state.services.database.fetch_all(
         "SELECT id, whitelist FROM users",
     )
 
