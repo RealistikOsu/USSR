@@ -4,14 +4,14 @@ from typing import Any
 from typing import Mapping
 from typing import Optional
 from typing import Protocol
-from ftpretty import ftpretty
-from sqlalchemy.sql import ClauseElement
 
 import aiohttp
 import aioredis
+import databases
+from ftpretty import ftpretty
+from sqlalchemy.sql import ClauseElement
 
 import config
-import databases
 
 
 redis: aioredis.Redis = aioredis.from_url("redis://localhost")

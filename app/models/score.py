@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Any, Mapping, Optional
+from typing import Any
+from typing import Mapping
+from typing import Optional
 
 from app.constants.mode import Mode
 from app.constants.mods import Mods

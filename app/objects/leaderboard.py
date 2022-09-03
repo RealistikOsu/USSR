@@ -66,7 +66,7 @@ class Leaderboard:
 
         for score in self.scores:
             user_privileges = await app.usecases.privileges.get_privileges(
-                score.user_id
+                score.user_id,
             )
             if not user_privileges.is_restricted or (
                 include_self and score.user_id == user_id

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from base64 import b64decode
 from copy import copy
@@ -22,14 +23,13 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 import app.state
 import app.usecases
 import app.utils
-import logging
+import config
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.score import Score
 from app.objects.path import Path
 from app.usecases.user import restrict_user
-import config
 
 
 class ScoreData(NamedTuple):

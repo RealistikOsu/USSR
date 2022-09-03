@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import math
 import os
 
@@ -8,7 +9,6 @@ from rosu_pp_py import Calculator
 from rosu_pp_py import ScoreParams
 
 import app.state
-import logging
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.objects.oppai import OppaiWrapper

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 import pprint
 
 import aiobotocore.session
@@ -14,13 +15,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
-from starlette.middleware.base import RequestResponseEndpoint
 from ftpretty import ftpretty
+from starlette.middleware.base import RequestResponseEndpoint
 
 import app.redis
 import app.state
 import app.usecases
-import logging
 import config
 
 ctx_stack = contextlib.AsyncExitStack()

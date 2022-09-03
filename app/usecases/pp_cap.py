@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import NamedTuple
 
 import app.state
-import logging
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 

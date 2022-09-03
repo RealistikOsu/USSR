@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 import app.state
-import logging
 from app.constants.privileges import Privileges
 
 PRIVILEGES: dict[int, Privileges] = {}

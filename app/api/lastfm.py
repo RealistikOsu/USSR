@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 
 from fastapi import Depends
@@ -8,7 +9,6 @@ from fastapi import Query
 
 import app.state
 import app.usecases
-import logging
 from app.constants.lastfm import LastFMFlags
 from app.models.user import User
 from app.usecases.user import authenticate_user

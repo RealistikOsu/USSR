@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 import app.state
-import logging
 from app.constants.mode import Mode
 
 WHITELIST: dict[int, int] = {}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 import string
 
@@ -11,11 +12,10 @@ from fastapi import UploadFile
 
 import app.state
 import app.utils
-import logging
+import config
 from app.models.user import User
 from app.objects.path import Path
 from app.usecases.user import authenticate_user
-import config
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000

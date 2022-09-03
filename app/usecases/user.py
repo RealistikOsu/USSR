@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 from datetime import datetime
 from typing import Any
@@ -15,11 +16,10 @@ import app.usecases.password
 import app.usecases.privileges
 import app.usecases.score
 import app.utils
-import logging
+import config
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.user import User
-import config
 
 
 async def fetch_db(username: str) -> Optional[User]:
