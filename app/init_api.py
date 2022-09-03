@@ -29,8 +29,7 @@ ctx_stack = contextlib.AsyncExitStack()
 def init_events(asgi_app: FastAPI) -> None:
     @asgi_app.on_event("startup")
     async def on_startup() -> None:
-        await app.state.services.write_database.connect()
-        await app.state.services.read_database.connect()
+        await app.state.services.database.connect()
 
         await app.state.services.redis.initialize()
 
@@ -76,8 +75,7 @@ def init_events(asgi_app: FastAPI) -> None:
     async def on_shutdown() -> None:
         await app.state.cancel_tasks()
 
-        await app.state.services.write_database.disconnect()
-        await app.state.services.read_database.disconnect()
+        await app.state.services.database.disconnect()
 
         await app.state.services.redis.close()
 
