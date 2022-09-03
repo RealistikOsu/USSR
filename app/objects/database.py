@@ -31,7 +31,7 @@ class Database:
         values: dict | None = None,
     ) -> Mapping | None:
         row = await self.read_database.fetch_one(query, values)  # type: ignore
-        if not row:
+        if row is None:
             return None
 
         return row._mapping
