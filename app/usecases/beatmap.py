@@ -6,10 +6,10 @@ import time
 from typing import Optional
 
 import app.state
+import config
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.models.beatmap import Beatmap
-import config
 
 MD5_CACHE: dict[str, Beatmap] = {}
 ID_CACHE: dict[int, Beatmap] = {}
@@ -44,7 +44,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
                     app.state.services.database.execute(
                         f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
                         {"old_md5": beatmap.md5},
-                    )
+                    ),
                 )
 
             if beatmap.frozen:
@@ -64,7 +64,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
                 app.state.services.database.execute(
                     f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
                     {"old_md5": beatmap.md5},
-                )
+                ),
             )
 
         return None

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.constants.privileges import Privileges
 import config
+from app.constants.privileges import Privileges
 
 
 @dataclass

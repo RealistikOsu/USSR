@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 import app.state
-import logging
 
 CLANS: dict[int, str] = {}
 FIVE_MINUTES = 60 * 5

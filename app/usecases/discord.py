@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import traceback
 from typing import Optional
 
 import app.state
-import logging
-from app.models.user import User
 import config
+from app.models.user import User
 
 # This portion is based off cmyui's discord hooks code
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/discord/webhook.py

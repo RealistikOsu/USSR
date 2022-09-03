@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
+from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi import Response
-from fastapi import Depends
 
 import app.state
 import app.usecases
 import app.utils
-import logging
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.models.user import User
@@ -41,7 +41,7 @@ async def get_replay(
         if resp.status != 200 or not replay_data:
             try:
                 replay_data = app.state.services.ftp_client.get(
-                    f"/replays/replay_{score_id}.osr"
+                    f"/replays/replay_{score_id}.osr",
                 )
                 if not replay_data:
                     raise Exception("No replay found")

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import logging
+
 from starlette.config import Config
 from starlette.datastructures import CommaSeparatedStrings
 

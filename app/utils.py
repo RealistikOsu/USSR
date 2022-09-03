@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-import os
 import logging
+import os
 from typing import Optional
 from typing import Union
 
 from aiohttp import ClientSession
 
 import app.state
-from app.objects.path import Path
 import config
+from app.objects.path import Path
 
 REQUIRED_FOLDERS = (
     config.DATA_DIR,

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Callable, Awaitable
-
 import logging
+from typing import Awaitable
+from typing import Callable
+
 from . import cache
 from . import services
 

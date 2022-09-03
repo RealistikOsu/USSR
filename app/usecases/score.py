@@ -140,7 +140,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         if session.status != 200 or not raw_data:
             try:
                 raw_data = app.state.services.ftp_client.get(
-                    f"/replays/replay_{score.id}.osr"
+                    f"/replays/replay_{score.id}.osr",
                 )
                 if not raw_data:
                     raise Exception("No replay found!")

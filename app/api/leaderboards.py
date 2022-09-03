@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import time
 from urllib.parse import unquote_plus
 
@@ -9,7 +10,6 @@ from fastapi import Query
 import app.state
 import app.usecases
 import app.utils
-import logging
 from app.constants.leaderboard_type import LeaderboardType
 from app.constants.mode import Mode
 from app.constants.mods import Mods
