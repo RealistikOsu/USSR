@@ -17,13 +17,13 @@ class Database:
         await self.read_database.disconnect()
         await self.write_database.disconnect()
 
-    async def fetch_val(
+    async def fetch_all(
         self,
         query: ClauseElement | str,
         values: dict | None = None,
-        column: Any = 0,
-    ) -> Any:
-        return await self.read_database.fetch_val(query, values, column)
+    ) -> list[Mapping]:
+        rows = await self.read_database.fetch_all(query, values)
+        return [row._mapping for row in rows]
 
     async def fetch_one(
         self,
@@ -32,14 +32,13 @@ class Database:
     ) -> Mapping:
         return (await self.read_database.fetch_one(query, values))._mapping
 
-    async def fetch_all(
+    async def fetch_val(
         self,
         query: ClauseElement | str,
         values: dict | None = None,
-    ) -> list[Mapping]:
-        return [
-            row._mapping for row in await self.read_database.fetch_all(query, values)
-        ]
+        column: Any = 0,
+    ) -> Any:
+        return await self.read_database.fetch_val(query, values, column)
 
     async def execute(
         self,
