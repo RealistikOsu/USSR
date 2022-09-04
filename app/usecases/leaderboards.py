@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import orjson
 from datetime import timedelta
 from typing import Optional
+
+import orjson
 
 import app.state
 from app.constants.mode import Mode
@@ -62,8 +63,10 @@ async def insert(beatmap: Beatmap, leaderboard: Leaderboard) -> None:
         await app.state.services.redis.hset(
             name=db_key,
             key="score",
-            value=score_dict["pp"] if leaderboard.mode.relax_int else score_dict["score"],
-            mapping={ # type: ignore
+            value=score_dict["pp"]
+            if leaderboard.mode.relax_int
+            else score_dict["score"],
+            mapping={  # type: ignore
                 "score": score_dict["score"],
                 "pp": score_dict["pp"],
                 "data": score_dict,
