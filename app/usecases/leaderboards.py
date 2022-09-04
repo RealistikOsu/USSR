@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json
+import orjson
 from datetime import timedelta
 from typing import Optional
 
@@ -43,31 +43,34 @@ async def fetch(beatmap: Beatmap, mode: Mode) -> Leaderboard:
 
 
 async def fetch_cache(beatmap: Beatmap, mode: Mode) -> Optional[Leaderboard]:
-    redis_cache = await app.state.services.redis.get(
-        f"ussr:leaderboards:{beatmap.md5}:{mode.value}",
+    redis_lb = await app.state.services.redis.sort(
+        f"ussr:leaderboards:{beatmap.md5}:{mode.value}:indicies",
+        by=f"*->pp" if mode.relax_int else f"*->score",
+        get="*->data",
     )
-
-    if not redis_cache:
-        return None
-
-    await app.state.services.redis.expire(
-        f"ussr:leaderboards:{beatmap.md5}:{mode.value}",
-        timedelta(days=1),
-    )
-
-    score_dicts = json.loads(redis_cache)
 
     return Leaderboard(
         mode=mode,
-        scores=[Score.from_dict(score_dict) for score_dict in score_dicts],
+        scores=[Score.from_dict(orjson.loads(score_dict)) for score_dict in redis_lb],
     )
 
 
 # Assumes the lock has already been acquired.
 async def insert(beatmap: Beatmap, leaderboard: Leaderboard) -> None:
-    serialised_scores = json.dumps(leaderboard.scores_list())
-    await app.state.services.redis.set(
-        f"ussr:leaderboards:{beatmap.md5}:{leaderboard.mode.value}",
-        serialised_scores,
-        timedelta(days=1),
-    )
+    for score_dict in leaderboard.scores_list():
+        db_key = f"ussr:leaderboards:{beatmap.md5}:{leaderboard.mode.value}:{score_dict['userid']}"
+        await app.state.services.redis.hset(
+            name=db_key,
+            key="score",
+            value=score_dict["pp"] if leaderboard.mode.relax_int else score_dict["score"],
+            mapping={ # type: ignore
+                "score": score_dict["score"],
+                "pp": score_dict["pp"],
+                "data": score_dict,
+            },
+        )
+
+        await app.state.services.redis.sadd(
+            f"ussr:leaderboards:{beatmap.md5}:{leaderboard.mode.value}:indicies",
+            db_key,
+        )
