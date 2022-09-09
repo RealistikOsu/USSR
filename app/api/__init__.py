@@ -48,7 +48,11 @@ router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
 
 router.add_api_route("/web/lastfm.php", lastfm.lastfm)
 
-router.add_api_route("/web/osu-error.php", error.error)
+router.add_api_route(
+    "/web/osu-error.php",
+    error.error,
+    methods=["POST"],
+)
 
 router.add_api_route("/web/osu-rate.php", rate.rate_map)
 
