@@ -87,10 +87,6 @@ async def get_full_replay(
     if not username:
         return b"User not found!"
 
-    asyncio.create_task(
-        app.usecases.user.increment_replays_watched(db_score["userid"], score.mode),
-    )
-
     filename = f"{username} - {beatmap.song_name} ({score_id}).osr"
 
     logging.info(f"Serving compiled replay ID {score_id}")
