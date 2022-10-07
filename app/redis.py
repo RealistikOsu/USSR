@@ -11,8 +11,8 @@ import orjson
 import app.state
 import app.usecases
 import logger
-from app.constants.ranked_status import RankedStatus
 from app.constants.mode import Mode
+from app.constants.ranked_status import RankedStatus
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
 
@@ -91,6 +91,7 @@ async def handle_clan_change(payload: str) -> None:
 
     logger.info(f"Updated clan for user ID {user_id}")
 
+
 @register_pubsub("ussr:recalculate_user")
 async def handle_user_recalculate(payload: str) -> None:
     user_id = int(payload)
@@ -98,12 +99,15 @@ async def handle_user_recalculate(payload: str) -> None:
     for mode in Mode:
         stats = await app.usecases.stats.fetch(user_id, mode)
         if stats is None:
-            logger.warning(f"Attempted to recalculate stats for user {user_id} but they don't exist!")
+            logger.warning(
+                f"Attempted to recalculate stats for user {user_id} but they don't exist!",
+            )
             return
         await app.usecases.stats.full_recalc(stats)
         await app.usecases.stats.save(stats)
 
     logger.info(f"Recalculated user ID {user_id}")
+
 
 @register_pubsub("ussr:recalculate_user_full")
 async def handle_user_recalculate_full(payload: str) -> None:
@@ -112,7 +116,9 @@ async def handle_user_recalculate_full(payload: str) -> None:
     for mode in Mode:
         stats = await app.usecases.stats.fetch(user_id, mode)
         if stats is None:
-            logger.warning(f"Attempted to recalculate stats for user {user_id} but they don't exist!")
+            logger.warning(
+                f"Attempted to recalculate stats for user {user_id} but they don't exist!",
+            )
             return
         await app.usecases.stats.full_recalc(stats)
         await app.usecases.stats.calc_playcount(stats)

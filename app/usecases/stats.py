@@ -161,6 +161,7 @@ async def update_rank(stats: Stats) -> None:
 async def refresh_stats(user_id: int) -> None:
     await app.state.services.redis.publish("peppy:update_cached_stats", user_id)
 
+
 async def calc_playcount(stats: Stats) -> int:
     stats.playcount = await app.state.services.database.fetch_val(
         f"SELECT COUNT(*) FROM {stats.mode.scores_table} WHERE userid = :id AND play_mode = :mode",
@@ -168,6 +169,7 @@ async def calc_playcount(stats: Stats) -> int:
     )
 
     return stats.playcount
+
 
 async def calc_max_combo(stats: Stats) -> int:
     stats.max_combo = await app.state.services.database.fetch_val(
@@ -178,6 +180,7 @@ async def calc_max_combo(stats: Stats) -> int:
 
     return stats.max_combo
 
+
 async def calc_total_score(stats: Stats) -> int:
     stats.total_score = await app.state.services.database.fetch_val(
         f"SELECT SUM(score) FROM {stats.mode.scores_table} WHERE userid = :id "
@@ -186,6 +189,7 @@ async def calc_total_score(stats: Stats) -> int:
     )
 
     return stats.total_score
+
 
 async def calc_ranked_score(stats: Stats) -> int:
     stats.ranked_score = await app.state.services.database.fetch_val(
