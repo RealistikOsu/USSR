@@ -41,8 +41,12 @@ async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bo
         ) as response:
             if response.status != 200:
                 return False
+            
+            res_bytes = await response.read()
+            if b"osu file format" not in res_bytes:
+                return False
 
-            osu_file_path.write_bytes(await response.read())
+            osu_file_path.write_bytes(res_bytes)
 
     return True
 
