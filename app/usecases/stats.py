@@ -186,7 +186,7 @@ async def calc_total_score(stats: Stats) -> int:
         f"SELECT SUM(score) FROM {stats.mode.scores_table} WHERE userid = :id "
         "AND play_mode = :mode",
         {"id": stats.user_id, "mode": stats.mode.as_vn},
-    )
+    ) or 0
 
     return stats.total_score
 
@@ -197,6 +197,6 @@ async def calc_ranked_score(stats: Stats) -> int:
         "ON s.beatmap_md5 = b.beatmap_md5 WHERE s.userid = :id "
         "AND s.play_mode = :mode AND s.completed = 3 AND b.ranked IN (2, 3)",
         {"id": stats.user_id, "mode": stats.mode.as_vn},
-    )
+    ) or 0
 
     return stats.ranked_score
