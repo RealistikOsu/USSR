@@ -176,7 +176,7 @@ async def calc_max_combo(stats: Stats) -> int:
         f"SELECT MAX(max_combo) FROM {stats.mode.scores_table} WHERE userid = :id "
         "AND play_mode = :mode",
         {"id": stats.user_id, "mode": stats.mode.as_vn},
-    )
+    ) or 0
 
     return stats.max_combo
 
