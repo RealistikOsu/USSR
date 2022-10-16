@@ -17,3 +17,6 @@ class ScoreSubmissionRequest:
     client_hash_b64: str
     replay_data_b64: str
     score_id: int
+    user_id: int
+    mode_vn: int
+    relax: int

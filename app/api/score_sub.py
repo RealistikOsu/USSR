@@ -271,6 +271,9 @@ async def submit_score(
             client_hash_b64=client_hash_b64.decode(),
             replay_data_b64=b64encode(replay_data).decode(),
             score_id=score.id,
+            user_id=user.id,
+            mode_vn=score.mode.as_vn,
+            relax=score.mode.relax_int,
         )
     )
 
