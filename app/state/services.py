@@ -10,6 +10,7 @@ import aioredis
 import databases
 from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
+import aio_pika
 
 import config
 
@@ -19,6 +20,8 @@ redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 ftp_client: ftpretty
 
 http: aiohttp.ClientSession
+
+amqp: aio_pika.RobustConnection
 
 
 class Database:
