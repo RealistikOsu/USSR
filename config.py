@@ -49,3 +49,8 @@ FTP_HOST = config("FTP_HOST")
 FTP_PORT = config("FTP_PORT", cast=int)
 FTP_USER = config("FTP_USER")
 FTP_PASS = config("FTP_PASS")
+
+AMQP_HOST = config("AMQP_HOST")
+AMQP_PORT = config("AMQP_PORT", cast=int)
+AMQP_USER = config("AMQP_USER")
+AMQP_PASS = config("AMQP_PASS")

@@ -48,7 +48,6 @@ class Score:
 
     rank: int = 0
     old_best: Optional[Score] = None
-    using_patcher: bool = False
 
     def osu_string(self, username: str, rank: int) -> str:
         if self.mode > Mode.MANIA:
@@ -82,7 +81,6 @@ class Score:
             "completed": self.status.value,
             "accuracy": self.acc,
             "pp": self.pp,
-            "patcher": self.using_patcher,
             "checksum": self.online_checksum,
             # "playtime": self.time_elapsed,
         }

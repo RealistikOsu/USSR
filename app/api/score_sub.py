@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import logging
 import time
 from base64 import b64decode
+from base64 import b64encode
 from copy import copy
 from datetime import datetime
 from typing import NamedTuple
@@ -11,6 +13,8 @@ from typing import Optional
 from typing import TypeVar
 from typing import Union
 
+import aio_pika
+import orjson
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
@@ -28,6 +32,7 @@ from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.score import Score
+from app.models.score_submission_request import ScoreSubmissionRequest
 from app.objects.path import Path
 from app.usecases.user import restrict_user
 
@@ -240,32 +245,45 @@ async def submit_score(
                 },
             )
 
-        try:
-            decoded = b64decode(visual_settings_b64).decode(errors="ignore")
-
-            if (
-                decoded[8] == "-"
-                and decoded[13] == "-"
-                and decoded[18] == "-"
-                and decoded[23] == "-"
-                and len(decoded) == 36
-            ):
-                score.using_patcher = True
-            else:
-                score.using_patcher = False
-        except Exception:
-            score.using_patcher = False
-
         score.id = await app.state.services.database.execute(
             (
                 # TODO: add playtime
                 f"INSERT INTO {score.mode.scores_table} (beatmap_md5, userid, score, max_combo, full_combo, mods, 300_count, 100_count, 50_count, katus_count, "
-                "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, patcher, checksum) VALUES "
+                "gekis_count, misses_count, time, play_mode, completed, accuracy, pp, checksum) VALUES "
                 "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
-                ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :patcher, :checksum)"
+                ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :checksum)"
             ),
             score.db_dict,
         )
+
+    replay_data = await replay_file.read()
+    submission_request = dataclasses.asdict(
+        ScoreSubmissionRequest(
+            score_data=score_data_b64.decode(),
+            exited_out=exited_out,
+            fail_time=fail_time,
+            visual_settings_b64=visual_settings_b64.decode(),
+            updated_beatmap_hash=updated_beatmap_hash,
+            storyboard_md5=storyboard_md5,
+            iv_b64=iv_b64.decode(),
+            unique_ids=unique_ids,
+            score_time=score_time,
+            osu_version=osu_version,
+            client_hash_b64=client_hash_b64.decode(),
+            replay_data_b64=b64encode(replay_data).decode(),
+            score_id=score.id,
+            user_id=user.id,
+            mode_vn=score.mode.as_vn,
+            relax=score.mode.relax_int,
+        ),
+    )
+
+    # send request to rmq
+    channel = await app.state.services.amqp.channel()
+    await channel.default_exchange.publish(
+        aio_pika.Message(body=orjson.dumps(submission_request)),
+        routing_key="score_submission",
+    )
 
     # update most played
     await app.state.services.database.execute(
@@ -296,8 +314,6 @@ async def submit_score(
         )
 
     if score.passed:
-        replay_data = await replay_file.read()
-
         if len(replay_data) < 24:
             await restrict_user(
                 user,

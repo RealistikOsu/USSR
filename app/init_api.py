@@ -5,6 +5,7 @@ import contextlib
 import logging
 import pprint
 
+import aio_pika
 import aiobotocore.session
 import aiohttp
 import orjson
@@ -53,6 +54,10 @@ def init_events(asgi_app: FastAPI) -> None:
             config.FTP_PASS,
         )
 
+        app.state.services.amqp = await aio_pika.connect_robust(
+            f"amqp://{config.AMQP_USER}:{config.AMQP_PASS}@{config.AMQP_HOST}:{config.AMQP_PORT}/",
+        )
+
         await app.state.cache.init_cache()
         await app.redis.initialise_pubsubs()
 
@@ -82,6 +87,8 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.http.close()
 
         app.state.services.ftp_client.close()
+
+        await app.state.services.amqp.close()
 
         await ctx_stack.aclose()
 

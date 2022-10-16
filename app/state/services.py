@@ -5,6 +5,7 @@ from typing import Mapping
 from typing import Optional
 from typing import Protocol
 
+import aio_pika
 import aiohttp
 import aioredis
 import databases
@@ -19,6 +20,8 @@ redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 ftp_client: ftpretty
 
 http: aiohttp.ClientSession
+
+amqp: aio_pika.RobustConnection
 
 
 class Database:

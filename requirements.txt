@@ -1,3 +1,4 @@
+aio-pika
 aiobotocore
 aioftp
 aiohttp[speedups]
