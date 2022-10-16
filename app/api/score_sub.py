@@ -5,7 +5,7 @@ import dataclasses
 import logging
 import time
 import aio_pika
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from copy import copy
 from datetime import datetime
 from typing import NamedTuple
@@ -258,18 +258,18 @@ async def submit_score(
     replay_data = await replay_file.read()
     submission_request = dataclasses.asdict(
         ScoreSubmissionRequest(
-            score_data=score_data_b64,
+            score_data=score_data_b64.decode(),
             exited_out=exited_out,
             fail_time=fail_time,
-            visual_settings_b64=visual_settings_b64,
+            visual_settings_b64=visual_settings_b64.decode(),
             updated_beatmap_hash=updated_beatmap_hash,
             storyboard_md5=storyboard_md5,
             iv_b64=iv_b64,
             unique_ids=unique_ids,
             score_time=score_time,
             osu_version=osu_version,
-            client_hash_b64=client_hash_b64,
-            replay_data=replay_data,
+            client_hash_b64=client_hash_b64.decode(),
+            replay_data_b64=b64encode(replay_data).decode(),
             score_id=score.id,
         )
     )
