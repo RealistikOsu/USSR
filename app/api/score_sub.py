@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import logging
 import time
+import aio_pika
 from base64 import b64decode
 from copy import copy
 from datetime import datetime
@@ -16,9 +18,11 @@ from fastapi import Form
 from fastapi import Header
 from fastapi import Request
 from fastapi.datastructures import FormData
+import orjson
 from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
 from starlette.datastructures import UploadFile as StarletteUploadFile
+from app.models.score_submission_request import ScoreSubmissionRequest
 
 import app.state
 import app.usecases
@@ -251,6 +255,32 @@ async def submit_score(
             score.db_dict,
         )
 
+    replay_data = await replay_file.read()
+    submission_request = dataclasses.asdict(
+        ScoreSubmissionRequest(
+            score_data=score_data_b64,
+            exited_out=exited_out,
+            fail_time=fail_time,
+            visual_settings_b64=visual_settings_b64,
+            updated_beatmap_hash=updated_beatmap_hash,
+            storyboard_md5=storyboard_md5,
+            iv_b64=iv_b64,
+            unique_ids=unique_ids,
+            score_time=score_time,
+            osu_version=osu_version,
+            client_hash_b64=client_hash_b64,
+            replay_data=replay_data,
+            score_id=score.id,
+        )
+    )
+
+    # send request to rmq
+    channel = await app.state.services.amqp.channel()
+    await channel.default_exchange.publish(
+        aio_pika.Message(body=orjson.dumps(submission_request)),
+        routing_key="score_submission",
+    )
+
     # update most played
     await app.state.services.database.execute(
         """\
@@ -280,8 +310,6 @@ async def submit_score(
         )
 
     if score.passed:
-        replay_data = await replay_file.read()
-
         if len(replay_data) < 24:
             await restrict_user(
                 user,
