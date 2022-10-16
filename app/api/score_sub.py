@@ -264,7 +264,7 @@ async def submit_score(
             visual_settings_b64=visual_settings_b64.decode(),
             updated_beatmap_hash=updated_beatmap_hash,
             storyboard_md5=storyboard_md5,
-            iv_b64=iv_b64,
+            iv_b64=iv_b64.decode(),
             unique_ids=unique_ids,
             score_time=score_time,
             osu_version=osu_version,

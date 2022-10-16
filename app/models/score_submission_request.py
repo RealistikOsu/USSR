@@ -10,7 +10,7 @@ class ScoreSubmissionRequest:
     visual_settings_b64: str
     updated_beatmap_hash: str
     storyboard_md5: Optional[str]
-    iv_b64: bytes
+    iv_b64: str
     unique_ids: str
     score_time: int
     osu_version: str
