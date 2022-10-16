@@ -88,6 +88,8 @@ def init_events(asgi_app: FastAPI) -> None:
 
         app.state.services.ftp_client.close()
 
+        await app.state.services.amqp.close()
+
         await ctx_stack.aclose()
 
         logging.info("Server has shutdown!")
