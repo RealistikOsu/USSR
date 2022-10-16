@@ -5,12 +5,12 @@ from typing import Mapping
 from typing import Optional
 from typing import Protocol
 
+import aio_pika
 import aiohttp
 import aioredis
 import databases
 from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
-import aio_pika
 
 import config
 

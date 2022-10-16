@@ -4,8 +4,8 @@ import asyncio
 import contextlib
 import logging
 import pprint
-import aio_pika
 
+import aio_pika
 import aiobotocore.session
 import aiohttp
 import orjson

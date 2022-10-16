@@ -4,8 +4,8 @@ import asyncio
 import dataclasses
 import logging
 import time
-import aio_pika
-from base64 import b64decode, b64encode
+from base64 import b64decode
+from base64 import b64encode
 from copy import copy
 from datetime import datetime
 from typing import NamedTuple
@@ -13,16 +13,16 @@ from typing import Optional
 from typing import TypeVar
 from typing import Union
 
+import aio_pika
+import orjson
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
 from fastapi import Request
 from fastapi.datastructures import FormData
-import orjson
 from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
 from starlette.datastructures import UploadFile as StarletteUploadFile
-from app.models.score_submission_request import ScoreSubmissionRequest
 
 import app.state
 import app.usecases
@@ -32,6 +32,7 @@ from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.score import Score
+from app.models.score_submission_request import ScoreSubmissionRequest
 from app.objects.path import Path
 from app.usecases.user import restrict_user
 
@@ -274,7 +275,7 @@ async def submit_score(
             user_id=user.id,
             mode_vn=score.mode.as_vn,
             relax=score.mode.relax_int,
-        )
+        ),
     )
 
     # send request to rmq

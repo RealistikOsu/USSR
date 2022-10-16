@@ -1,3 +1,4 @@
+aio-pika
 aiobotocore
 aioftp
 aiohttp[speedups]
@@ -11,4 +12,3 @@ py3rijndael
 python-multipart
 rosu_pp_py
 uvicorn[standard]
-aio-pika
