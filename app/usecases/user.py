@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from typing import Any
+from typing import Awaitable
 from typing import Callable
 from typing import Optional
 
@@ -108,11 +109,11 @@ def authenticate_user(
     name_arg: str = "u",
     password_arg: str = "p",
     error_text: Optional[Any] = None,
-) -> Optional[User]:
+) -> Callable[[str, str], Awaitable[User]]:
     async def wrapper(
         username: str = param_function(..., alias=name_arg),
         password: str = param_function(..., alias=password_arg),
-    ):
+    ) -> User:
         user = await fetch_db(username)
         if not user:
             raise HTTPException(

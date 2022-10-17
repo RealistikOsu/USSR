@@ -74,6 +74,13 @@ async def osu_direct(
         diffs_str = ",".join(
             DIRECT_MAP_INFO_FMTSTR.format(**bm) for bm in diff_sorted_maps
         )
+
+        # Apparently beatmap names can contain the | character. Remove it as it
+        # messes up the format. TODO: Look if I can urlencode it instead.
+        bmap["Title"] = bmap["Title"].replace("|", "")
+        bmap["Artist"] = bmap["Artist"].replace("|", "")
+        bmap["Creator"] = bmap["Creator"].replace("|", "")
+
         ret.append(
             DIRECT_SET_INFO_FMTSTR.format(
                 **bmap,
