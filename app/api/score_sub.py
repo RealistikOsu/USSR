@@ -257,33 +257,34 @@ async def submit_score(
         )
 
     replay_data = await replay_file.read()
-    submission_request = dataclasses.asdict(
-        ScoreSubmissionRequest(
-            score_data=score_data_b64.decode(),
-            exited_out=exited_out,
-            fail_time=fail_time,
-            visual_settings_b64=visual_settings_b64.decode(),
-            updated_beatmap_hash=updated_beatmap_hash,
-            storyboard_md5=storyboard_md5,
-            iv_b64=iv_b64.decode(),
-            unique_ids=unique_ids,
-            score_time=score_time,
-            osu_version=osu_version,
-            client_hash_b64=client_hash_b64.decode(),
-            replay_data_b64=b64encode(replay_data).decode(),
-            score_id=score.id,
-            user_id=user.id,
-            mode_vn=score.mode.as_vn,
-            relax=score.mode.relax_int,
-        ),
-    )
 
-    # send request to rmq
-    channel = await app.state.services.amqp.channel()
-    await channel.default_exchange.publish(
-        aio_pika.Message(body=orjson.dumps(submission_request)),
-        routing_key="score_submission",
-    )
+    if score.passed:
+        submission_request = dataclasses.asdict(
+            ScoreSubmissionRequest(
+                score_data=score_data_b64.decode(),
+                exited_out=exited_out,
+                fail_time=fail_time,
+                visual_settings_b64=visual_settings_b64.decode(),
+                updated_beatmap_hash=updated_beatmap_hash,
+                storyboard_md5=storyboard_md5,
+                iv_b64=iv_b64.decode(),
+                unique_ids=unique_ids,
+                score_time=score_time,
+                osu_version=osu_version,
+                client_hash_b64=client_hash_b64.decode(),
+                replay_data_b64=b64encode(replay_data).decode(),
+                score_id=score.id,
+                user_id=user.id,
+                mode_vn=score.mode.as_vn,
+                relax=score.mode.relax_int,
+            ),
+        )
+
+        # send request to rmq
+        await app.state.services.amqp_channel.default_exchange.publish(
+            aio_pika.Message(body=orjson.dumps(submission_request)),
+            routing_key="score_submission",
+        )
 
     # update most played
     await app.state.services.database.execute(

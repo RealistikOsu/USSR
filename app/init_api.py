@@ -58,6 +58,8 @@ def init_events(asgi_app: FastAPI) -> None:
             f"amqp://{config.AMQP_USER}:{config.AMQP_PASS}@{config.AMQP_HOST}:{config.AMQP_PORT}/",
         )
 
+        app.state.services.amqp_channel = await app.state.services.amqp.channel()
+
         await app.state.cache.init_cache()
         await app.redis.initialise_pubsubs()
 
@@ -88,6 +90,7 @@ def init_events(asgi_app: FastAPI) -> None:
 
         app.state.services.ftp_client.close()
 
+        await app.state.services.amqp_channel.close()
         await app.state.services.amqp.close()
 
         await ctx_stack.aclose()
