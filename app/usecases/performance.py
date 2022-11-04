@@ -41,7 +41,7 @@ async def calculate_performances(
         f"{config.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
         json=scores,
     ) as resp:
-        if not resp or resp.status != 200:
+        if resp.status != 200:
             return [(0.0, 0.0)] * len(scores)
 
         data = await resp.json()
