@@ -65,6 +65,41 @@ async def handle_username_change(payload: str) -> None:
     logging.info(f"Updated user ID {user_id}'s username to {username}")
 
 
+class UpdateScorePP(TypedDict):
+    beatmap_id: int
+    user_id: int
+    score_id: int
+    new_pp: float
+    mode_vn: int
+    relax: int
+
+
+@register_pubsub("cache:update_score_pp")
+async def handle_update_score_pp(payload: str) -> None:
+    data: UpdateScorePP = orjson.loads(payload)
+
+    beatmap = app.usecases.beatmap.id_from_cache(data["beatmap_id"])
+    if beatmap is None:
+        return
+
+    mode = Mode.from_lb(data["mode_vn"], data["relax"])
+
+    has_leaderboard_cache = app.usecases.leaderboards.is_leaderboard_cached(
+        beatmap,
+        mode,
+    )
+    if not has_leaderboard_cache:
+        return
+
+    leaderboard = await app.usecases.leaderboards.fetch(beatmap, mode)
+    score = await leaderboard.find_user_score(data["user_id"], unrestricted=False)
+    if score is not None and score["score"].id == data["score_id"]:
+        score["score"].pp = data["new_pp"]
+        leaderboard.sort()
+
+        logging.info(f"Updated score PP on score ID {data['score_id']}")
+
+
 @register_pubsub("cache:map_update")
 async def handle_beatmap_status_change(payload: str) -> None:
     """Pubsub to handle beatmap status changes
@@ -132,7 +167,7 @@ async def loop_pubsubs(pubsub: aioredis.client.PubSub) -> None:
             message: Optional[RedisMessage] = await pubsub.get_message(
                 ignore_subscribe_messages=True,
                 timeout=1.0,
-            )
+            )  # type: ignore
             if message is not None:
                 if handler := app.state.PUBSUBS.get(message["channel"].decode()):
                     await handler(message["data"].decode())
