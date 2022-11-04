@@ -11,7 +11,6 @@ import config
 
 
 def main() -> int:
-    app.usecases.performance.ensure_oppai()
     app.utils.ensure_directory_structure()
 
     uvicorn.run(
