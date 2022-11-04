@@ -8,11 +8,11 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 
 import app.usecases
-from app.usecases.performance import PerformanceScore
 import config
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.objects.path import Path
+from app.usecases.performance import PerformanceScore
 
 COMMON_PP_PERCENTAGES = (
     100.0,
@@ -84,8 +84,7 @@ async def calculate_pp(
             0,  # miss count
         )
 
-    logging.info(
-        f"Handled PP calculation API request for {beatmap.song_name}!")
+    logging.info(f"Handled PP calculation API request for {beatmap.song_name}!")
 
     return ORJSONResponse(
         {

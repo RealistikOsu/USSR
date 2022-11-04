@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import hashlib
 from typing import TypedDict
+
 import app.state
+import config
 from app.constants.mode import Mode
 from app.objects.path import Path
-import config
 
 
 async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
@@ -66,7 +67,7 @@ async def calculate_performance(
                 "max_combo": max_combo,
                 "accuracy": acc,
                 "miss_count": nmiss,
-            }
+            },
         ],
     ) as resp:
         if not resp or resp.status != 200:
