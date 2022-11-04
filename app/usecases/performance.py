@@ -1,31 +1,11 @@
 from __future__ import annotations
 
 import hashlib
-import logging
-import math
-import os
-
-from rosu_pp_py import Calculator
-from rosu_pp_py import ScoreParams
-
+from typing import TypedDict
 import app.state
 from app.constants.mode import Mode
-from app.models.score import Score
-from app.objects.oppai import OppaiWrapper
 from app.objects.path import Path
-
-OPPAI_DIR = Path.cwd() / "akatsuki-pp"
-OPPAI_LIB = OPPAI_DIR / "liboppai.so"
-
-
-def ensure_oppai() -> None:
-    if not OPPAI_DIR.exists():
-        logging.error(f"Oppai folder {OPPAI_DIR} does not exist!")
-        raise RuntimeError
-
-    if not OPPAI_LIB.exists():
-        logging.warning(f"Oppai ({OPPAI_DIR}) not built, building...")
-        os.system(f"cd {OPPAI_DIR} && chmod +x libbuild && ./libbuild && cd ..")
+import config
 
 
 async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
@@ -44,89 +24,53 @@ async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bo
     return True
 
 
-def calculate_oppai(
-    mode: Mode,
-    mods: int,
-    max_combo: int,
-    acc: float,
-    nmiss: int,
-    osu_file_path: Path,
-) -> tuple[float, float]:
-    with OppaiWrapper(str(OPPAI_LIB)) as ezpp:
-        ezpp.configure(
-            mode=mode.as_vn,
-            acc=acc,
-            mods=mods,
-            combo=max_combo,
-            nmiss=nmiss,
-        )
-        ezpp.calculate(osu_file_path)
-
-        pp = ezpp.get_pp()
-        sr = ezpp.get_sr()
-
-        for _attr in (
-            pp,
-            sr,
-        ):
-            if math.isinf(_attr) or math.isnan(_attr):
-                return (0.0, 0.0)
-
-        return (round(pp, 2), round(sr, 2))
-
-    return 0.0, 0.0
+class PerformanceScore(TypedDict):
+    beatmap_id: int
+    mode: Mode
+    mods: int
+    max_combo: int
+    accuracy: float
+    miss_count: int
 
 
-def calculate_rosu(
-    mode: Mode,
-    mods: int,
-    max_combo: int,
-    score: int,
-    acc: float,
-    nmiss: int,
-    osu_file_path: Path,
-) -> tuple[float, float]:
-    try:
-        calculator = Calculator(str(osu_file_path))
-    except Exception as e:
-        # messed up .osu file
-        if "osu file format" in str(e):
-            return (0.0, 0.0)
+async def calculate_performances(
+    scores: list[PerformanceScore],
+) -> list[tuple[float, float]]:
+    async with app.state.services.http.post(
+        f"{config.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
+        json=scores,
+    ) as resp:
+        if not resp or resp.status != 200:
+            return [(0.0, 0.0)] * len(scores)
 
-        raise e
-
-    params = ScoreParams(
-        mode=mode.as_vn,
-        mods=mods,
-        combo=max_combo,
-        score=score,
-        acc=acc,
-        nMisses=nmiss,
-    )
-
-    (res,) = calculator.calculate(params)
-
-    for _attr in (
-        res.pp,
-        res.stars,
-    ):
-        if math.isinf(_attr) or math.isnan(_attr):
-            return (0.0, 0.0)
-
-    return (round(res.pp, 2), round(res.stars, 2))
+        data = await resp.json()
+        return [(result["pp"], result["stars"]) for result in data]
 
 
 # TODO: split sr & pp calculations
-def calculate_performance(
+async def calculate_performance(
+    beatmap_id: int,
     mode: Mode,
     mods: int,
     max_combo: int,
-    score: int,
     acc: float,
     nmiss: int,
-    osu_file_path: Path,
 ) -> tuple[float, float]:
-    if (mode.relax or mode.autopilot) and mode.as_vn == 0:
-        return calculate_oppai(mode, mods, max_combo, acc, nmiss, osu_file_path)
-    else:
-        return calculate_rosu(mode, mods, max_combo, score, acc, nmiss, osu_file_path)
+    async with app.state.services.http.post(
+        f"{config.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
+        json=[
+            {
+                "beatmap_id": beatmap_id,
+                "mode": mode.as_vn,
+                "mods": mods,
+                "max_combo": max_combo,
+                "accuracy": acc,
+                "miss_count": nmiss,
+            }
+        ],
+    ) as resp:
+        if not resp or resp.status != 200:
+            return 0.0, 0.0
+
+        data = (await resp.json())[0]
+        return data["pp"], data["stars"]

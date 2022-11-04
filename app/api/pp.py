@@ -8,6 +8,7 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 
 import app.usecases
+from app.usecases.performance import PerformanceScore
 import config
 from app.constants.mode import Mode
 from app.constants.mods import Mods
@@ -60,29 +61,27 @@ async def calculate_pp(
 
     star_rating = pp_result = 0.0
     if use_common_pp_percentages:
-        pp_result = []
+        pp_requests: list[PerformanceScore] = [
+            {
+                "beatmap_id": beatmap.id,
+                "mode": mode,
+                "mods": mods,
+                "max_combo": combo,
+                "accuracy": accuracy,
+                "miss_count": 0,
+            }
+            for accuracy in COMMON_PP_PERCENTAGES
+        ]
 
-        for accuracy in COMMON_PP_PERCENTAGES:
-            _pp_result, star_rating = app.usecases.performance.calculate_performance(
-                mode,
-                mods,
-                combo,
-                0,  # score
-                accuracy,
-                0,  # misscount
-                file_path,
-            )
-
-            pp_result.append(_pp_result)
+        pp_result = await app.usecases.performance.calculate_performances(pp_requests)
     else:
-        pp_result, star_rating = app.usecases.performance.calculate_performance(
+        pp_result, star_rating = await app.usecases.performance.calculate_performance(
+            beatmap.id,
             mode,
             mods,
             combo,
-            0,  # score
             acc,
             0,  # miss count
-            file_path,
         )
 
     logging.info(f"Handled PP calculation API request for {beatmap.song_name}!")
