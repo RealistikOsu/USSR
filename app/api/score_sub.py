@@ -189,14 +189,13 @@ async def submit_score(
         )
 
         if local_osu_file_exists:
-            score.pp, score.sr = app.usecases.performance.calculate_performance(
+            score.pp, score.sr = await app.usecases.performance.calculate_performance(
+                beatmap.id,
                 score.mode,
                 score.mods.value,
                 score.max_combo,
-                score.score,
                 score.acc,
                 score.nmiss,
-                osu_file_path,
             )
 
             # calculate the score's status

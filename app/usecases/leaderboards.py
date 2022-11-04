@@ -34,3 +34,7 @@ async def fetch(beatmap: Beatmap, mode: Mode) -> Leaderboard:
     beatmap.leaderboards[mode] = leaderboard
 
     return leaderboard
+
+
+def is_leaderboard_cached(beatmap: Beatmap, mode: Mode) -> bool:
+    return mode in beatmap.leaderboards
