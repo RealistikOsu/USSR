@@ -64,7 +64,7 @@ async def calculate_pp(
         pp_requests: list[PerformanceScore] = [
             {
                 "beatmap_id": beatmap.id,
-                "mode": mode,
+                "mode": mode.as_vn,
                 "mods": mods,
                 "max_combo": combo,
                 "accuracy": accuracy,
@@ -84,7 +84,8 @@ async def calculate_pp(
             0,  # miss count
         )
 
-    logging.info(f"Handled PP calculation API request for {beatmap.song_name}!")
+    logging.info(
+        f"Handled PP calculation API request for {beatmap.song_name}!")
 
     return ORJSONResponse(
         {

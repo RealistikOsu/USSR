@@ -26,7 +26,7 @@ async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bo
 
 class PerformanceScore(TypedDict):
     beatmap_id: int
-    mode: Mode
+    mode: int
     mods: int
     max_combo: int
     accuracy: float
