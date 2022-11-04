@@ -22,6 +22,7 @@ ftp_client: ftpretty
 http: aiohttp.ClientSession
 
 amqp: aio_pika.RobustConnection
+amqp_channel: aio_pika.RobustChannel
 
 
 class Database:
