@@ -70,7 +70,7 @@ async def calculate_performance(
             },
         ],
     ) as resp:
-        if not resp or resp.status != 200:
+        if resp.status != 200:
             return 0.0, 0.0
 
         data = (await resp.json())[0]
