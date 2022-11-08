@@ -226,7 +226,7 @@ async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
 
     if should_save:
         for beatmap in beatmaps:
-            asyncio.create_task(should_save(beatmap))
+            asyncio.create_task(save(beatmap))
             add_to_set_cache(beatmap)
 
     for beatmap in beatmaps:
@@ -252,7 +252,7 @@ async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
 
     if should_save:
         for beatmap in beatmaps:
-            asyncio.create_task(should_save(beatmap))
+            asyncio.create_task(save(beatmap))
             add_to_set_cache(beatmap)
 
     for beatmap in beatmaps:
@@ -278,7 +278,7 @@ async def set_from_api(id: int, should_save: bool = True) -> Optional[list[Beatm
 
     if should_save:
         for beatmap in beatmaps:
-            asyncio.create_task(should_save(beatmap))
+            asyncio.create_task(save(beatmap))
             add_to_set_cache(beatmap)
 
     return beatmaps
