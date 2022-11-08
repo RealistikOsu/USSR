@@ -208,7 +208,7 @@ async def save(beatmap: Beatmap) -> None:
     )
 
 
-async def md5_from_api(md5: str) -> Optional[Beatmap]:
+async def md5_from_api(md5: str, save: bool = True) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
     async with app.state.services.http.get(
@@ -224,16 +224,17 @@ async def md5_from_api(md5: str) -> Optional[Beatmap]:
 
     beatmaps = parse_from_osu_api(response_json)
 
-    for beatmap in beatmaps:
-        asyncio.create_task(save(beatmap))
-        add_to_set_cache(beatmap)
+    if save:
+        for beatmap in beatmaps:
+            asyncio.create_task(save(beatmap))
+            add_to_set_cache(beatmap)
 
     for beatmap in beatmaps:
         if beatmap.md5 == md5:
             return beatmap
 
 
-async def id_from_api(id: int) -> Optional[Beatmap]:
+async def id_from_api(id: int, save: bool = True) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
     async with app.state.services.http.get(
@@ -249,16 +250,17 @@ async def id_from_api(id: int) -> Optional[Beatmap]:
 
     beatmaps = parse_from_osu_api(response_json)
 
-    for beatmap in beatmaps:
-        asyncio.create_task(save(beatmap))
-        add_to_set_cache(beatmap)
+    if save:
+        for beatmap in beatmaps:
+            asyncio.create_task(save(beatmap))
+            add_to_set_cache(beatmap)
 
     for beatmap in beatmaps:
         if beatmap.id == id:
             return beatmap
 
 
-async def set_from_api(id: int) -> Optional[list[Beatmap]]:
+async def set_from_api(id: int, save: bool = True) -> Optional[list[Beatmap]]:
     api_key = random.choice(config.API_KEYS_POOL)
 
     async with app.state.services.http.get(
@@ -274,9 +276,10 @@ async def set_from_api(id: int) -> Optional[list[Beatmap]]:
 
     beatmaps = parse_from_osu_api(response_json)
 
-    for beatmap in beatmaps:
-        asyncio.create_task(save(beatmap))
-        add_to_set_cache(beatmap)
+    if save:
+        for beatmap in beatmaps:
+            asyncio.create_task(save(beatmap))
+            add_to_set_cache(beatmap)
 
     return beatmaps
 
