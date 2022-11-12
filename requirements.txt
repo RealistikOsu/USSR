@@ -6,6 +6,7 @@ aioredis
 bcrypt
 cryptography
 databases[asyncmy]
+ddtrace
 fastapi
 orjson
 py3rijndael
