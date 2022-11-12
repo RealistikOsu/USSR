@@ -267,3 +267,10 @@ async def update_latest_activity(user_id: int) -> None:
         "UPDATE users SET latest_activity = UNIX_TIMESTAMP() WHERE id = :id",
         {"id": user_id},
     )
+
+
+async def update_latest_score_submission(user_id: int) -> None:
+    await app.state.services.database.execute(
+        "UPDATE users SET latest_score_submission = UNIX_TIMESTAMP() WHERE id = :id",
+        {"id": user_id},
+    )
