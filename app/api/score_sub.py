@@ -141,8 +141,7 @@ async def submit_score(
     score.acc = app.usecases.score.calculate_accuracy(score)
     score.quit = exited_out
 
-    asyncio.create_task(app.usecases.user.update_latest_score_submission(user.id))
-    asyncio.create_task(app.usecases.user.update_latest_activity(user.id))
+    await app.usecases.user.update_latest_activity(user.id)
 
     if not score.mods.rankable:
         return b"error: no"
@@ -363,6 +362,7 @@ async def submit_score(
         and not user.privileges.is_restricted
         and old_stats.pp != stats.pp
     ):
+        await app.usecases.user.update_latest_pp_awarded(user.id, score.mode)
         await app.usecases.stats.update_rank(stats)
 
     await app.usecases.stats.refresh_stats(user.id)

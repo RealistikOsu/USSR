@@ -269,8 +269,17 @@ async def update_latest_activity(user_id: int) -> None:
     )
 
 
-async def update_latest_score_submission(user_id: int) -> None:
+async def update_latest_pp_awarded(user_id: int, mode: Mode) -> None:
     await app.state.services.database.execute(
-        "UPDATE users SET latest_score_submission = UNIX_TIMESTAMP() WHERE id = :id",
+        (
+            """
+            UPDATE {t}
+            SET latest_pp_awarded_{m} = UNIX_TIMESTAMP()
+            WHERE id = :id
+            """
+        ).format(
+            t=mode.stats_table,
+            m=mode.stats_prefix,
+        ),
         {"id": user_id},
     )
