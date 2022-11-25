@@ -172,31 +172,40 @@ async def calc_playcount(stats: Stats) -> int:
 
 
 async def calc_max_combo(stats: Stats) -> int:
-    stats.max_combo = await app.state.services.database.fetch_val(
-        f"SELECT MAX(max_combo) FROM {stats.mode.scores_table} WHERE userid = :id "
-        "AND play_mode = :mode",
-        {"id": stats.user_id, "mode": stats.mode.as_vn},
-    ) or 0
+    stats.max_combo = (
+        await app.state.services.database.fetch_val(
+            f"SELECT MAX(max_combo) FROM {stats.mode.scores_table} WHERE userid = :id "
+            "AND play_mode = :mode",
+            {"id": stats.user_id, "mode": stats.mode.as_vn},
+        )
+        or 0
+    )
 
     return stats.max_combo
 
 
 async def calc_total_score(stats: Stats) -> int:
-    stats.total_score = await app.state.services.database.fetch_val(
-        f"SELECT SUM(score) FROM {stats.mode.scores_table} WHERE userid = :id "
-        "AND play_mode = :mode",
-        {"id": stats.user_id, "mode": stats.mode.as_vn},
-    ) or 0
+    stats.total_score = (
+        await app.state.services.database.fetch_val(
+            f"SELECT SUM(score) FROM {stats.mode.scores_table} WHERE userid = :id "
+            "AND play_mode = :mode",
+            {"id": stats.user_id, "mode": stats.mode.as_vn},
+        )
+        or 0
+    )
 
     return stats.total_score
 
 
 async def calc_ranked_score(stats: Stats) -> int:
-    stats.ranked_score = await app.state.services.database.fetch_val(
-        f"SELECT SUM(s.score) FROM {stats.mode.scores_table} s INNER JOIN beatmaps b "
-        "ON s.beatmap_md5 = b.beatmap_md5 WHERE s.userid = :id "
-        "AND s.play_mode = :mode AND s.completed = 3 AND b.ranked IN (2, 3)",
-        {"id": stats.user_id, "mode": stats.mode.as_vn},
-    ) or 0
+    stats.ranked_score = (
+        await app.state.services.database.fetch_val(
+            f"SELECT SUM(s.score) FROM {stats.mode.scores_table} s INNER JOIN beatmaps b "
+            "ON s.beatmap_md5 = b.beatmap_md5 WHERE s.userid = :id "
+            "AND s.play_mode = :mode AND s.completed = 3 AND b.ranked IN (2, 3)",
+            {"id": stats.user_id, "mode": stats.mode.as_vn},
+        )
+        or 0
+    )
 
     return stats.ranked_score
