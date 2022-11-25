@@ -176,7 +176,7 @@ async def submit_score(
         beatmap.id,
         beatmap.md5,
     ):
-        app.usecases.performance.calculate_score(score, osu_file_path)
+        await app.usecases.performance.calculate_score(score, beatmap.id)
 
         if score.passed:
             old_best = await leaderboard.find_user_score(user.id)

@@ -216,7 +216,7 @@ async def md5_from_api(md5: str) -> Optional[Beatmap]:
             return beatmap
 
 
-async def id_from_api(id: int) -> Optional[Beatmap]:
+async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
     api_key = random.choice(config.api_keys_pool)
 
     async with app.state.services.http.get(
@@ -232,9 +232,10 @@ async def id_from_api(id: int) -> Optional[Beatmap]:
 
     beatmaps = parse_from_osu_api(response_json)
 
-    for beatmap in beatmaps:
-        asyncio.create_task(save(beatmap))
-        add_to_set_cache(beatmap)
+    if should_save:
+        for beatmap in beatmaps:
+            asyncio.create_task(save(beatmap))
+            add_to_set_cache(beatmap)
 
     for beatmap in beatmaps:
         if beatmap.id == id:

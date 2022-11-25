@@ -7,7 +7,6 @@ import sys
 import uvicorn
 import uvloop
 
-import app.usecases.performance
 import app.utils
 import logger
 from config import config
@@ -19,7 +18,6 @@ DEBUG = "debug" in sys.argv
 
 def main() -> int:
     logger.ensure_log_file()
-    app.usecases.performance.ensure_oppai()
     app.utils.ensure_folders()
 
     uvicorn.run(

@@ -8,6 +8,7 @@ import os
 from logger import debug
 from logger import info
 
+
 @dataclass
 class Config:
     port: int = 2137
@@ -29,47 +30,52 @@ class Config:
     pp_cap_ap: int = 1200
     ws_write_key: str = ""
     bot_user_id: int = 999
-    
+    performance_service_url: str = ""
+
+
 def read_config_json() -> dict[str, Any]:
     with open("config.json", "r") as f:
         return load(f)
-    
+
+
 def write_config(config: Config):
     with open("config.json", "w") as f:
         dump(config.__dict__, f, indent=4)
 
+
 def load_config() -> Config:
     """Loads the config from the file, handling config updates.
-    
+
     Note:
         Raises `SystemExit` on config update.
     """
-    
+
     config_dict = {}
-    
+
     if os.path.exists("config.json"):
         config_dict = read_config_json()
-    
+
     # Compare config json attributes with config class attributes
-    missing_keys = [
-        key for key in Config.__annotations__ if key not in config_dict
-    ]
-    
+    missing_keys = [key for key in Config.__annotations__ if key not in config_dict]
+
     # Remove extra fields
-    for key in tuple(config_dict): # Tuple cast is necessary to create a copy of the keys.
+    for key in tuple(
+        config_dict
+    ):  # Tuple cast is necessary to create a copy of the keys.
         if key not in Config.__annotations__:
             del config_dict[key]
-    
+
     # Create config regardless, populating it with missing keys and removing
     # unnecessary keys.
     config = Config(**config_dict)
-    
+
     if missing_keys:
         info(f"Your config has been updated with {len(missing_keys)} new keys.")
         debug("Missing keys: " + ", ".join(missing_keys))
         write_config(config)
         raise SystemExit(0)
-    
+
     return config
+
 
 config = load_config()
