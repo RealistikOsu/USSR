@@ -213,6 +213,7 @@ async def submit_score(
 
     if (
         beatmap.gives_pp
+        and score.passed
         and score.pp > score.mode.pp_cap
         and not await app.usecases.verified.get_verified(user.id)
     ):
