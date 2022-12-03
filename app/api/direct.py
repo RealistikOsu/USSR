@@ -55,7 +55,7 @@ async def osu_direct(
         params["status"] = RankedStatus.from_direct(ranked_status).osu_api
 
     if USING_NASUYA:
-        params["osu_direct"] = True
+        params["osu_direct"] = "true"
 
     async with app.state.services.http.get(search_url, params=params) as response:
         if response.status != status.HTTP_200_OK:
