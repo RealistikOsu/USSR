@@ -132,6 +132,10 @@ async def submit_score(
     if not (beatmap := await app.usecases.beatmap.fetch_by_md5(beatmap_md5)):
         return b"error: beatmap"
 
+    # Prohibit bot users from submitting scores.
+    if user.privileges & Privileges.BOT_USER:
+        return b"error: no"
+
     score = Score.from_submission(score_data[2:], beatmap_md5, user)
     leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
 

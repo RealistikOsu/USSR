@@ -29,6 +29,7 @@ class Privileges(IntFlag):
     USER_PENDING_VERIFICATION = 2 << 19
     USER_TOURNAMENT_STAFF = 2 << 20
     ADMIN_CAKER = 20 << 21
+    BOT_USER = 1 << 30
 
     @property
     def is_restricted(self) -> bool:
