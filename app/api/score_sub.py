@@ -28,6 +28,7 @@ import logger
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
+from app.constants.privileges import Privileges
 from app.models.score import Score
 from app.objects.path import Path
 from app.usecases.user import restrict_user
