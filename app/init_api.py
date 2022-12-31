@@ -18,11 +18,18 @@ import app.redis
 import app.state
 import app.usecases
 import logger
+from config import config
 
 
 def init_events(asgi_app: FastAPI) -> None:
     @asgi_app.on_event("startup")
     async def on_startup() -> None:
+        # TODO: maybe not here?
+        if not config.api_keys_pool:
+            logger.warning(
+                "No osu!api v1 keys in the pool! Using fallback API v1 + osu.",
+            )
+
         await app.state.services.database.connect()
         await app.state.services.redis.initialize()
 

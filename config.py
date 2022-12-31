@@ -19,6 +19,8 @@ class Config:
     data_dir: str = ".data"
     direct_url: str = "https://catboy.best/api"
     api_keys_pool: list[str] = field(default_factory=list)
+    api_fallback_url: str = "https://catboy.best/api"
+    api_osu_fallback_url: str = "https://catboy.best/osu"
     custom_clients: bool = False
     srv_url: str = "https://ussr.pl"
     srv_name: str = "RealistikOsu"

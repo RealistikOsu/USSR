@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import random
 import time
+from typing import Any
 from typing import Optional
 
 import app.state
@@ -175,9 +176,6 @@ async def set_from_database(set_id: int) -> Optional[list[Beatmap]]:
     return [Beatmap.from_dict(db_result) for db_result in db_results]
 
 
-GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
-
-
 async def save(beatmap: Beatmap) -> None:
     await app.state.services.database.execute(
         (
@@ -191,12 +189,19 @@ async def save(beatmap: Beatmap) -> None:
     )
 
 
-async def md5_from_api(md5: str) -> Optional[Beatmap]:
-    api_key = random.choice(config.api_keys_pool)
+GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
+GET_BEATMAP_FALLBACK_URL = config.api_fallback_url + "/get_beatmaps"
+
+
+async def _make_get_beatmaps_request(args: dict[str, Any]) -> Optional[list[Beatmap]]:
+    url = GET_BEATMAP_FALLBACK_URL
+    if config.api_fallback_url:
+        url = GET_BEATMAP_URL
+        args["k"] = random.choice(config.api_keys_pool)
 
     async with app.state.services.http.get(
-        GET_BEATMAP_URL,
-        params={"k": api_key, "h": md5},
+        url,
+        params=args,
     ) as response:
         if not response or response.status != 200:
             return None
@@ -205,7 +210,16 @@ async def md5_from_api(md5: str) -> Optional[Beatmap]:
         if not response_json:
             return None
 
-    beatmaps = parse_from_osu_api(response_json)
+    return parse_from_osu_api(response_json)
+
+
+async def md5_from_api(md5: str) -> Optional[Beatmap]:
+    beatmaps = await _make_get_beatmaps_request(
+        {"h": md5},
+    )
+
+    if beatmaps is None:
+        return None
 
     for beatmap in beatmaps:
         asyncio.create_task(save(beatmap))
@@ -217,20 +231,12 @@ async def md5_from_api(md5: str) -> Optional[Beatmap]:
 
 
 async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
-    api_key = random.choice(config.api_keys_pool)
+    beatmaps = await _make_get_beatmaps_request(
+        {"b": id},
+    )
 
-    async with app.state.services.http.get(
-        GET_BEATMAP_URL,
-        params={"k": api_key, "b": id},
-    ) as response:
-        if not response or response.status != 200:
-            return None
-
-        response_json = await response.json()
-        if not response_json:
-            return None
-
-    beatmaps = parse_from_osu_api(response_json)
+    if beatmaps is None:
+        return None
 
     if should_save:
         for beatmap in beatmaps:
@@ -243,20 +249,12 @@ async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
 
 
 async def set_from_api(id: int) -> Optional[list[Beatmap]]:
-    api_key = random.choice(config.api_keys_pool)
+    beatmaps = await _make_get_beatmaps_request(
+        {"s": id},
+    )
 
-    async with app.state.services.http.get(
-        GET_BEATMAP_URL,
-        params={"k": api_key, "s": id},
-    ) as response:
-        if not response or response.status != 200:
-            return None
-
-        response_json = await response.json()
-        if not response_json:
-            return None
-
-    beatmaps = parse_from_osu_api(response_json)
+    if beatmaps is None:
+        return None
 
     for beatmap in beatmaps:
         asyncio.create_task(save(beatmap))

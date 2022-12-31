@@ -9,6 +9,10 @@ from app.models.score import Score
 from app.objects.path import Path
 from config import config
 
+OSU_BASE_URL = "https://old.ppy.sh/osu"
+if not config.api_keys_pool:
+    OSU_BASE_URL = config.api_osu_fallback_url
+
 
 async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
     if (
@@ -16,7 +20,7 @@ async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bo
         or hashlib.md5(osu_file_path.read_bytes()).hexdigest() != map_md5
     ):
         async with app.state.services.http.get(
-            f"https://old.ppy.sh/osu/{map_id}",
+            f"OSU_BASE_URL/{map_id}",
         ) as response:
             if response.status != 200:
                 return False
