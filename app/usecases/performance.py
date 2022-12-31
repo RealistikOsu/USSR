@@ -20,7 +20,7 @@ async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bo
         or hashlib.md5(osu_file_path.read_bytes()).hexdigest() != map_md5
     ):
         async with app.state.services.http.get(
-            f"OSU_BASE_URL/{map_id}",
+            f"{OSU_BASE_URL}/{map_id}",
         ) as response:
             if response.status != 200:
                 return False

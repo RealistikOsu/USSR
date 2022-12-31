@@ -195,7 +195,7 @@ GET_BEATMAP_FALLBACK_URL = config.api_fallback_url + "/get_beatmaps"
 
 async def _make_get_beatmaps_request(args: dict[str, Any]) -> Optional[list[Beatmap]]:
     url = GET_BEATMAP_FALLBACK_URL
-    if config.api_fallback_url:
+    if config.api_keys_pool:
         url = GET_BEATMAP_URL
         args["k"] = random.choice(config.api_keys_pool)
 
