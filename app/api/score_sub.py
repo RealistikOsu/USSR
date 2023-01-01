@@ -161,6 +161,7 @@ async def submit_score(
             "The expected user-agent header for an osu! client is 'osu!', while "
             f"the client sent '{user_agent}'. (score submit gate)",
         )
+    await app.usecases.user.handle_pending_username_change(user.id)
 
     if score.mods.conflict:
         await app.usecases.user.restrict_user(

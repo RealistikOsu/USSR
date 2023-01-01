@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 from typing import Optional
 from urllib.parse import unquote_plus
 
+from aiohttp import ClientTimeout
 from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
@@ -18,6 +20,7 @@ from app.models.user import User
 from app.usecases.user import authenticate_user
 
 USING_CHIMU = "https://api.chimu.moe/v1" == config.DIRECT_URL
+USING_KITSU = "https://us.kitsu.moe/api" == config.DIRECT_URL
 CHIMU_SET_ID_SPELLING = "SetId" if USING_CHIMU else "SetID"
 
 DIRECT_SET_INFO_FMTSTR = (
@@ -55,11 +58,18 @@ async def osu_direct(
     if ranked_status != 4:
         params["status"] = RankedStatus.from_direct(ranked_status).osu_api
 
-    async with app.state.services.http.get(search_url, params=params) as response:
-        if response.status != status.HTTP_200_OK:
-            return b"-1\nFailed to retrieve data from the beatmap mirror."
+    try:
+        async with app.state.services.http.get(search_url, params=params, timeout=ClientTimeout(total=5)) as response:
+            if response.status != status.HTTP_200_OK:
+                return b"-1\nFailed to retrieve data from the beatmap mirror."
 
-        result = await response.json()
+            result = await response.json()
+
+            if USING_KITSU: # kitsu is kinda annoying here and sends status in body
+                if result["code"] != 200:
+                    return b"-1\nFailed to retrieve data from the beatmap mirror."
+    except asyncio.exceptions.TimeoutError:
+        return b"-1\n3rd party beatmap mirror we depend on timed out. Their server is likely down."
 
     result_len = len(result)
     ret = [f"{'101' if result_len == 100 else result_len}"]
