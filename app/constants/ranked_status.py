@@ -47,3 +47,13 @@ class RankedStatus(IntEnum):
             7: cls.RANKED,  # played before
             8: cls.LOVED,
         }.get(direct_status, cls.UPDATE_AVAILABLE)
+
+    @functools.cached_property
+    def osu_direct(self) -> int:
+        return {
+            self.PENDING: 0,
+            self.RANKED: 1,
+            self.APPROVED: 2,
+            self.QUALIFIED: 3,
+            self.LOVED: 4,
+        }.get(self, 0)

@@ -33,7 +33,7 @@ DIRECT_MAP_INFO_FMTSTR = (
     "{{cs: {CS} / od: {OD} / ar: {AR} / hp: {HP}}}@{Mode}"
 )
 
-DIRECT_MAP_INFO_FMTSTR_MEILI = "{difficulty} | od: {od} / ar: {ar}@{mode}"
+DIRECT_MAP_INFO_FMTSTR_MEILI = "{difficulty} od: {od} / ar: {ar}@{mode}"
 
 DIRECT_SET_INFO_FMTSTR_MEILI = (
     "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
@@ -53,8 +53,12 @@ async def osu_direct_meili(
     order = "play_count:desc"
     if query == "Top Rated":
         order = "avg_rating:desc"
+        query = ""
     elif query == "Newest":
         order = "id:desc"
+        query = ""
+    elif query == "Newest":
+        query = ""
 
     filters = []
 
@@ -68,7 +72,7 @@ async def osu_direct_meili(
     index = app.state.services.meili.index("beatmaps")
     search_res = await index.search(
         query,
-        offset=page_num,
+        offset=page_num * 100,
         limit=100,
         filter=filters,
         sort=[order],
@@ -89,11 +93,11 @@ async def osu_direct_meili(
         )
         res.append(
             DIRECT_SET_INFO_FMTSTR_MEILI.format(
-                chimu_spell=beatmap_set["set_id"],
+                chimu_spell=beatmap_set["id"],
                 Artist=beatmap_set["artist"].replace("|", ""),
                 Title=beatmap_set["title"].replace("|", ""),
                 Creator=beatmap_set["creator"],
-                RankedStatus=beatmap_set["status"],
+                RankedStatus=RankedStatus(beatmap_set["status"]).osu_direct,
                 Rating=beatmap_set["avg_rating"],
                 diffs=diff_str,
             ),
