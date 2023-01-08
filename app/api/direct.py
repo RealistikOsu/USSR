@@ -33,8 +33,76 @@ DIRECT_MAP_INFO_FMTSTR = (
     "{{cs: {CS} / od: {OD} / ar: {AR} / hp: {HP}}}@{Mode}"
 )
 
+DIRECT_MAP_INFO_FMTSTR_MEILI = "{difficulty} | od: {od} / ar: {ar}@{mode}"
 
-async def osu_direct(
+DIRECT_SET_INFO_FMTSTR_MEILI = (
+    "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
+    "{RankedStatus}|{Rating}|0|{chimu_spell}|"
+    "0|0|0|0|0|{diffs}"
+)
+
+
+async def osu_direct_meili(
+    user: User = Depends(authenticate_user(Query, "u", "h")),
+    ranked_status: int = Query(..., alias="r", ge=0, le=8),
+    query: str = Query(..., alias="q"),
+    mode: int = Query(..., alias="m", ge=-1, le=3),
+    page_num: int = Query(..., alias="p"),
+):
+    # Special filters
+    order = "play_count:desc"
+    if query == "Top Rated":
+        order = "avg_rating:desc"
+    elif query == "Newest":
+        order = "id:desc"
+
+    filters = []
+
+    if ranked_status != 4:
+        status = RankedStatus.from_direct(ranked_status)
+        filters.append(f"status={status.value}")
+
+    if mode != -1:
+        filters.append(f"modes={mode}")
+
+    index = app.state.services.meili.index("beatmaps")
+    search_res = await index.search(
+        query,
+        offset=page_num,
+        limit=100,
+        filter=filters,
+        sort=[order],
+    )
+
+    # Response building
+    res = [str(search_res.nb_hits)]
+
+    for beatmap_set in search_res.hits:
+        diff_str = ",".join(
+            DIRECT_MAP_INFO_FMTSTR_MEILI.format(
+                difficulty=child["difficulty"],
+                od=child["od"],
+                ar=child["ar"],
+                mode=child["mode"],
+            )
+            for child in beatmap_set["children"]
+        )
+        res.append(
+            DIRECT_SET_INFO_FMTSTR_MEILI.format(
+                chimu_spell=beatmap_set["set_id"],
+                Artist=beatmap_set["artist"].replace("|", ""),
+                Title=beatmap_set["title"].replace("|", ""),
+                Creator=beatmap_set["creator"],
+                RankedStatus=beatmap_set["status"],
+                Rating=beatmap_set["avg_rating"],
+                diffs=diff_str,
+            ),
+        )
+
+    return "\n".join(res).encode()
+
+
+async def osu_direct_cheesegull(
     user: User = Depends(authenticate_user(Query, "u", "h")),
     ranked_status: int = Query(..., alias="r", ge=0, le=8),
     query: str = Query(..., alias="q"),

@@ -6,6 +6,7 @@ Brotli
 cchardet
 databases[asyncmy]==0.5.5
 fastapi
+meilisearch-python-async
 orjson
 py3rijndael
 # Specifying this version is important

@@ -3,6 +3,7 @@ from __future__ import annotations
 import aiohttp
 import aioredis
 import databases
+import meilisearch_python_async
 
 from config import config
 
@@ -17,5 +18,9 @@ url = databases.DatabaseURL(
     ),
 )
 database: databases.Database = databases.Database(url)
+meili = meilisearch_python_async.Client(
+    url=config.meili_url,
+    api_key=config.meili_key,
+)
 
 http: aiohttp.ClientSession

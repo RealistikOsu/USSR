@@ -21,6 +21,7 @@ from . import screenshots
 from . import seasonals
 from app.models.user import User
 from app.usecases.user import authenticate_user
+from config import config
 
 router = APIRouter(default_response_class=Response)
 
