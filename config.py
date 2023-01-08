@@ -16,6 +16,9 @@ class Config:
     sql_user: str = "root"
     sql_db: str = "rosu"
     sql_pass: str = "password"
+    meili_direct: bool = False
+    meili_url: str = "http://127.0.0.1:7700"
+    meili_key: str = ""
     data_dir: str = ".data"
     direct_url: str = "https://catboy.best/api"
     api_keys_pool: list[str] = field(default_factory=list)
