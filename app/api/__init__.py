@@ -41,7 +41,10 @@ router.add_api_route(
 router.add_api_route("/web/osu-getreplay.php", replays.get_replay)
 router.add_api_route("/web/replays/{score_id}", replays.get_full_replay)
 
-router.add_api_route("/web/osu-search.php", direct.osu_direct)
+if config.meili_direct:
+    router.add_api_route("/web/osu-search.php", direct.osu_direct_meili)
+else:
+    router.add_api_route("/web/osu-search.php", direct.osu_direct_cheesegull)
 router.add_api_route("/web/osu-search-set.php", direct.beatmap_card)
 router.add_api_route("/d/{set_id}", direct.download_map)
 
