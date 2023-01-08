@@ -75,7 +75,7 @@ async def osu_direct_meili(
     )
 
     # Response building
-    res = [str(search_res.nb_hits)]
+    res = [str(search_res.estimated_total_hits)]
 
     for beatmap_set in search_res.hits:
         diff_str = ",".join(
