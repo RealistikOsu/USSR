@@ -18,10 +18,7 @@ COMMON_PP_PERCENTAGES = (
     100.0,
     99.0,
     98.0,
-    97.0,
-    96.0,
     95.0,
-    90.0,
 )
 
 MAPS_PATH = Path(config.data_dir) / "maps"
