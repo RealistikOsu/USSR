@@ -51,6 +51,14 @@ async def get_replay(
     return Response(content=replay_file.read_bytes())
 
 
+def _make_not_found_resp(text: str) -> Response:
+    return Response(
+        content=text,
+        media_type="text/plain",
+        status_code=404,
+    )
+
+
 async def get_full_replay(
     score_id: int = Path(...),
 ):
@@ -67,15 +75,15 @@ async def get_full_replay(
 
     replay = await app.usecases.score.build_full_replay(score)
     if not replay:
-        return "Replay not found!"
+        return _make_not_found_resp("Replay not found!")
 
     beatmap = await app.usecases.beatmap.fetch_by_md5(score.map_md5)
     if not beatmap:
-        return "Beatmap not found!"
+        return _make_not_found_resp("Beatmap not found!")
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if not username:
-        return "User not found!"
+        return _make_not_found_resp("User not found!")
 
     filename = f"{username} - {beatmap.song_name} ({score_id}).osr"
 
