@@ -69,7 +69,7 @@ async def get_full_replay(
         {"id": score_id},
     )
     if not db_score:
-        return "Score not found!"
+        return _make_not_found_resp("Score not found!")
 
     score = Score.from_dict(db_score)
 
