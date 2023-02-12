@@ -145,7 +145,7 @@ async def handle_first_place(
 ) -> None:
     await app.state.services.database.execute(
         "DELETE FROM first_places WHERE beatmap_md5 = :md5 AND mode = :mode AND relax = :rx",
-        {"md5": score.map_md5, "mode": score.mode.value, "rx": score.mode.relax_int},
+        {"md5": score.map_md5, "mode": score.mode.as_vn, "rx": score.mode.relax_int},
     )
 
     await app.state.services.database.execute(
