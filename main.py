@@ -23,6 +23,7 @@ def main() -> int:
         server_header=False,
         date_header=False,
         port=config.APP_PORT,
+        access_log=False,
     )
 
     return 0
