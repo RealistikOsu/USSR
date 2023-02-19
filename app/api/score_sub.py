@@ -29,6 +29,7 @@ from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
+from app.constants.mods import Mods
 from app.models.score import Score
 from app.objects.path import Path
 from app.usecases.user import restrict_user
@@ -219,7 +220,10 @@ async def submit_score(
     if (
         beatmap.gives_pp
         and score.passed
-        and score.pp > score.mode.pp_cap
+        and score.pp > await app.usecases.pp_cap.get_pp_cap(
+            score.mode,
+            score.mods & Mods.FLASHLIGHT != 0,
+        )
         and not await app.usecases.verified.get_verified(user.id)
     ):
         await restrict_user(

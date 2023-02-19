@@ -30,9 +30,6 @@ class Config:
     srv_verified_badge: int = 1005
     discord_first_place: str = ""
     discord_admin_hook: str = ""
-    pp_cap_vn: int = 700
-    pp_cap_rx: int = 1200
-    pp_cap_ap: int = 1200
     ws_write_key: str = ""
     bot_user_id: int = 999
     performance_service_url: str = ""

@@ -66,16 +66,6 @@ class Mode(IntEnum):
         return "scores"
 
     @cached_property
-    def pp_cap(self) -> int:
-        if self.relax:
-            return config.pp_cap_rx
-
-        if self.autopilot:
-            return config.pp_cap_ap
-
-        return config.pp_cap_vn
-
-    @cached_property
     def stats_table(self) -> str:
         if self.relax:
             return "rx_stats"

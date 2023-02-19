@@ -46,6 +46,7 @@ def init_events(asgi_app: FastAPI) -> None:
             app.usecases.countries.update_countries_task,
             app.usecases.clans.update_clans_task,
             app.usecases.verified.update_verified_task,
+            app.usecases.pp_cap.update_pp_cap_task,
         ):
             task = asyncio.create_task(_task())
             app.state.tasks.add(task)
