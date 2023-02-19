@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from enum import IntEnum
 from functools import cached_property
-from typing import TYPE_CHECKING
 
 from app.constants.mods import Mods
-from config import config
 
 mode_str = (
     "osu!std",

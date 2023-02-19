@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import os
 import time
 from base64 import b64decode
 from copy import copy
@@ -54,7 +52,7 @@ async def parse_form(score_data: FormData) -> Optional[ScoreData]:
         logger.warning(f"Failed to validate score multipart data: ({exc.args[0]})")
         return None
     else:
-        return (
+        return ScoreData(
             score_data_b64.encode(),
             replay_file,
         )
@@ -276,6 +274,8 @@ async def submit_score(
     asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
+    assert stats is not None
+
     old_stats = copy(stats)
 
     stats.playcount += 1
