@@ -6,7 +6,6 @@ from typing import NamedTuple
 
 import app.state
 from app.constants.mode import Mode
-from app.constants.mods import Mods
 
 
 class CapKey(NamedTuple):
@@ -38,7 +37,7 @@ async def get_pp_cap(mode: Mode, flashlight: bool) -> int:
 async def update_pp_cap(mode: Mode) -> CapValue:
     cap_key = CapKey(mode)
 
-    pp_cap = await app.state.services.database.fetch_val(
+    pp_cap = await app.state.services.database.fetch_one(
         f"SELECT pp, flashlight_pp FROM pp_limits WHERE mode = :mode and relax = :relax",
         {"mode": mode.as_vn, "relax": mode.relax},
     )
@@ -47,8 +46,9 @@ async def update_pp_cap(mode: Mode) -> CapValue:
         PP_CAPS[cap_key] = CapValue(0, 0)
         return CapValue(0, 0)
 
-    PP_CAPS[cap_key] = CapValue(pp_cap["pp"], pp_cap["flashlight_pp"])
-    return pp_cap
+    cap_value = CapValue(pp_cap["pp"], pp_cap["flashlight_pp"])
+    PP_CAPS[cap_key] = cap_value
+    return cap_value
 
 
 async def load_pp_caps() -> None:
