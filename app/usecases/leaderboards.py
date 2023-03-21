@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.constants.score_status import ScoreStatus
 
 import app.state
 from app.constants.mode import Mode
@@ -11,7 +12,7 @@ async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
     leaderboard = Leaderboard(mode)
 
     db_scores = await app.state.services.database.fetch_all(
-        f"SELECT * FROM {mode.scores_table} WHERE beatmap_md5 = :md5 AND play_mode = :mode AND completed = 3",
+        f"SELECT * FROM {mode.scores_table} WHERE beatmap_md5 = :md5 AND play_mode = :mode AND completed IN (2, 3)",
         {
             "md5": beatmap.md5,
             "mode": mode.as_vn,
@@ -20,7 +21,11 @@ async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
 
     for db_score in db_scores:
         score = Score.from_mapping(db_score)
-        leaderboard.scores.append(score)
+        
+        if score.status == ScoreStatus.BEST:
+            leaderboard.best_scores.append(score)
+        else:
+            leaderboard.non_best_scores.append(score)
 
     leaderboard.sort()
     return leaderboard
