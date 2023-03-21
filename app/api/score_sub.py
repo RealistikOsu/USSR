@@ -344,7 +344,9 @@ async def submit_score(
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
 
-        if score.status == ScoreStatus.BEST:
+        if score.status == ScoreStatus.SUBMITTED:
+            leaderboard.add_submitted_score(score)
+        elif score.status == ScoreStatus.BEST:
             leaderboard.replace_user_score(score)
 
             if score.pp:
