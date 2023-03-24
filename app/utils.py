@@ -61,12 +61,8 @@ async def announce(message: str) -> None:
     await channel_message("#announce", message)
 
 
-async def check_online(user_id: int, ip: Optional[str] = None) -> bool:
-    key = f"peppy:sessions:{user_id}"
-
-    if ip:
-        return await app.state.services.redis.sismember(key, ip)
-
+async def check_online(user_id: int) -> bool:
+    key = f"bancho:tokens:ids:{user_id}"
     return await app.state.services.redis.exists(key)
 
 
