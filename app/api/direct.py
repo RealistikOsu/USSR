@@ -46,7 +46,7 @@ async def osu_direct(
 
     params: dict[str, Any] = {"amount": 101, "offset": page_num}
 
-    if "akatsuki.pw" in config.DIRECT_URL or "akatest.space" in config.DIRECT_URL:
+    if "akatsuki.gg" in config.DIRECT_URL or "akatest.space" in config.DIRECT_URL:
         params["osu_direct"] = True
 
     if unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
@@ -59,15 +59,17 @@ async def osu_direct(
         params["status"] = RankedStatus.from_direct(ranked_status).osu_api
 
     try:
-        async with app.state.services.http.get(search_url, params=params, timeout=ClientTimeout(total=5)) as response:
+        async with app.state.services.http.get(
+            search_url, params=params, timeout=ClientTimeout(total=5)
+        ) as response:
             if response.status != status.HTTP_200_OK:
                 return b"-1\nFailed to retrieve data from the beatmap mirror."
 
             result = await response.json()
 
-            if USING_KITSU: # kitsu is kinda annoying here and sends status in body
-                if result["code"] != 200:
-                    return b"-1\nFailed to retrieve data from the beatmap mirror."
+            # if USING_KITSU: # kitsu is kinda annoying here and sends status in body
+            #    if result["code"] != 200:
+            #        return b"-1\nFailed to retrieve data from the beatmap mirror."
     except asyncio.exceptions.TimeoutError:
         return b"-1\n3rd party beatmap mirror we depend on timed out. Their server is likely down."
 
