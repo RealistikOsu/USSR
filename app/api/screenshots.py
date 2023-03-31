@@ -19,7 +19,7 @@ from app.usecases.user import authenticate_user
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000
-ERR_RESP = "https://akatsuki.pw/"
+ERR_RESP = "https://akatsuki.gg/"
 SS_NAME_LEN = 8
 
 SS_PATH = Path(config.DATA_DIR) / "screenshots"
