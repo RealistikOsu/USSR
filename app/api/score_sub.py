@@ -35,6 +35,7 @@ from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.objects.path import Path
 from app.usecases.user import restrict_user
+from app.adapters import s3
 
 
 class ScoreData(NamedTuple):
@@ -323,11 +324,7 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            async with app.state.services.http.post(
-                f"http://localhost:3030/save?id={score.id}",
-                data=replay_data,
-            ):
-                ...
+            await s3.upload(replay_data, f"{score.id}.osr", folder="replays")
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
     if stats is None:
