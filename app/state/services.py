@@ -4,6 +4,7 @@ from typing import Any
 from typing import Mapping
 from typing import Optional
 from typing import Protocol
+from typing import TYPE_CHECKING
 
 import aio_pika
 import aiohttp
@@ -11,6 +12,9 @@ import aioredis
 import databases
 from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
+
+if TYPE_CHECKING:
+    from types_aiobotocore_s3.client import S3Client
 
 import config
 
@@ -24,6 +28,7 @@ http: aiohttp.ClientSession
 amqp: aio_pika.RobustConnection
 amqp_channel: aio_pika.RobustChannel
 
+s3_client: S3Client
 
 class Database:
     def __init__(self, read_dsn: str, write_dsn: str) -> None:
@@ -98,25 +103,3 @@ database = Database(
         db=config.WRITE_DB_NAME,
     ),
 )
-
-
-class S3Client(Protocol):
-    # TODO: could do the types correctly? lol
-    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.put_object
-    async def put_object(self, Bucket: str, Key: str, Body: bytes):
-        ...
-
-    async def generate_presigned_url(
-        self,
-        ClientMethod: str,
-        Params: Optional[Mapping[str, Any]] = None,
-        ExpiresIn: int = 3600,
-        HttpMethod: Optional[str] = None,  # TODO: literal?
-    ) -> str:
-        ...
-
-    async def close(self) -> None:
-        ...
-
-
-s3_client: S3Client

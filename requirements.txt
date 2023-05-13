@@ -13,3 +13,5 @@ py3rijndael
 python-multipart
 rosu_pp_py
 uvicorn[standard]
+types-aiobotocore[s3]
+ftpretty
