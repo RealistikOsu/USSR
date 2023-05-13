@@ -15,6 +15,7 @@ from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
 from app.objects.binary import BinaryWriter
+from app.adapters import s3
 
 
 def calculate_accuracy(score: Score) -> float:
@@ -133,23 +134,21 @@ OSU_VERSION = 2021_11_03
 
 
 async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
-    async with app.state.services.http.get(
-        f"http://localhost:3030/get?id={score.id}",
-    ) as session:
-        raw_data = await session.read()
-        if session.status != 200 or not raw_data:
-            try:
-                raw_data = app.state.services.ftp_client.get(
-                    f"/replays/replay_{score.id}.osr",
-                )
-                if not raw_data:
-                    raise Exception("No replay found!")
-            except Exception as e:
-                # TODO: assert the error code is "not found"?
-                logging.error(
-                    f"Requested replay ID {score.id}, but no file could be found: {e}",
-                )
-                return
+    replay_bytes = await s3.download(file_name=f"{score.id}.osr", folder="replays")
+    if replay_bytes is None:
+        try:
+            replay_bytes = app.state.services.ftp_client.get(
+                f"/replays/replay_{score.id}.osr",
+            )
+        
+            if not replay_bytes:
+                raise Exception("No replay found")
+        except Exception:
+            # TODO: assert the error code is "not found"?
+            logging.error(
+                f"Requested replay ID {score.id}, but no file could be found",
+            )
+            return
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if not username:
@@ -192,7 +191,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         .write_i32_le(score.mods.value)
         .write_u8_le(0)
         .write_i64_le(app.utils.ts_to_utc_ticks(score.time))
-        .write_i32_le(len(raw_data))
-        .write_raw(raw_data)
+        .write_i32_le(len(replay_bytes))
+        .write_raw(replay_bytes)
         .write_i64_le(score.id)
     )

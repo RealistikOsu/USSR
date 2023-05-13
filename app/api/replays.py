@@ -15,7 +15,7 @@ from app.constants.mode import Mode
 from app.models.score import Score
 from app.models.user import User
 from app.usecases.user import authenticate_user
-
+from app.adapters import s3
 
 async def get_replay(
     user: User = Depends(authenticate_user(Query, "u", "h")),
@@ -34,23 +34,21 @@ async def get_replay(
 
     mode = Mode.from_lb(db_score["play_mode"], db_score["mods"])
 
-    async with app.state.services.http.get(
-        f"http://localhost:3030/get?id={score_id}",
-    ) as resp:
-        replay_data = await resp.read()
-        if resp.status != 200 or not replay_data:
-            try:
-                replay_data = app.state.services.ftp_client.get(
-                    f"/replays/replay_{score_id}.osr",
-                )
-                if not replay_data:
-                    raise Exception("No replay found")
-            except Exception:
-                # TODO: assert the error code is "not found"?
-                logging.error(
-                    f"Requested replay ID {score_id}, but no file could be found",
-                )
-                return b""
+    replay_bytes = await s3.download(file_name=f"{score_id}.osr", folder="replays")
+    if replay_bytes is None:
+        try:
+            replay_bytes = app.state.services.ftp_client.get(
+                f"/replays/replay_{score_id}.osr",
+            )
+        
+            if not replay_bytes:
+                raise Exception("No replay found")
+        except Exception:
+            # TODO: assert the error code is "not found"?
+            logging.error(
+                f"Requested replay ID {score_id}, but no file could be found",
+            )
+            return b""
 
     if db_score["userid"] != user.id:
         asyncio.create_task(
@@ -58,7 +56,7 @@ async def get_replay(
         )
 
     logging.info(f"Served replay ID {score_id}")
-    return Response(content=replay_data)
+    return Response(content=replay_bytes)
 
 
 async def get_full_replay(
