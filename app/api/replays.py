@@ -34,7 +34,11 @@ async def get_replay(
 
     mode = Mode.from_lb(db_score["play_mode"], db_score["mods"])
 
-    replay_bytes = await s3.download(file_name=f"{score_id}.osr", folder="replays")
+    try:
+        replay_bytes = await s3.download(file_name=f"{score_id}.osr", folder="replays")
+    except Exception as exc:
+        replay_bytes = None
+
     if replay_bytes is None:
         try:
             replay_bytes = app.state.services.ftp_client.get(
