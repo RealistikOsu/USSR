@@ -104,6 +104,7 @@ async def handle_user_recalculate(payload: str) -> None:
             )
             return
         await app.usecases.stats.full_recalc(stats)
+        await app.usecases.stats.update_rank(stats)
         await app.usecases.stats.save(stats)
 
     logger.info(f"Recalculated user ID {user_id}")
@@ -121,6 +122,7 @@ async def handle_user_recalculate_full(payload: str) -> None:
             )
             return
         await app.usecases.stats.full_recalc(stats)
+        await app.usecases.stats.update_rank(stats)
         await app.usecases.stats.calc_playcount(stats)
         await app.usecases.stats.calc_max_combo(stats)
         await app.usecases.stats.calc_total_score(stats)
