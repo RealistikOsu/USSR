@@ -215,6 +215,20 @@ async def submit_score(
         # duplicate score detected
         return b"error: no"
 
+    # update most played
+    await app.state.services.database.execute(
+        """\
+        INSERT INTO users_beatmap_playcount (user_id, beatmap_id, game_mode, playcount)
+        VALUES (:user_id, :beatmap_id, :game_mode, 1)
+        ON DUPLICATE KEY UPDATE playcount = playcount + 1
+        """,
+        {
+            "user_id": user.id,
+            "beatmap_id": beatmap.id,
+            "game_mode": score.mode.as_vn,
+        },
+    )
+
     if (
         beatmap.gives_pp
         and score.passed
