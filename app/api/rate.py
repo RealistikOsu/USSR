@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import Optional
 
 from fastapi import Depends
@@ -8,6 +10,7 @@ from fastapi import Query
 
 import app.state
 import app.usecases
+from app.adapters import amplitude
 from app.models.beatmap import Beatmap
 from app.models.user import User
 from app.usecases.user import authenticate_user
@@ -60,6 +63,19 @@ async def rate_map(
     if rating:
         new_rating = await add_rating(user.id, map_md5, rating)
         beatmap.rating = new_rating
+
+        asyncio.create_task(
+            amplitude.track(
+                event_name="rated_beatmap",
+                user_id=str(user.id),
+                device_id=None,
+                event_properties={
+                    "beatmap_md5": map_md5,
+                    "rating": rating,
+                },
+                time=int(time.time() * 1000),
+            ),
+        )
 
         logging.info(
             f"{user} has rated {beatmap.song_name} with rating {rating} (new average: {new_rating:.2f})",
