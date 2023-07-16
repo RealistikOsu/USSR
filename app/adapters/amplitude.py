@@ -20,6 +20,10 @@ async def track(
     event_properties: Mapping[str, Any] | None = None,
     user_properties: Mapping[str, Any] | None = None,
 ) -> None:
+    if event_properties is None:
+        event_properties = {}
+    if user_properties is None:
+        user_properties = {}
     async with services.http.post(
         url="https://api.amplitude.com/2/httpapi",
         headers={"Content-Type": "application/json"},
