@@ -248,7 +248,7 @@ async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> N
         },
     )
 
-    asyncio.run(
+    asyncio.create_task(
         amplitude.track(
             event_name="achievement_unlocked",
             user_id=str(user_id),
