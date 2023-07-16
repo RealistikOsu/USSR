@@ -8,10 +8,11 @@ cryptography
 databases[asyncmy]
 ddtrace
 fastapi
+ftpretty
 orjson
 py3rijndael
 python-multipart
 rosu_pp_py
-uvicorn[standard]
+tenacity
 types-aiobotocore[s3]
-ftpretty
+uvicorn[standard]
