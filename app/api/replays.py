@@ -15,7 +15,7 @@ from app.constants.mode import Mode
 from app.models.score import Score
 from app.models.user import User
 from app.usecases.user import authenticate_user
-from app.adapters import s3
+from app.adapters import amplitude, s3
 
 async def get_replay(
     user: User = Depends(authenticate_user(Query, "u", "h")),
@@ -44,7 +44,7 @@ async def get_replay(
             replay_bytes = app.state.services.ftp_client.get(
                 f"/replays/replay_{score_id}.osr",
             )
-        
+
             if not replay_bytes:
                 raise Exception("No replay found")
         except Exception:
@@ -58,6 +58,18 @@ async def get_replay(
         asyncio.create_task(
             app.usecases.user.increment_replays_watched(db_score["userid"], mode),
         )
+
+    asyncio.create_task(
+        amplitude.track(
+            event_name="watched_replay",
+            user_id=str(user.id),
+            device_id=None,
+            event_properties={
+                "score_id": score_id,
+                "mode": mode,
+            },
+        )
+    )
 
     logging.info(f"Served replay ID {score_id}")
     return Response(content=replay_bytes)

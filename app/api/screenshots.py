@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import random
 import string
@@ -13,6 +14,7 @@ from fastapi import UploadFile
 import app.state
 import app.utils
 import config
+from app.adapters import amplitude
 from app.models.user import User
 from app.objects.path import Path
 from app.usecases.user import authenticate_user
@@ -83,6 +85,19 @@ async def upload_screenshot(
             break
 
     ss_path.write_bytes(content)
+
+    asyncio.create_task(
+        amplitude.track(
+            event_name="upload_screenshot",
+            user_id=str(user.id),
+            device_id=None,
+            event_properties={
+                "file_name": file_name,
+                "file_size": len(content),
+                "url": f"https://osu.akatsuki.pw/ss/{file_name}",
+            },
+        )
+    )
 
     logging.info(f"{user} has uploaded screenshot {file_name}")
     return file_name

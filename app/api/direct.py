@@ -15,6 +15,7 @@ from fastapi.responses import RedirectResponse
 import app.state
 import app.usecases
 import config
+from app.adapters import amplitude
 from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user
@@ -95,6 +96,20 @@ async def osu_direct(
             ),
         )
 
+    asyncio.create_task(
+        amplitude.track(
+            event_name="osudirect_search",
+            user_id=str(user.id),
+            device_id=None,
+            event_properties={
+                "query": query,
+                "page_num": page_num,
+                "mode": mode,
+                "ranked_status": ranked_status,
+            },
+        )
+    )
+
     return "\n".join(ret).encode()
 
 
@@ -118,6 +133,19 @@ async def beatmap_card(
         result = await response.json()
 
     json_data = result["data"] if USING_CHIMU else result
+
+
+    asyncio.create_task(
+        amplitude.track(
+            event_name="osudirect_card_view",
+            user_id=str(user.id),
+            device_id=None,
+            event_properties={
+                "map_set_id": map_set_id,
+                "map_id": map_id,
+            },
+        )
+    )
 
     return (
         "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"

@@ -35,7 +35,7 @@ from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.objects.path import Path
 from app.usecases.user import restrict_user
-from app.adapters import s3
+from app.adapters import s3, amplitude
 
 
 class ScoreData(NamedTuple):
@@ -388,6 +388,45 @@ async def submit_score(
                 user,
             ),
         )
+
+    asyncio.create_task(
+        amplitude.track(
+            event_name="score_submission",
+            user_id=str(user.id),
+            device_id=None,
+            event_properties={
+                "beatmap": {
+                    "beatmap_id": beatmap.id,
+                    "beatmapset_id": beatmap.set_id,
+                    "beatmap_md5": beatmap.md5,
+                    "song_name": beatmap.song_name,
+                    "ranked_status": beatmap.status.name,
+                    "od": beatmap.od,
+                    "ar": beatmap.ar,
+                    "bpm": beatmap.bpm,
+                    "awards_performance": beatmap.gives_pp,
+                },
+                "score": {
+                    "score_id": score.id,
+                    "beatmap_md5": score.map_md5,
+                    "score": score.score,
+                    "performance": score.pp,
+                    "accuracy": score.acc,
+                    "combo": score.max_combo,
+                    "mods": score.mods,
+                    "passed": score.passed,
+                    "play_time": score.time_elapsed,
+                    "status": score.status.name,
+                },
+                "user": {
+                    "id": user.id,
+                    "username": user.name,
+                    "privileges": user.privileges,
+                    "country": user.country,
+                },
+            },
+        )
+    )
 
     if score.old_best:
         beatmap_ranking_chart = (
