@@ -15,11 +15,12 @@ from app.state import services
 @retry(stop=stop_after_attempt(7))
 async def track(
     event_name: str,
-    user_id: str | None,
-    device_id: str | None,
+    user_id: str | None = None,
+    device_id: str | None = None,
     event_properties: Mapping[str, Any] | None = None,
     user_properties: Mapping[str, Any] | None = None,
 ) -> None:
+    assert user_id or device_id, "user_id or device_id must be provided"
     if event_properties is None:
         event_properties = {}
     if user_properties is None:
@@ -50,10 +51,11 @@ async def track(
 
 @retry(stop=stop_after_attempt(7))
 async def identify(
-    user_id: str | None,
-    device_id: str | None,
+    user_id: str | None = None,
+    device_id: str | None = None,
     user_properties: Mapping[str, Any] | None = None,
 ) -> None:
+    assert user_id or device_id, "user_id or device_id must be provided"
     async with services.http.post(
         url="https://api.amplitude.com/identify",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
