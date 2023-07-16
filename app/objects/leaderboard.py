@@ -65,9 +65,9 @@ class Leaderboard:
         mods: Optional[int] = None,
     ) -> list[Score]:
         scores = []
-        
+
         scores_to_check = self.best_scores
-        
+
         # if we are on the mods leaderboard, we want to include their best score with the mod-combo
         # even if it is not their submitted best
         score_lookup: dict[int, tuple[int, float]] = {}
@@ -82,7 +82,10 @@ class Leaderboard:
                 include_self and score.user_id == user_id
             ):
                 if mods is not None and score.mods == mods:
-                    (score_idx, user_previous_score_pp) = score_lookup.get(score.user_id, (None, None))
+                    (score_idx, user_previous_score_pp) = score_lookup.get(
+                        score.user_id,
+                        (None, None),
+                    )
                     if user_previous_score_pp is None or score_idx is None:
                         scores.append(score)
                         score_lookup[score.user_id] = (scores.index(score), score.pp)

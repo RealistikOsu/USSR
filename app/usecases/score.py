@@ -8,6 +8,7 @@ from typing import Optional
 import app.state
 import app.usecases
 import app.utils
+from app.adapters import s3
 from app.constants.mods import Mods
 from app.constants.score_status import ScoreStatus
 from app.models.beatmap import Beatmap
@@ -15,7 +16,6 @@ from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
 from app.objects.binary import BinaryWriter
-from app.adapters import s3
 
 
 def calculate_accuracy(score: Score) -> float:

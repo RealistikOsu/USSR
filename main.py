@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ddtrace
+
 ddtrace.patch_all()
 
 import logging

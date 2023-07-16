@@ -96,7 +96,7 @@ async def upload_screenshot(
                 "file_size": len(content),
                 "url": f"https://osu.akatsuki.pw/ss/{file_name}",
             },
-        )
+        ),
     )
 
     logging.info(f"{user} has uploaded screenshot {file_name}")

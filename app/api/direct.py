@@ -61,7 +61,9 @@ async def osu_direct(
 
     try:
         async with app.state.services.http.get(
-            search_url, params=params, timeout=ClientTimeout(total=5)
+            search_url,
+            params=params,
+            timeout=ClientTimeout(total=5),
         ) as response:
             if response.status != status.HTTP_200_OK:
                 return b"-1\nFailed to retrieve data from the beatmap mirror."
@@ -107,7 +109,7 @@ async def osu_direct(
                 "mode": mode,
                 "ranked_status": ranked_status,
             },
-        )
+        ),
     )
 
     return "\n".join(ret).encode()
@@ -134,7 +136,6 @@ async def beatmap_card(
 
     json_data = result["data"] if USING_CHIMU else result
 
-
     asyncio.create_task(
         amplitude.track(
             event_name="osudirect_card_view",
@@ -144,7 +145,7 @@ async def beatmap_card(
                 "map_set_id": map_set_id,
                 "map_id": map_id,
             },
-        )
+        ),
     )
 
     return (

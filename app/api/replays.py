@@ -11,11 +11,13 @@ from fastapi import Response
 import app.state
 import app.usecases
 import app.utils
+from app.adapters import amplitude
+from app.adapters import s3
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.models.user import User
 from app.usecases.user import authenticate_user
-from app.adapters import amplitude, s3
+
 
 async def get_replay(
     user: User = Depends(authenticate_user(Query, "u", "h")),
@@ -68,7 +70,7 @@ async def get_replay(
                 "score_id": score_id,
                 "mode": mode,
             },
-        )
+        ),
     )
 
     logging.info(f"Served replay ID {score_id}")

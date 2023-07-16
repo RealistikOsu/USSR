@@ -123,7 +123,7 @@ async def get_leaderboard(
         leaderboard_type = LeaderboardType(leaderboard_type_arg)
 
         scores: list[Score] = []
-        
+
         mod_arg = None
         if leaderboard_type == LeaderboardType.MODS:
             mod_arg = mods

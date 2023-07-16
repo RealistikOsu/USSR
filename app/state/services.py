@@ -30,6 +30,7 @@ amqp_channel: aio_pika.RobustChannel
 
 s3_client: S3Client
 
+
 class Database:
     def __init__(self, read_dsn: str, write_dsn: str) -> None:
         self.read_database = databases.Database(read_dsn)

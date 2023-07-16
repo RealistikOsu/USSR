@@ -1,8 +1,8 @@
 from __future__ import annotations
-from app.constants.score_status import ScoreStatus
 
 import app.state
 from app.constants.mode import Mode
+from app.constants.score_status import ScoreStatus
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.objects.leaderboard import Leaderboard
@@ -21,7 +21,7 @@ async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
 
     for db_score in db_scores:
         score = Score.from_mapping(db_score)
-        
+
         if score.status == ScoreStatus.BEST:
             leaderboard.best_scores.append(score)
         else:

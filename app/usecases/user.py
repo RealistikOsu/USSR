@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import logging
 import time
-import orjson
 from datetime import datetime
 from typing import Any
 from typing import Awaitable
 from typing import Callable
 from typing import Optional
 
+import orjson
 from fastapi import HTTPException
 
 import app.state.services
@@ -288,7 +288,7 @@ async def update_latest_pp_awarded(user_id: int, mode: Mode) -> None:
 
 async def handle_pending_username_change(user_id: int) -> None:
     new_username: Optional[bytes] = await app.state.services.redis.get(
-        f"ripple:change_username_pending:{user_id}"
+        f"ripple:change_username_pending:{user_id}",
     )
     if new_username is None:
         return
