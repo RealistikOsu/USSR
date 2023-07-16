@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import datetime
@@ -18,6 +19,7 @@ import app.usecases.privileges
 import app.usecases.score
 import app.utils
 import config
+from app.adapters import amplitude
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.user import User
@@ -244,6 +246,19 @@ async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> N
             "mode": mode.value,
             "timestamp": int(time.time()),
         },
+    )
+
+    asyncio.run(
+        amplitude.track(
+            event_name="achievement_unlocked",
+            user_id=str(user_id),
+            device_id=None,
+            event_properties={
+                "achievement_id": achievement_id,
+                "mode": mode.value,
+            },
+            time=int(time.time() * 1000),
+        ),
     )
 
 
