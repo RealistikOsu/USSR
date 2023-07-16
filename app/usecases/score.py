@@ -106,7 +106,12 @@ async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
                     user_id=str(score.user_id),
                     device_id=None,
                     event_properties={
-                        "achievement": dataclasses.asdict(achievement),
+                        "achievement": {
+                            "achievement_id": achievement.id,
+                            "achievement_filename": achievement.file,
+                            "achievement_name": achievement.name,
+                            "achievement_description": achievement.desc,
+                        },
                         "score": score.db_dict,
                     },
                     time=int(time.time() * 1000),
