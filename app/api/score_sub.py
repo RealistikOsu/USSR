@@ -415,6 +415,7 @@ async def submit_score(
                     "accuracy": score.acc,
                     "combo": score.max_combo,
                     "mods": score.mods,
+                    "mode": score.mode.as_vn,
                     "passed": score.passed,
                     "play_time": score.time_elapsed,
                     "status": score.status.name,
@@ -457,11 +458,14 @@ async def submit_score(
         chart_entry("pp", round(old_stats.pp), round(stats.pp)),
     )
 
-    new_achievements: list[str] = []
+    new_achievement_urls: list[str] = []
     if score.passed and beatmap.has_leaderboard and not user.privileges.is_restricted:
-        new_achievements = await app.usecases.score.unlock_achievements(score, stats)
+        new_achievement_urls = await app.usecases.score.unlock_achievements(
+            score,
+            stats,
+        )
 
-    achievements_str = "/".join(new_achievements)
+    achievements_str = "/".join(new_achievement_urls)
 
     submission_charts = [
         f"beatmapId:{beatmap.id}",

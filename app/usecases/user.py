@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import datetime
@@ -18,6 +19,7 @@ import app.usecases.privileges
 import app.usecases.score
 import app.utils
 import config
+from app.adapters import amplitude
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.user import User

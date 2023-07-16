@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import hashlib
 import logging
+import time
 from typing import Optional
 
 import app.state
 import app.usecases
 import app.utils
+from app.adapters import amplitude
 from app.adapters import s3
-from app.constants.mods import Mods
-from app.constants.score_status import ScoreStatus
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.stats import Stats
@@ -96,6 +97,24 @@ async def unlock_achievements(score: Score, stats: Stats) -> list[str]:
                     achievement.id,
                     score.user_id,
                     score.mode,
+                ),
+            )
+
+            asyncio.create_task(
+                amplitude.track(
+                    event_name="achievement_unlocked",
+                    user_id=str(score.user_id),
+                    device_id=None,
+                    event_properties={
+                        "achievement": {
+                            "achievement_id": achievement.id,
+                            "achievement_filename": achievement.file,
+                            "achievement_name": achievement.name,
+                            "achievement_description": achievement.desc,
+                        },
+                        "score": score.db_dict,
+                    },
+                    time=int(time.time() * 1000),
                 ),
             )
 
