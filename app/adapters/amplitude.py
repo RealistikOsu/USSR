@@ -29,6 +29,10 @@ async def track(
         headers={"Content-Type": "application/json"},
         json={
             "api_key": config.AMPLITUDE_API_KEY,
+            "options": {
+                # (akatsuki's user ids start from 1000)
+                "min_id_length": 4,
+            },
             "events": [
                 {
                     "user_id": user_id,
