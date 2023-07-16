@@ -248,19 +248,6 @@ async def unlock_achievement(achievement_id: int, user_id: int, mode: Mode) -> N
         },
     )
 
-    asyncio.create_task(
-        amplitude.track(
-            event_name="achievement_unlocked",
-            user_id=str(user_id),
-            device_id=None,
-            event_properties={
-                "achievement_id": achievement_id,
-                "mode": mode.value,
-            },
-            time=int(time.time() * 1000),
-        ),
-    )
-
 
 async def increment_replays_watched(user_id: int, mode: Mode) -> None:
     await app.state.services.database.execute(
