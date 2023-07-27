@@ -6,6 +6,8 @@ from dataclasses import field
 from typing import Any
 from typing import Mapping
 from typing import Optional
+from datetime import datetime
+from datetime import timedelta
 
 import config
 from app.constants.mode import Mode
@@ -14,6 +16,25 @@ from app.objects.leaderboard import Leaderboard
 
 ONE_DAY = 86_400
 
+def _should_get_updates(ranked_status: int, last_updated: datetime) -> bool:
+    match ranked_status:
+        case RankedStatus.QUALIFIED:
+            update_interval = timedelta(minutes=5)
+        case RankedStatus.PENDING:
+            update_interval = timedelta(minutes=10)
+        case RankedStatus.LOVED:
+            # loved maps can *technically* be updated
+            update_interval = timedelta(days=1)
+        case RankedStatus.RANKED | RankedStatus.APPROVED:
+            # in very rare cases, the osu! team has updated ranked/appvoed maps
+            # this is usually done to remove things like inappropriate content
+            update_interval = timedelta(days=1)
+        case _:
+            raise NotImplementedError(
+                f"Unknown ranked status: {ranked_status}"
+            )
+
+    return last_updated <= (datetime.now() - update_interval)
 
 @dataclass
 class Beatmap:
@@ -78,13 +99,11 @@ class Beatmap:
     @property
     def deserves_update(self) -> bool:
         """Checks if there should be an attempt to update a map/check if
-        should be updated. This condition is true if a map is not ranked and a day
-        have passed since it was last checked."""
+        should be updated."""
 
-        return (
-            self.status
-            not in (RankedStatus.RANKED, RankedStatus.APPROVED, RankedStatus.LOVED)
-            and self.last_update < int(time.time()) - ONE_DAY
+        return _should_get_updates(
+            int(self.status),
+            datetime.fromtimestamp(self.last_update),
         )
 
     def osu_string(self, score_count: int, rating: float) -> str:
