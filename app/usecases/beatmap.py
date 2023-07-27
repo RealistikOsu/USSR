@@ -31,40 +31,38 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         if new_beatmap.md5 != beatmap.md5:
             # delete any instances of the old map
             MD5_CACHE.pop(beatmap.md5, None)
+            ID_CACHE.pop(beatmap.id, None)
 
-            asyncio.create_task(
-                app.state.services.database.execute(
-                    "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
-                    {"old_md5": beatmap.md5},
-                ),
+            await app.state.services.database.execute(
+                "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
+                {"old_md5": beatmap.md5},
             )
 
             for table in ("scores", "scores_relax", "scores_ap"):
-                asyncio.create_task(
-                    app.state.services.database.execute(
-                        f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
-                        {"old_md5": beatmap.md5},
-                    ),
+                await app.state.services.database.execute(
+                    f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
+                    {"old_md5": beatmap.md5},
                 )
 
             if beatmap.frozen:
-                # if the previous version is status frozen, we should force the old status on the new version
+                # if the previous version is status frozen
+                # we should force the old status on the new version
                 new_beatmap.status = beatmap.status
     else:
         # it's now unsubmitted!
-        asyncio.create_task(
-            app.state.services.database.execute(
-                "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
-                {"old_md5": beatmap.md5},
-            ),
+
+        MD5_CACHE.pop(beatmap.md5, None)
+        ID_CACHE.pop(beatmap.id, None)
+
+        await app.state.services.database.execute(
+            "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
+            {"old_md5": beatmap.md5},
         )
 
         for table in ("scores", "scores_relax", "scores_ap"):
-            asyncio.create_task(
-                app.state.services.database.execute(
-                    f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
-                    {"old_md5": beatmap.md5},
-                ),
+            await app.state.services.database.execute(
+                f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
+                {"old_md5": beatmap.md5},
             )
 
         return None
@@ -72,7 +70,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     # update for new shit
     new_beatmap.last_update = int(time.time())
 
-    asyncio.create_task(save(new_beatmap))  # i don't trust mysql for some reason
+    await save(new_beatmap)
     MD5_CACHE[new_beatmap.md5] = new_beatmap
     ID_CACHE[new_beatmap.id] = new_beatmap
 
