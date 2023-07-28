@@ -79,7 +79,7 @@ def format_beatmap(beatmap: Beatmap) -> dict[str, Any]:
         "ranked_status": beatmap.status.name,
         "plays": beatmap.plays,
         "passes": beatmap.passes,
-        "mode": format_mode(beatmap.mode, relax=0),
+        "game_mode": format_mode(beatmap.mode, relax=0),
         "od": beatmap.od,
         "ar": beatmap.ar,
         # TODO: context-aware difficulty rating
