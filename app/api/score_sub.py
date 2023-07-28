@@ -33,6 +33,7 @@ from app.adapters import s3
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
+from app.models.achievement import Achievement
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.objects.path import Path
@@ -397,14 +398,13 @@ async def submit_score(
     uninstall_id, disk_id = unique_ids.split("|", maxsplit=1)
     login_disk_id = hashlib.md5(disk_id.encode()).hexdigest()
 
-    if user.id == 1001:
-        print("device id", hashlib.sha1(login_disk_id.encode()).hexdigest())
+    device_id = hashlib.sha1(login_disk_id.encode()).hexdigest()
 
     asyncio.create_task(
         amplitude.track(
             event_name="score_submission",
             user_id=str(user.id),
-            device_id=None,
+            device_id=device_id,
             event_properties={
                 "beatmap": {
                     "beatmap_id": beatmap.id,
@@ -468,14 +468,34 @@ async def submit_score(
         chart_entry("pp", round(old_stats.pp), round(stats.pp)),
     )
 
-    new_achievement_urls: list[str] = []
+    new_achievements: list[Achievement] = []
     if score.passed and beatmap.has_leaderboard and not user.privileges.is_restricted:
-        new_achievement_urls = await app.usecases.score.unlock_achievements(
+        new_achievements = await app.usecases.score.unlock_achievements(
             score,
             stats,
         )
 
-    achievements_str = "/".join(new_achievement_urls)
+        # fire amplitude events for each
+        for achievement in new_achievements:
+            asyncio.create_task(
+                amplitude.track(
+                    event_name="achievement_unlocked",
+                    user_id=str(score.user_id),
+                    device_id=device_id,
+                    event_properties={
+                        "achievement": {
+                            "achievement_id": achievement.id,
+                            "achievement_filename": achievement.file,
+                            "achievement_name": achievement.name,
+                            "achievement_description": achievement.desc,
+                        },
+                        "score": score.db_dict,
+                    },
+                    time=int(time.time() * 1000),
+                ),
+            )
+
+    achievements_str = "/".join(ach.full_name for ach in new_achievements)
 
     submission_charts = [
         f"beatmapId:{beatmap.id}",
