@@ -97,7 +97,7 @@ def format_beatmap(beatmap: Beatmap) -> dict[str, Any]:
 def format_achievement(achievement: Achievement) -> dict[str, Any]:
     return {
         "achievement_id": achievement.id,
-        "filename": achievement.file,
+        "file_name": achievement.file,
         "name": achievement.name,
         "description": achievement.desc,
     }
