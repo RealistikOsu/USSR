@@ -425,7 +425,9 @@ async def submit_score(
                     "accuracy": score.acc,
                     "combo": score.max_combo,
                     "mods": score.mods,
-                    "mode": score.mode.as_vn,
+                    "game_mode": amplitude.make_readable_mode(
+                        score.mode.value, relax=0
+                    ),
                     "passed": score.passed,
                     "play_time": score.time_elapsed,
                     "status": score.status.name,
@@ -489,7 +491,21 @@ async def submit_score(
                             "achievement_name": achievement.name,
                             "achievement_description": achievement.desc,
                         },
-                        "score": score.db_dict,
+                        "score": {
+                            "score_id": score.id,
+                            "beatmap_md5": score.map_md5,
+                            "score": score.score,
+                            "performance": score.pp,
+                            "accuracy": score.acc,
+                            "combo": score.max_combo,
+                            "mods": score.mods,
+                            "game_mode": amplitude.make_readable_mode(
+                                score.mode.value, relax=0
+                            ),
+                            "passed": score.passed,
+                            "play_time": score.time_elapsed,
+                            "status": score.status.name,
+                        },
                     },
                     time=int(time.time() * 1000),
                 ),

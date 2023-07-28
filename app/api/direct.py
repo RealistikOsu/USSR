@@ -106,7 +106,7 @@ async def osu_direct(
             event_properties={
                 "query": query,
                 "page_num": page_num,
-                "mode": mode,
+                "game_mode": amplitude.make_readable_mode(mode, relax=0),
                 "ranked_status": ranked_status,
             },
         ),

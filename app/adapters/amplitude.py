@@ -11,6 +11,25 @@ import config
 from app.state import services
 
 
+def make_readable_mode(mode: int, relax: int) -> str:
+    mode_mapping: dict[tuple[int, int], str] = {
+        (0, 0): "osu!std",
+        (1, 0): "osu!taiko",
+        (2, 0): "osu!catch",
+        (3, 0): "osu!mania",
+        (0, 1): "osu!std relax",
+        (1, 1): "osu!taiko relax",
+        (2, 1): "osu!catch relax",
+        # (3, 1): "osu!mania relax",
+        (0, 2): "osu!std autopilot",
+        # (1, 2): "osu!taiko autopilot",
+        # (2, 2): "osu!catch autopilot",
+        # (3, 2): "osu!mania autopilot",
+    }
+
+    return mode_mapping[(mode, relax)]
+
+
 # TODO: better client error & 429 handling
 @retry(stop=stop_after_attempt(7))
 async def track(
