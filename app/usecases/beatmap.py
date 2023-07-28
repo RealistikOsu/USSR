@@ -24,57 +24,52 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     if not beatmap.deserves_update:
         return beatmap
 
-    new_beatmap = await id_from_api(beatmap.id)
-    if new_beatmap:
-        # handle deleting the old beatmap etc.
-
-        if new_beatmap.md5 != beatmap.md5:
-            # delete any instances of the old map
-            MD5_CACHE.pop(beatmap.md5, None)
-            ID_CACHE.pop(beatmap.id, None)
-
-            await app.state.services.database.execute(
-                "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
-                {"old_md5": beatmap.md5},
-            )
-
-            for table in ("scores", "scores_relax", "scores_ap"):
-                await app.state.services.database.execute(
-                    f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
-                    {"old_md5": beatmap.md5},
-                )
-
-            if beatmap.frozen:
-                # if the previous version is status frozen
-                # we should force the old status on the new version
-                new_beatmap.status = beatmap.status
-    else:
+    new_beatmap = await id_from_api(beatmap.id, should_save=False)
+    if new_beatmap is None:
         # it's now unsubmitted!
 
         MD5_CACHE.pop(beatmap.md5, None)
         ID_CACHE.pop(beatmap.id, None)
+        SET_CACHE.pop(beatmap.set_id, None)
 
         await app.state.services.database.execute(
             "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
             {"old_md5": beatmap.md5},
         )
 
-        for table in ("scores", "scores_relax", "scores_ap"):
-            await app.state.services.database.execute(
-                f"DELETE FROM {table} WHERE beatmap_md5 = :old_md5",
-                {"old_md5": beatmap.md5},
-            )
-
         return None
 
-    # update for new shit
-    new_beatmap.last_update = int(time.time())
+    # handle deleting the old beatmap etc.
+    if new_beatmap.md5 != beatmap.md5:
+        # delete any instances of the old map
+        MD5_CACHE.pop(beatmap.md5, None)
+        ID_CACHE.pop(beatmap.id, None)
+        SET_CACHE.pop(beatmap.set_id, None)
 
-    await save(new_beatmap)
-    MD5_CACHE[new_beatmap.md5] = new_beatmap
-    ID_CACHE[new_beatmap.id] = new_beatmap
+        await app.state.services.database.execute(
+            "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
+            {"old_md5": beatmap.md5},
+        )
 
-    return new_beatmap
+        if beatmap.frozen:
+            # if the previous version is status frozen
+            # we should force the old status on the new version
+            new_beatmap.status = beatmap.status
+            new_beatmap.frozen = True
+
+        # update for new shit
+        new_beatmap.last_update = int(time.time())
+
+        await save(new_beatmap)
+        MD5_CACHE[new_beatmap.md5] = new_beatmap
+        ID_CACHE[new_beatmap.id] = new_beatmap
+
+        return new_beatmap
+    else:
+        beatmap.last_update = int(time.time())
+        await save(beatmap)
+
+        return beatmap
 
 
 async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
@@ -213,8 +208,10 @@ async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
         GET_BEATMAP_URL,
         params={"k": api_key, "h": md5},
     ) as response:
-        if not response or response.status != 200:
+        if response.status == 404:
             return None
+        
+        response.raise_for_status()
 
         response_json = await response.json()
         if not response_json:
@@ -239,8 +236,10 @@ async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
         GET_BEATMAP_URL,
         params={"k": api_key, "b": id},
     ) as response:
-        if not response or response.status != 200:
+        if response.status == 404:
             return None
+        
+        response.raise_for_status()
 
         response_json = await response.json()
         if not response_json:
@@ -265,8 +264,10 @@ async def set_from_api(id: int, should_save: bool = True) -> Optional[list[Beatm
         GET_BEATMAP_URL,
         params={"k": api_key, "s": id},
     ) as response:
-        if not response or response.status != 200:
+        if response.status == 404:
             return None
+        
+        response.raise_for_status()
 
         response_json = await response.json()
         if not response_json:
