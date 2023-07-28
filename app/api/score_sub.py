@@ -406,38 +406,9 @@ async def submit_score(
             user_id=str(user.id),
             device_id=device_id,
             event_properties={
-                "beatmap": {
-                    "beatmap_id": beatmap.id,
-                    "beatmapset_id": beatmap.set_id,
-                    "beatmap_md5": beatmap.md5,
-                    "song_name": beatmap.song_name,
-                    "ranked_status": beatmap.status.name,
-                    "od": beatmap.od,
-                    "ar": beatmap.ar,
-                    "bpm": beatmap.bpm,
-                    "awards_performance": beatmap.gives_pp,
-                },
-                "score": {
-                    "score_id": score.id,
-                    "beatmap_md5": score.map_md5,
-                    "score": score.score,
-                    "performance": score.pp,
-                    "accuracy": score.acc,
-                    "combo": score.max_combo,
-                    "mods": score.mods,
-                    "game_mode": amplitude.make_readable_mode(
-                        score.mode.value, relax=0
-                    ),
-                    "passed": score.passed,
-                    "play_time": score.time_elapsed,
-                    "status": score.status.name,
-                },
-                "user": {
-                    "id": user.id,
-                    "username": user.name,
-                    "privileges": user.privileges,
-                    "country": user.country,
-                },
+                "beatmap": amplitude.format_beatmap(beatmap),
+                "score": amplitude.format_score(score),
+                "user": amplitude.format_user(user),
             },
         ),
     )
@@ -485,27 +456,8 @@ async def submit_score(
                     user_id=str(score.user_id),
                     device_id=device_id,
                     event_properties={
-                        "achievement": {
-                            "achievement_id": achievement.id,
-                            "achievement_filename": achievement.file,
-                            "achievement_name": achievement.name,
-                            "achievement_description": achievement.desc,
-                        },
-                        "score": {
-                            "score_id": score.id,
-                            "beatmap_md5": score.map_md5,
-                            "score": score.score,
-                            "performance": score.pp,
-                            "accuracy": score.acc,
-                            "combo": score.max_combo,
-                            "mods": score.mods,
-                            "game_mode": amplitude.make_readable_mode(
-                                score.mode.value, relax=0
-                            ),
-                            "passed": score.passed,
-                            "play_time": score.time_elapsed,
-                            "status": score.status.name,
-                        },
+                        "achievement": amplitude.format_achievement(achievement),
+                        "score": amplitude.format_score(score),
                     },
                     time=int(time.time() * 1000),
                 ),

@@ -67,8 +67,9 @@ async def get_replay(
             user_id=str(user.id),
             device_id=None,
             event_properties={
+                # TODO: could fetch the whole score here
                 "score_id": score_id,
-                "game_mode": amplitude.make_readable_mode(mode.value, relax=0),
+                "game_mode": amplitude.format_mode(mode.value, relax=0),
             },
         ),
     )

@@ -106,7 +106,7 @@ async def osu_direct(
             event_properties={
                 "query": query,
                 "page_num": page_num,
-                "game_mode": amplitude.make_readable_mode(mode, relax=0),
+                "game_mode": amplitude.format_mode(mode, relax=0),
                 "ranked_status": ranked_status,
             },
         ),
@@ -142,8 +142,8 @@ async def beatmap_card(
             user_id=str(user.id),
             device_id=None,
             event_properties={
-                "map_set_id": map_set_id,
-                "map_id": map_id,
+                "beatmapset_id": map_set_id,
+                "beatmap_id": map_id,
             },
         ),
     )

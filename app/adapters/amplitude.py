@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import time
 from typing import Any
 from typing import Mapping
+from typing import TYPE_CHECKING
 
 from tenacity import retry
 from tenacity import stop_after_attempt
@@ -10,8 +10,14 @@ from tenacity import stop_after_attempt
 import config
 from app.state import services
 
+if TYPE_CHECKING:
+    from app.models.achievement import Achievement
+    from app.models.beatmap import Beatmap
+    from app.models.score import Score
+    from app.models.user import User
 
-def make_readable_mode(mode: int, relax: int) -> str:
+
+def format_mode(mode: int, relax: int) -> str:
     mode_mapping: dict[tuple[int, int], str] = {
         (0, 0): "osu!std",
         (1, 0): "osu!taiko",
@@ -28,6 +34,73 @@ def make_readable_mode(mode: int, relax: int) -> str:
     }
 
     return mode_mapping[(mode, relax)]
+
+
+def format_user(user: User) -> dict[str, Any]:
+    return {
+        "user_id": user.id,
+        "username": user.name,
+        "privileges": user.privileges,
+        "country": user.country,
+    }
+
+
+def format_score(score: Score) -> dict[str, Any]:
+    return {
+        "score_id": score.id,
+        "beatmap_md5": score.map_md5,
+        "score": score.score,
+        "performance": score.pp,
+        "accuracy": score.acc,
+        "max_combo": score.max_combo,
+        "mods": repr(score.mods),
+        "game_mode": format_mode(score.mode.value, relax=0),
+        "passed": score.passed,
+        "full_combo": score.full_combo,
+        "300_count": score.n300,
+        "100_count": score.n100,
+        "50_count": score.n50,
+        "katus_count": score.nkatu,
+        "gekis_count": score.ngeki,
+        "misses_count": score.nmiss,
+        "time": score.time,
+        "play_time": score.time_elapsed,
+        "status": score.status.name,
+        "checksum": score.online_checksum,
+    }
+
+
+def format_beatmap(beatmap: Beatmap) -> dict[str, Any]:
+    return {
+        "beatmap_md5": beatmap.md5,
+        "beatmap_id": beatmap.id,
+        "beatmapset_id": beatmap.set_id,
+        "song_name": beatmap.song_name,
+        "ranked_status": beatmap.status.name,
+        "plays": beatmap.plays,
+        "passes": beatmap.passes,
+        "mode": format_mode(beatmap.mode, relax=0),
+        "od": beatmap.od,
+        "ar": beatmap.ar,
+        # TODO: context-aware difficulty rating
+        "awards_performance": beatmap.gives_pp,
+        "hit_length": beatmap.hit_length,
+        "last_update": beatmap.last_update,
+        "max_combo": beatmap.max_combo,
+        "bpm": beatmap.bpm,
+        "filename": beatmap.filename,
+        "frozen": beatmap.frozen,
+        "rating": beatmap.rating,
+    }
+
+
+def format_achievement(achievement: Achievement) -> dict[str, Any]:
+    return {
+        "achievement_id": achievement.id,
+        "filename": achievement.file,
+        "name": achievement.name,
+        "description": achievement.desc,
+    }
 
 
 # TODO: better client error & 429 handling
