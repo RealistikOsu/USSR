@@ -11,6 +11,7 @@ from fastapi import Path
 from fastapi import Query
 from fastapi import status
 from fastapi.responses import RedirectResponse
+from app.constants.mode import Mode
 
 import app.state
 import app.usecases
@@ -106,7 +107,7 @@ async def osu_direct(
             event_properties={
                 "query": query,
                 "page_num": page_num,
-                "game_mode": amplitude.format_mode(mode, relax=0),
+                "game_mode": amplitude.format_mode(mode),
                 "ranked_status": ranked_status,
             },
         ),

@@ -17,23 +17,23 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-def format_mode(mode: int, relax: int) -> str:
-    mode_mapping: dict[tuple[int, int], str] = {
-        (0, 0): "osu!std",
-        (1, 0): "osu!taiko",
-        (2, 0): "osu!catch",
-        (3, 0): "osu!mania",
-        (0, 1): "osu!std relax",
-        (1, 1): "osu!taiko relax",
-        (2, 1): "osu!catch relax",
-        # (3, 1): "osu!mania relax",
-        (0, 2): "osu!std autopilot",
-        # (1, 2): "osu!taiko autopilot",
-        # (2, 2): "osu!catch autopilot",
-        # (3, 2): "osu!mania autopilot",
+def format_mode(mode: int) -> str:
+    mode_mapping: dict[int, str] = {
+        0: "osu!std",
+        1: "osu!taiko",
+        2: "osu!catch",
+        3: "osu!mania",
+        4: "osu!std relax",
+        5: "osu!taiko relax",
+        6: "osu!catch relax",
+        # no mania relax
+        7: "osu!std autopilot",
+        # no taiko autopilot
+        # no catch autopilot
+        # no mania autopilot
     }
 
-    return mode_mapping[(mode, relax)]
+    return mode_mapping[mode]
 
 
 def format_user(user: User) -> dict[str, Any]:
@@ -54,7 +54,7 @@ def format_score(score: Score) -> dict[str, Any]:
         "accuracy": score.acc,
         "max_combo": score.max_combo,
         "mods": repr(score.mods),
-        "game_mode": format_mode(score.mode.value, relax=0),
+        "game_mode": format_mode(score.mode),
         "passed": score.passed,
         "full_combo": score.full_combo,
         "300_count": score.n300,
@@ -79,7 +79,7 @@ def format_beatmap(beatmap: Beatmap) -> dict[str, Any]:
         "ranked_status": beatmap.status.name,
         "plays": beatmap.plays,
         "passes": beatmap.passes,
-        "game_mode": format_mode(beatmap.mode, relax=0),
+        "game_mode": format_mode(beatmap.mode),
         "od": beatmap.od,
         "ar": beatmap.ar,
         # TODO: context-aware difficulty rating
