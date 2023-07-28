@@ -4,6 +4,7 @@ import asyncio
 import logging
 import random
 import string
+import sys
 
 from fastapi import Depends
 from fastapi import File
@@ -43,7 +44,6 @@ AV_CHARS = string.ascii_letters + string.digits
 
 
 def gen_rand_str(len: int) -> str:
-
     return "".join(random.choice(AV_CHARS) for _ in range(len))
 
 
@@ -66,7 +66,8 @@ async def upload_screenshot(
         return ERR_RESP
 
     content = await screenshot_file.read()
-    if content.__sizeof__() > FS_LIMIT:
+
+    if sys.getsizeof(content) > FS_LIMIT:
         return ERR_RESP
 
     if content[6:10] in (b"JFIF", b"Exif"):

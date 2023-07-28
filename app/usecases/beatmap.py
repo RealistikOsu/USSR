@@ -210,7 +210,7 @@ async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
     ) as response:
         if response.status == 404:
             return None
-        
+
         response.raise_for_status()
 
         response_json = await response.json()
@@ -238,7 +238,7 @@ async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
     ) as response:
         if response.status == 404:
             return None
-        
+
         response.raise_for_status()
 
         response_json = await response.json()
@@ -266,7 +266,7 @@ async def set_from_api(id: int, should_save: bool = True) -> Optional[list[Beatm
     ) as response:
         if response.status == 404:
             return None
-        
+
         response.raise_for_status()
 
         response_json = await response.json()

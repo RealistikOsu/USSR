@@ -3,11 +3,11 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from dataclasses import field
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
 from typing import Mapping
 from typing import Optional
-from datetime import datetime
-from datetime import timedelta
 
 import config
 from app.constants.mode import Mode
@@ -15,6 +15,7 @@ from app.constants.ranked_status import RankedStatus
 from app.objects.leaderboard import Leaderboard
 
 ONE_DAY = 86_400
+
 
 def _should_get_updates(ranked_status: int, last_updated: datetime) -> bool:
     match ranked_status:
@@ -30,11 +31,10 @@ def _should_get_updates(ranked_status: int, last_updated: datetime) -> bool:
             # this is usually done to remove things like inappropriate content
             update_interval = timedelta(days=1)
         case _:
-            raise NotImplementedError(
-                f"Unknown ranked status: {ranked_status}"
-            )
+            raise NotImplementedError(f"Unknown ranked status: {ranked_status}")
 
     return last_updated <= (datetime.now() - update_interval)
+
 
 @dataclass
 class Beatmap:
