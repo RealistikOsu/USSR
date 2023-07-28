@@ -88,7 +88,7 @@ def format_beatmap(beatmap: Beatmap) -> dict[str, Any]:
         "last_update": beatmap.last_update,
         "max_combo": beatmap.max_combo,
         "bpm": beatmap.bpm,
-        "filename": beatmap.filename,
+        "file_name": beatmap.filename,
         "frozen": beatmap.frozen,
         "rating": beatmap.rating,
     }
