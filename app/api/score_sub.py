@@ -390,6 +390,16 @@ async def submit_score(
             ),
         )
 
+    import hashlib
+
+    # NOTE: osu! login double hashes with md5, while score submission
+    # only hashes it a single time. we perform the second hashing here.
+    uninstall_id, disk_id = unique_ids.split("|", maxsplit=1)
+    login_disk_id = hashlib.md5(disk_id.encode()).hexdigest()
+
+    if user.id == 1001:
+        print("device id", hashlib.sha1(login_disk_id.encode()).hexdigest())
+
     asyncio.create_task(
         amplitude.track(
             event_name="score_submission",
