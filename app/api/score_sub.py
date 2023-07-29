@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import hashlib
 import logging
 import time
 from base64 import b64decode
@@ -391,14 +392,19 @@ async def submit_score(
             ),
         )
 
-    import hashlib
-
     # NOTE: osu! login double hashes with md5, while score submission
     # only hashes it a single time. we perform the second hashing here.
     uninstall_id, disk_id = unique_ids.split("|", maxsplit=1)
     login_disk_id = hashlib.md5(disk_id.encode()).hexdigest()
-
-    device_id = hashlib.sha1(login_disk_id.encode()).hexdigest()
+    if login_disk_id == "dcfcd07e645d245babe887e5e2daa016":
+        # NOTE: this is the result of `md5(md5("0"))`.
+        # The osu! client will send this sometimes because WMI
+        # may return a "0" as the disk serial number if a hardware
+        # manufacturer has not set one.
+        # (disk signature is optional but serial number is required)
+        device_id = None
+    else:
+        device_id = hashlib.sha1(login_disk_id.encode()).hexdigest()
 
     asyncio.create_task(
         amplitude.track(

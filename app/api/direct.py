@@ -11,12 +11,12 @@ from fastapi import Path
 from fastapi import Query
 from fastapi import status
 from fastapi.responses import RedirectResponse
-from app.constants.mode import Mode
 
 import app.state
 import app.usecases
 import config
 from app.adapters import amplitude
+from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user
