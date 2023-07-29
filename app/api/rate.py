@@ -48,7 +48,7 @@ async def add_rating(user_id: int, map_md5: str, rating: int) -> float:
 async def rate_map(
     user: User = Depends(authenticate_user(Query, "u", "p")),
     map_md5: str = Query(..., alias="c"),
-    rating: Optional[int] = Query(None, alias="v", ge=1, le=10),
+    user_rating: Optional[int] = Query(None, alias="v", ge=1, le=10),
 ) -> bytes:
     beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
     if not beatmap:
@@ -60,8 +60,8 @@ async def rate_map(
     if await check_user_rated(user, beatmap):
         return f"alreadyvoted\n{beatmap.rating}".encode()
 
-    if rating:
-        new_rating = await add_rating(user.id, map_md5, rating)
+    if user_rating:
+        new_rating = await add_rating(user.id, map_md5, user_rating)
         beatmap.rating = new_rating
 
         asyncio.create_task(
@@ -70,15 +70,15 @@ async def rate_map(
                 user_id=str(user.id),
                 device_id=None,
                 event_properties={
-                    "beatmap_md5": map_md5,
-                    "rating": rating,
+                    "user_rating": user_rating,
+                    "beatmap": amplitude.format_beatmap(beatmap),
                 },
                 time=int(time.time() * 1000),
             ),
         )
 
         logging.info(
-            f"{user} has rated {beatmap.song_name} with rating {rating} (new average: {new_rating:.2f})",
+            f"{user} has rated {beatmap.song_name} with rating {user_rating} (new average: {new_rating:.2f})",
         )
         return f"alreadyvoting\n{new_rating:.2f}".encode()
     else:

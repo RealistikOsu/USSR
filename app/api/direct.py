@@ -11,6 +11,7 @@ from fastapi import Path
 from fastapi import Query
 from fastapi import status
 from fastapi.responses import RedirectResponse
+from app.constants.mode import Mode
 
 import app.state
 import app.usecases
@@ -106,7 +107,9 @@ async def osu_direct(
             event_properties={
                 "query": query,
                 "page_num": page_num,
-                "mode": mode,
+                "game_mode": (
+                    amplitude.format_mode(mode) if mode != -1 else "All modes"
+                ),
                 "ranked_status": ranked_status,
             },
         ),
@@ -142,8 +145,8 @@ async def beatmap_card(
             user_id=str(user.id),
             device_id=None,
             event_properties={
-                "map_set_id": map_set_id,
-                "map_id": map_id,
+                "beatmapset_id": map_set_id,
+                "beatmap_id": map_id,
             },
         ),
     )
