@@ -8,6 +8,7 @@ from typing import TypedDict
 from typing import Union
 
 from app.constants.mode import Mode
+from app.constants.score_status import ScoreStatus
 
 if TYPE_CHECKING:
     from app.models.score import Score
@@ -61,6 +62,7 @@ class Leaderboard:
         self,
         user_id: int,
         include_self: bool = True,
+        mods_lb: bool = False,
     ) -> list[Score]:
         scores = []
 
@@ -70,6 +72,10 @@ class Leaderboard:
                 score.user_id == user_id and include_self
             ):
                 continue
+
+            if mods_lb:
+                if score.status not in (ScoreStatus.MOD_BEST, ScoreStatus.BEST):
+                    continue
 
             scores.append(score)
 

@@ -8,3 +8,4 @@ class ScoreStatus(IntEnum):
     FAILED = 1
     SUBMITTED = 2
     BEST = 3
+    MOD_BEST = 4
