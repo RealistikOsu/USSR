@@ -11,6 +11,7 @@ import app.usecases
 import app.utils
 import logger
 from app.constants.leaderboard_type import LeaderboardType
+from app.constants.privileges import Privileges
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.models.score import Score
@@ -89,7 +90,7 @@ async def get_leaderboard(
 
             return b"-1|false"
 
-    if not beatmap.has_leaderboard:
+    if not beatmap.has_leaderboard and not user.privileges & Privileges.USER_DONOR:
         return f"{beatmap.status.value}|false".encode()
 
     response_lines: list[str] = []
