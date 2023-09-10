@@ -6,7 +6,6 @@ aioredis
 bcrypt
 cryptography
 databases[asyncmy]
-ddtrace
 fastapi
 ftpretty
 orjson
