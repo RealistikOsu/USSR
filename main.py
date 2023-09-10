@@ -1,10 +1,6 @@
 #!/usr/bin/env python3.10
 from __future__ import annotations
 
-import ddtrace
-
-ddtrace.patch_all()
-
 import logging
 
 import uvicorn
