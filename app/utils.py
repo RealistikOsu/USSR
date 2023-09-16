@@ -1,12 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
-import asyncio
 from typing import Union
 
 from aiohttp import ClientSession
-
 from tenacity import retry
 from tenacity.stop import stop_after_attempt
 
@@ -46,6 +45,7 @@ def format_time(time: Union[int, float]) -> str:
 
     return f"{time:.2f}{suffix}"  # type: ignore
 
+
 # TODO: better client error & 429 handling
 @retry(stop=stop_after_attempt(7))
 async def channel_message(channel: str, message: str) -> None:
@@ -65,7 +65,9 @@ async def announce(message: str) -> None:
     try:
         await channel_message("#announce", message)
     except asyncio.TimeoutError:
-        logging.warning("Failed to send message to #announce, bancho-service is likely down")
+        logging.warning(
+            "Failed to send message to #announce, bancho-service is likely down",
+        )
 
 
 async def check_online(user_id: int) -> bool:
