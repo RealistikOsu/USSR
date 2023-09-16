@@ -5,7 +5,7 @@ from typing import Mapping
 from typing import TYPE_CHECKING
 
 from tenacity import retry
-from tenacity import stop_after_attempt
+from tenacity.stop import stop_after_attempt
 
 import config
 from app.state import services
