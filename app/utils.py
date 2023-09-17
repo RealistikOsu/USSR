@@ -7,6 +7,7 @@ from typing import Union
 
 from aiohttp import ClientSession
 from tenacity import retry
+from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 
 import app.state
@@ -47,7 +48,11 @@ def format_time(time: Union[int, float]) -> str:
 
 
 # TODO: better client error & 429 handling
-@retry(stop=stop_after_attempt(7))
+@retry(
+    reraise=True,
+    stop=stop_after_attempt(7),
+    retry=retry_if_exception_type(asyncio.TimeoutError),
+)
 async def channel_message(channel: str, message: str) -> None:
     async with ClientSession() as sesh:
         await sesh.get(
