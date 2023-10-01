@@ -28,7 +28,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.WARNING,
+        level=config.LOG_LEVEL,
         format="%(asctime)s %(message)s",
     )
 
