@@ -14,7 +14,7 @@ def main() -> int:
     uvicorn.run(
         "app.init_api:asgi_app",
         reload=config.CODE_HOTRELOAD,
-        log_level=config.LOG_LEVEL,  # type: ignore
+        log_level=config.LOG_LEVEL,
         server_header=False,
         date_header=False,
         port=config.APP_PORT,
