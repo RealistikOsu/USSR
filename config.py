@@ -46,7 +46,11 @@ AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL")
 AWS_BUCKET_NAME = config("AWS_BUCKET_NAME")
 
 FTP_HOST = config("FTP_HOST", default=None)
-FTP_PORT = config("FTP_PORT", cast=int, default=None)
+ftp_port = config("FTP_PORT", default=None)  # optional int
+if ftp_port:
+    FTP_PORT = int(ftp_port)
+else:
+    FTP_PORT = None
 FTP_USER = config("FTP_USER", default=None)
 FTP_PASS = config("FTP_PASS", default=None)
 
