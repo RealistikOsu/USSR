@@ -10,6 +10,7 @@ fastapi
 ftpretty
 orjson
 py3rijndael
+python-json-logger
 python-multipart
 tenacity
 types-aiobotocore[s3]

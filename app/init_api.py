@@ -48,11 +48,14 @@ def init_events(asgi_app: FastAPI) -> None:
             ),
         )
 
-        app.state.services.ftp_client = ftpretty(
-            config.FTP_HOST,
-            config.FTP_USER,
-            config.FTP_PASS,
-        )
+        app.state.services.ftp_client = None
+        if config.FTP_HOST and config.FTP_PORT and config.FTP_USER and config.FTP_PASS:
+            app.state.services.ftp_client = ftpretty(
+                host=config.FTP_HOST,
+                port=config.FTP_PORT,
+                user=config.FTP_USER,
+                password=config.FTP_PASS,
+            )
 
         app.state.services.amqp = await aio_pika.connect_robust(
             f"amqp://{config.AMQP_USER}:{config.AMQP_PASS}@{config.AMQP_HOST}:{config.AMQP_PORT}/",
@@ -88,7 +91,8 @@ def init_events(asgi_app: FastAPI) -> None:
 
         await app.state.services.http.close()
 
-        app.state.services.ftp_client.close()
+        if app.state.services.ftp_client is not None:
+            app.state.services.ftp_client.close()
 
         await app.state.services.amqp_channel.close()
         await app.state.services.amqp.close()

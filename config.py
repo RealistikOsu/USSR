@@ -10,6 +10,7 @@ config = Config(".env")
 APP_PORT = config("APP_PORT", cast=int)
 
 LOG_LEVEL = config("LOG_LEVEL", cast=int, default=logging.WARNING)
+CODE_HOTRELOAD = config("CODE_HOTRELOAD", cast=bool, default=False)
 
 WRITE_DB_HOST = config("WRITE_DB_HOST")
 WRITE_DB_PORT = config("WRITE_DB_PORT", cast=int)
@@ -45,10 +46,14 @@ AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
 AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL")
 AWS_BUCKET_NAME = config("AWS_BUCKET_NAME")
 
-FTP_HOST = config("FTP_HOST")
-FTP_PORT = config("FTP_PORT", cast=int)
-FTP_USER = config("FTP_USER")
-FTP_PASS = config("FTP_PASS")
+FTP_HOST = config("FTP_HOST", default=None)
+ftp_port = config("FTP_PORT", default=None)  # optional int
+if ftp_port:
+    FTP_PORT = int(ftp_port)
+else:
+    FTP_PORT = None
+FTP_USER = config("FTP_USER", default=None)
+FTP_PASS = config("FTP_PASS", default=None)
 
 AMQP_HOST = config("AMQP_HOST")
 AMQP_PORT = config("AMQP_PORT", cast=int)

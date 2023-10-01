@@ -140,9 +140,11 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
 
     if replay_bytes is None:
         try:
-            replay_bytes = app.state.services.ftp_client.get(
-                f"/replays/replay_{score.id}.osr",
-            )
+            replay_bytes = None
+            if app.state.services.ftp_client is not None:
+                replay_bytes = app.state.services.ftp_client.get(
+                    f"/replays/replay_{score.id}.osr",
+                )
 
             if not replay_bytes:
                 raise Exception("No replay found")
