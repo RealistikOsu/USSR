@@ -14,3 +14,4 @@ python-multipart
 tenacity
 types-aiobotocore[s3]
 uvicorn[standard]
+python-json-logger

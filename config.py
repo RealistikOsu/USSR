@@ -10,6 +10,7 @@ config = Config(".env")
 APP_PORT = config("APP_PORT", cast=int)
 
 LOG_LEVEL = config("LOG_LEVEL", cast=int, default=logging.WARNING)
+CODE_HOTRELOAD = config("CODE_HOTRELOAD", cast=bool, default=False)
 
 WRITE_DB_HOST = config("WRITE_DB_HOST")
 WRITE_DB_PORT = config("WRITE_DB_PORT", cast=int)

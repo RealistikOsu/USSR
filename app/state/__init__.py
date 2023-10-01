@@ -35,3 +35,5 @@ async def cancel_tasks() -> None:
                         "task": task,
                     },
                 )
+
+    logging.info("Cancelled all tasks.")
