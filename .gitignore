@@ -128,7 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Various akatsuki additions
 config.json
+logging.yaml
 .vscode/
 test_data/
 .data/
