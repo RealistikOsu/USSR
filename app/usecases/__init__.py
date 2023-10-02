@@ -14,3 +14,4 @@ from . import stats
 from . import user
 from . import usernames
 from . import whitelist
+from . import replays

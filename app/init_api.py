@@ -38,15 +38,22 @@ def init_events(asgi_app: FastAPI) -> None:
             json_serialize=lambda x: orjson.dumps(x).decode(),
         )
 
-        app.state.services.s3_client = await ctx_stack.enter_async_context(
-            aiobotocore.session.get_session().create_client(  # type: ignore
-                "s3",
-                region_name=config.AWS_REGION,
-                aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-                endpoint_url=config.AWS_ENDPOINT_URL,
-            ),
-        )
+        app.state.services.s3_client = None
+        if (
+            config.AWS_ENDPOINT_URL
+            and config.AWS_REGION
+            and config.AWS_ACCESS_KEY_ID
+            and config.AWS_SECRET_ACCESS_KEY
+        ):
+            app.state.services.s3_client = await ctx_stack.enter_async_context(
+                aiobotocore.session.get_session().create_client(  # type: ignore
+                    "s3",
+                    region_name=config.AWS_REGION,
+                    aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+                    endpoint_url=config.AWS_ENDPOINT_URL,
+                ),
+            )
 
         app.state.services.ftp_client = None
         if config.FTP_HOST and config.FTP_PORT and config.FTP_USER and config.FTP_PASS:

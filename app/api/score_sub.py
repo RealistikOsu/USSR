@@ -327,7 +327,7 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            await s3.upload(replay_data, f"{score.id}.osr", folder="replays")
+            await app.usecases.replays.save_replay(score.id, replay_data)
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
     if stats is None:
