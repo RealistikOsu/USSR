@@ -99,21 +99,22 @@ async def osu_direct(
             ),
         )
 
-    asyncio.create_task(
-        amplitude.track(
-            event_name="osudirect_search",
-            user_id=str(user.id),
-            device_id=None,
-            event_properties={
-                "query": query,
-                "page_num": page_num,
-                "game_mode": (
-                    amplitude.format_mode(mode) if mode != -1 else "All modes"
-                ),
-                "ranked_status": ranked_status,
-            },
-        ),
-    )
+    if config.AMPLITUDE_API_KEY:
+        asyncio.create_task(
+            amplitude.track(
+                event_name="osudirect_search",
+                user_id=str(user.id),
+                device_id=None,
+                event_properties={
+                    "query": query,
+                    "page_num": page_num,
+                    "game_mode": (
+                        amplitude.format_mode(mode) if mode != -1 else "All modes"
+                    ),
+                    "ranked_status": ranked_status,
+                },
+            ),
+        )
 
     return "\n".join(ret).encode()
 
@@ -139,17 +140,18 @@ async def beatmap_card(
 
     json_data = result["data"] if USING_CHIMU else result
 
-    asyncio.create_task(
-        amplitude.track(
-            event_name="osudirect_card_view",
-            user_id=str(user.id),
-            device_id=None,
-            event_properties={
-                "beatmapset_id": map_set_id,
-                "beatmap_id": map_id,
-            },
-        ),
-    )
+    if config.AMPLITUDE_API_KEY:
+        asyncio.create_task(
+            amplitude.track(
+                event_name="osudirect_card_view",
+                user_id=str(user.id),
+                device_id=None,
+                event_properties={
+                    "beatmapset_id": map_set_id,
+                    "beatmap_id": map_id,
+                },
+            ),
+        )
 
     return (
         "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"

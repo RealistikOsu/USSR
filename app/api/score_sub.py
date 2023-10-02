@@ -406,18 +406,19 @@ async def submit_score(
     else:
         device_id = hashlib.sha1(login_disk_id.encode()).hexdigest()
 
-    asyncio.create_task(
-        amplitude.track(
-            event_name="score_submission",
-            user_id=str(user.id),
-            device_id=device_id,
-            event_properties={
-                "beatmap": amplitude.format_beatmap(beatmap),
-                "score": amplitude.format_score(score),
-                "user": amplitude.format_user(user),
-            },
-        ),
-    )
+    if config.AMPLITUDE_API_KEY:
+        asyncio.create_task(
+            amplitude.track(
+                event_name="score_submission",
+                user_id=str(user.id),
+                device_id=device_id,
+                event_properties={
+                    "beatmap": amplitude.format_beatmap(beatmap),
+                    "score": amplitude.format_score(score),
+                    "user": amplitude.format_user(user),
+                },
+            ),
+        )
 
     if score.old_best:
         beatmap_ranking_chart = (
@@ -456,18 +457,19 @@ async def submit_score(
 
         # fire amplitude events for each
         for achievement in new_achievements:
-            asyncio.create_task(
-                amplitude.track(
-                    event_name="achievement_unlocked",
-                    user_id=str(score.user_id),
-                    device_id=device_id,
-                    event_properties={
-                        "achievement": amplitude.format_achievement(achievement),
-                        "score": amplitude.format_score(score),
-                    },
-                    time=int(time.time() * 1000),
-                ),
-            )
+            if config.AMPLITUDE_API_KEY:
+                asyncio.create_task(
+                    amplitude.track(
+                        event_name="achievement_unlocked",
+                        user_id=str(score.user_id),
+                        device_id=device_id,
+                        event_properties={
+                            "achievement": amplitude.format_achievement(achievement),
+                            "score": amplitude.format_score(score),
+                        },
+                        time=int(time.time() * 1000),
+                    ),
+                )
 
     achievements_str = "/".join(ach.full_name for ach in new_achievements)
 
