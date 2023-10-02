@@ -1,11 +1,13 @@
-import app.state.services
+from __future__ import annotations
+
+import os
 
 from tenacity import retry
 from tenacity.stop import stop_after_attempt
 
-from app.adapters import s3
+import app.state.services
 import config
-import os
+from app.adapters import s3
 
 REPLAYS_DIR = f"{config.DATA_DIR}/replays"
 

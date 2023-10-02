@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-import config
 from typing import Optional
 
 from fastapi import Depends
@@ -11,6 +10,7 @@ from fastapi import Query
 
 import app.state
 import app.usecases
+import config
 from app.adapters import amplitude
 from app.models.beatmap import Beatmap
 from app.models.user import User

@@ -18,7 +18,6 @@ from app.constants.mode import Mode
 from app.models.score import Score
 from app.models.user import User
 from app.usecases.user import authenticate_user
-import app.usecases
 
 
 async def get_replay(
