@@ -87,18 +87,19 @@ async def upload_screenshot(
 
     ss_path.write_bytes(content)
 
-    asyncio.create_task(
-        amplitude.track(
-            event_name="upload_screenshot",
-            user_id=str(user.id),
-            device_id=None,
-            event_properties={
-                "file_name": file_name,
-                "file_size": len(content),
-                "url": f"https://osu.akatsuki.pw/ss/{file_name}",
-            },
-        ),
-    )
+    if config.AMPLITUDE_API_KEY:
+        asyncio.create_task(
+            amplitude.track(
+                event_name="upload_screenshot",
+                user_id=str(user.id),
+                device_id=None,
+                event_properties={
+                    "file_name": file_name,
+                    "file_size": len(content),
+                    "url": f"https://osu.akatsuki.pw/ss/{file_name}",
+                },
+            ),
+        )
 
     logging.info(f"{user} has uploaded screenshot {file_name}")
     return file_name

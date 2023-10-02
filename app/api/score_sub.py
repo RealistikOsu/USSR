@@ -285,10 +285,11 @@ async def submit_score(
         )
 
         # send request to rmq
-        await app.state.services.amqp_channel.default_exchange.publish(
-            aio_pika.Message(body=orjson.dumps(submission_request)),
-            routing_key="score_submission",
-        )
+        if app.state.services.amqp_channel is not None:
+            await app.state.services.amqp_channel.default_exchange.publish(
+                aio_pika.Message(body=orjson.dumps(submission_request)),
+                routing_key="score_submission",
+            )
 
     # update most played
     await app.state.services.database.execute(
@@ -327,7 +328,7 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            await s3.upload(replay_data, f"{score.id}.osr", folder="replays")
+            await app.usecases.replays.save_replay(score.id, replay_data)
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
     if stats is None:
@@ -406,18 +407,19 @@ async def submit_score(
     else:
         device_id = hashlib.sha1(login_disk_id.encode()).hexdigest()
 
-    asyncio.create_task(
-        amplitude.track(
-            event_name="score_submission",
-            user_id=str(user.id),
-            device_id=device_id,
-            event_properties={
-                "beatmap": amplitude.format_beatmap(beatmap),
-                "score": amplitude.format_score(score),
-                "user": amplitude.format_user(user),
-            },
-        ),
-    )
+    if config.AMPLITUDE_API_KEY:
+        asyncio.create_task(
+            amplitude.track(
+                event_name="score_submission",
+                user_id=str(user.id),
+                device_id=device_id,
+                event_properties={
+                    "beatmap": amplitude.format_beatmap(beatmap),
+                    "score": amplitude.format_score(score),
+                    "user": amplitude.format_user(user),
+                },
+            ),
+        )
 
     if score.old_best:
         beatmap_ranking_chart = (
@@ -456,18 +458,19 @@ async def submit_score(
 
         # fire amplitude events for each
         for achievement in new_achievements:
-            asyncio.create_task(
-                amplitude.track(
-                    event_name="achievement_unlocked",
-                    user_id=str(score.user_id),
-                    device_id=device_id,
-                    event_properties={
-                        "achievement": amplitude.format_achievement(achievement),
-                        "score": amplitude.format_score(score),
-                    },
-                    time=int(time.time() * 1000),
-                ),
-            )
+            if config.AMPLITUDE_API_KEY:
+                asyncio.create_task(
+                    amplitude.track(
+                        event_name="achievement_unlocked",
+                        user_id=str(score.user_id),
+                        device_id=device_id,
+                        event_properties={
+                            "achievement": amplitude.format_achievement(achievement),
+                            "score": amplitude.format_score(score),
+                        },
+                        time=int(time.time() * 1000),
+                    ),
+                )
 
     achievements_str = "/".join(ach.full_name for ach in new_achievements)
 

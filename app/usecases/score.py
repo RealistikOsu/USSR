@@ -133,27 +133,14 @@ OSU_VERSION = 2021_11_03
 
 
 async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
-    try:
-        replay_bytes = await s3.download(file_name=f"{score.id}.osr", folder="replays")
-    except Exception:
-        replay_bytes = None
+    replay_bytes = await app.usecases.replays.download_replay(score.id)
 
     if replay_bytes is None:
-        try:
-            replay_bytes = None
-            if app.state.services.ftp_client is not None:
-                replay_bytes = app.state.services.ftp_client.get(
-                    f"/replays/replay_{score.id}.osr",
-                )
-
-            if not replay_bytes:
-                raise Exception("No replay found")
-        except Exception:
-            # TODO: assert the error code is "not found"?
-            logging.error(
-                f"Requested replay ID {score.id}, but no file could be found",
-            )
-            return
+        # TODO: assert the error code is "not found"?
+        logging.error(
+            f"Requested replay ID {score.id}, but no file could be found",
+        )
+        return
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if not username:

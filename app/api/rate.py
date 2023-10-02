@@ -10,6 +10,7 @@ from fastapi import Query
 
 import app.state
 import app.usecases
+import config
 from app.adapters import amplitude
 from app.models.beatmap import Beatmap
 from app.models.user import User
@@ -64,18 +65,19 @@ async def rate_map(
         new_rating = await add_rating(user.id, map_md5, user_rating)
         beatmap.rating = new_rating
 
-        asyncio.create_task(
-            amplitude.track(
-                event_name="rated_beatmap",
-                user_id=str(user.id),
-                device_id=None,
-                event_properties={
-                    "user_rating": user_rating,
-                    "beatmap": amplitude.format_beatmap(beatmap),
-                },
-                time=int(time.time() * 1000),
-            ),
-        )
+        if config.AMPLITUDE_API_KEY:
+            asyncio.create_task(
+                amplitude.track(
+                    event_name="rated_beatmap",
+                    user_id=str(user.id),
+                    device_id=None,
+                    event_properties={
+                        "user_rating": user_rating,
+                        "beatmap": amplitude.format_beatmap(beatmap),
+                    },
+                    time=int(time.time() * 1000),
+                ),
+            )
 
         logging.info(
             f"{user} has rated {beatmap.song_name} with rating {user_rating} (new average: {new_rating:.2f})",

@@ -38,15 +38,22 @@ def init_events(asgi_app: FastAPI) -> None:
             json_serialize=lambda x: orjson.dumps(x).decode(),
         )
 
-        app.state.services.s3_client = await ctx_stack.enter_async_context(
-            aiobotocore.session.get_session().create_client(  # type: ignore
-                "s3",
-                region_name=config.AWS_REGION,
-                aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-                endpoint_url=config.AWS_ENDPOINT_URL,
-            ),
-        )
+        app.state.services.s3_client = None
+        if (
+            config.AWS_ENDPOINT_URL
+            and config.AWS_REGION
+            and config.AWS_ACCESS_KEY_ID
+            and config.AWS_SECRET_ACCESS_KEY
+        ):
+            app.state.services.s3_client = await ctx_stack.enter_async_context(
+                aiobotocore.session.get_session().create_client(  # type: ignore
+                    "s3",
+                    region_name=config.AWS_REGION,
+                    aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+                    endpoint_url=config.AWS_ENDPOINT_URL,
+                ),
+            )
 
         app.state.services.ftp_client = None
         if config.FTP_HOST and config.FTP_PORT and config.FTP_USER and config.FTP_PASS:
@@ -57,11 +64,19 @@ def init_events(asgi_app: FastAPI) -> None:
                 password=config.FTP_PASS,
             )
 
-        app.state.services.amqp = await aio_pika.connect_robust(
-            f"amqp://{config.AMQP_USER}:{config.AMQP_PASS}@{config.AMQP_HOST}:{config.AMQP_PORT}/",
-        )
+        app.state.services.amqp = None
+        app.state.services.amqp_channel = None
+        if (
+            config.AMQP_USER
+            and config.AMQP_PASS
+            and config.AMQP_HOST
+            and config.AMQP_PORT
+        ):
+            app.state.services.amqp = await aio_pika.connect_robust(
+                f"amqp://{config.AMQP_USER}:{config.AMQP_PASS}@{config.AMQP_HOST}:{config.AMQP_PORT}/",
+            )
 
-        app.state.services.amqp_channel = await app.state.services.amqp.channel()
+            app.state.services.amqp_channel = await app.state.services.amqp.channel()
 
         await app.state.cache.init_cache()
         await app.redis.initialise_pubsubs()
@@ -94,8 +109,11 @@ def init_events(asgi_app: FastAPI) -> None:
         if app.state.services.ftp_client is not None:
             app.state.services.ftp_client.close()
 
-        await app.state.services.amqp_channel.close()
-        await app.state.services.amqp.close()
+        if app.state.services.amqp_channel is not None:
+            await app.state.services.amqp_channel.close()
+
+        if app.state.services.amqp is not None:
+            await app.state.services.amqp.close()
 
         await ctx_stack.aclose()
 
