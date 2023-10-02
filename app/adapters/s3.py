@@ -28,7 +28,7 @@ async def upload(
 
     try:
         await services.s3_client.put_object(**params)
-    except botocore.exceptions.BotoCoreError as exc:
+    except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as exc:
         logging.error("Failed to upload file to S3", exc_info=exc)
         return None
 
@@ -41,7 +41,7 @@ async def download(file_name: str, folder: str) -> bytes | None:
             Bucket=config.AWS_BUCKET_NAME,
             Key=f"{folder}/{file_name}",
         )
-    except botocore.exceptions.BotoCoreError as exc:
+    except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as exc:
         logging.error("Failed to download file from S3", exc_info=exc)
         return None
 
