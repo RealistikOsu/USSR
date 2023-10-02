@@ -285,10 +285,11 @@ async def submit_score(
         )
 
         # send request to rmq
-        await app.state.services.amqp_channel.default_exchange.publish(
-            aio_pika.Message(body=orjson.dumps(submission_request)),
-            routing_key="score_submission",
-        )
+        if app.state.services.amqp_channel is not None:
+            await app.state.services.amqp_channel.default_exchange.publish(
+                aio_pika.Message(body=orjson.dumps(submission_request)),
+                routing_key="score_submission",
+            )
 
     # update most played
     await app.state.services.database.execute(

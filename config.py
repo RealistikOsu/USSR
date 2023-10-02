@@ -40,11 +40,11 @@ DISCORD_ADMIN_HOOK = config("DISCORD_ADMIN_HOOK")
 BOT_USER_ID = config("BOT_USER_ID", cast=int)
 FOKABOT_KEY = config("FOKABOT_KEY")
 
-AWS_REGION = config("AWS_REGION")
-AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
-AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL")
-AWS_BUCKET_NAME = config("AWS_BUCKET_NAME")
+AWS_REGION = config("AWS_REGION", default=None)
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default=None)
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default=None)
+AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL", default=None)
+AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default=None)
 
 FTP_HOST = config("FTP_HOST", default=None)
 ftp_port = config("FTP_PORT", default=None)  # optional int
@@ -55,10 +55,14 @@ else:
 FTP_USER = config("FTP_USER", default=None)
 FTP_PASS = config("FTP_PASS", default=None)
 
-AMQP_HOST = config("AMQP_HOST")
-AMQP_PORT = config("AMQP_PORT", cast=int)
-AMQP_USER = config("AMQP_USER")
-AMQP_PASS = config("AMQP_PASS")
+AMQP_HOST = config("AMQP_HOST", default=None)
+amqp_port = config("AMQP_PORT", default=None)
+if amqp_port:
+    AMQP_PORT = int(amqp_port)
+else:
+    AMQP_PORT = None
+AMQP_USER = config("AMQP_USER", default=None)
+AMQP_PASS = config("AMQP_PASS", default=None)
 
 PERFORMANCE_SERVICE_URL = config("PERFORMANCE_SERVICE_URL")
 
