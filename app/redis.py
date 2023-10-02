@@ -7,7 +7,7 @@ from typing import Callable
 from typing import Optional
 from typing import TypedDict
 
-import aioredis.client
+import redis.asyncio.client
 import orjson
 
 import app.state
@@ -161,7 +161,7 @@ class RedisMessage(TypedDict):
     data: bytes
 
 
-async def loop_pubsubs(pubsub: aioredis.client.PubSub) -> None:
+async def loop_pubsubs(pubsub: redis.asyncio.client.PubSub) -> None:
     while True:
         try:
             message: Optional[RedisMessage] = await pubsub.get_message(

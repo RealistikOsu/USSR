@@ -2,7 +2,7 @@ aio-pika
 aiobotocore
 aioftp
 aiohttp[speedups]
-aioredis
+redis
 bcrypt
 cryptography
 databases[asyncmy]
