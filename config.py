@@ -56,7 +56,7 @@ FTP_USER = config("FTP_USER", default=None)
 FTP_PASS = config("FTP_PASS", default=None)
 
 AMQP_HOST = config("AMQP_HOST", default=None)
-amqp_port = config("AMQP_PORT", default=None)
+amqp_port = config("AMQP_PORT", default=None)  # optional int
 if amqp_port:
     AMQP_PORT = int(amqp_port)
 else:
