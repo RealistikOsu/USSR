@@ -65,7 +65,7 @@ async def channel_message(channel: str, message: str) -> None:
 
 async def announce(message: str) -> None:
     try:
-        await channel_message("#announce", message)
+        asyncio.create_task(channel_message("#announce", message))
     except asyncio.TimeoutError:
         logging.warning(
             "Failed to send message to #announce, bancho-service is likely down",
