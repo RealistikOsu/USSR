@@ -7,8 +7,8 @@ from typing import Callable
 from typing import Optional
 from typing import TypedDict
 
-import redis.asyncio.client
 import orjson
+import redis.asyncio.client
 
 import app.state
 import app.usecases

@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 
 import aio_pika
 import aiohttp
-import redis.asyncio as aioredis
 import databases
+import redis.asyncio as aioredis
 from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
 
