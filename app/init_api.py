@@ -64,6 +64,8 @@ def init_events(asgi_app: FastAPI) -> None:
                 password=config.FTP_PASS,
             )
 
+        app.state.services.amqp = None
+        app.state.services.amqp_channel = None
         if (
             config.AMQP_USER
             and config.AMQP_PASS
