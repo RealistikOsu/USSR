@@ -5,7 +5,6 @@ import logging
 import os
 from typing import Union
 
-from aiohttp import ClientSession
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_attempt
@@ -53,16 +52,15 @@ def format_time(time: Union[int, float]) -> str:
     retry=retry_if_exception_type(asyncio.TimeoutError),
 )
 async def channel_message(channel: str, message: str) -> None:
-    async with ClientSession() as sesh:
-        await sesh.get(
-            "http://localhost:5001/api/v1/fokabotMessage",
-            params={
-                "to": channel,
-                "msg": message,
-                "k": config.FOKABOT_KEY,
-            },
-            timeout=2,
-        )
+    await app.state.services.http.get(
+        "http://localhost:5001/api/v1/fokabotMessage",
+        params={
+            "to": channel,
+            "msg": message,
+            "k": config.FOKABOT_KEY,
+        },
+        timeout=2,
+    )
 
 
 async def announce(message: str) -> None:
