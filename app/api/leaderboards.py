@@ -171,7 +171,14 @@ async def get_leaderboard(
     end = time.perf_counter_ns()
     formatted_time = app.utils.format_time(end - start)
     logging.info(
-        f"Served {user} leaderboard for {beatmap.song_name} in {formatted_time}",
+        "Served leaderboard",
+        extra={
+            "user": user.name,
+            "beatmap": beatmap.song_name,
+            "mode": mode.name,
+            "mods": mods.name,
+            "time": formatted_time,
+        },
     )
 
     return "\n".join(response_lines).encode()
