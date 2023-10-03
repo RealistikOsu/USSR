@@ -169,15 +169,16 @@ async def get_leaderboard(
             response_lines.append(score.osu_string(displayed_name, rank=idx + 1))
 
     end = time.perf_counter_ns()
-    formatted_time = app.utils.format_time(end - start)
+
     logging.info(
         "Served leaderboard",
         extra={
-            "user": user.name,
+            "username": user.name,
+            "user_id": user.id,
             "beatmap": beatmap.song_name,
             "mode": mode.name,
             "mods": mods.name,
-            "time": formatted_time,
+            "time_elapsed": app.utils.format_time(end - start)
         },
     )
 
