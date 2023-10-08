@@ -33,12 +33,20 @@ def init_events(asgi_app: FastAPI) -> None:
     async def on_startup() -> None:
         await app.state.services.database.connect()
 
+        # explicitly providing username & password as non None will call the AUTH cmd
+        # which will fail if a password is not set.
+        # if they're not using the default user then it should explicitly auth as that user
+        # however it will fail if they have no password set
+        # but this is still better than implicitly working as the default one
+        should_send_redis_authentication = (
+            config.REDIS_PASS != "" or config.REDIS_USER != "default"
+        )
         app.state.services.redis = aioredis.Redis(
             host=config.REDIS_HOST,
             port=config.REDIS_PORT,
             db=config.REDIS_DB,
-            username=config.REDIS_USER,
-            password=config.REDIS_PASS,
+            username=config.REDIS_USER if should_send_redis_authentication else None,
+            password=config.REDIS_PASS if should_send_redis_authentication else None,
         )
         await app.state.services.redis.initialize()
         await app.state.services.redis.ping()
