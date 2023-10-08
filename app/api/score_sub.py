@@ -38,6 +38,7 @@ from app.models.achievement import Achievement
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.objects.path import Path
+from app.redis_lock import RedisLock
 from app.usecases.user import restrict_user
 
 
@@ -175,7 +176,7 @@ async def submit_score(
             "(score submit gate)",
         )
 
-    async with app.state.locks["score_submission"]:
+    async with RedisLock(f"score_submission:{score.online_checksum}"):
         score_exists = (
             await app.state.services.database.fetch_val(
                 f"SELECT 1 FROM {score.mode.scores_table} WHERE checksum = :checksum",
