@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 import config
 
 
-redis: aioredis.Redis = aioredis.from_url("redis://localhost")
+redis: aioredis.Redis
 
 ftp_client: ftpretty
 

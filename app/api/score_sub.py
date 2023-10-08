@@ -506,7 +506,7 @@ async def submit_score(
             "beatmap_name": beatmap.song_name,
             "game_mode": score.mode.name,
             "performance": score.pp,
-            "time_elapsed": app.utils.format_time(end - start)
+            "time_elapsed": app.utils.format_time(end - start),
         },
     )
 

@@ -9,6 +9,7 @@ import aio_pika
 import aiobotocore.session
 import aiohttp
 import orjson
+import redis.asyncio as aioredis
 from fastapi import FastAPI
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -32,7 +33,15 @@ def init_events(asgi_app: FastAPI) -> None:
     async def on_startup() -> None:
         await app.state.services.database.connect()
 
+        app.state.services.redis = aioredis.Redis(
+            host=config.REDIS_HOST,
+            port=config.REDIS_PORT,
+            db=config.REDIS_DB,
+            username=config.REDIS_USER,
+            password=config.REDIS_PASS,
+        )
         await app.state.services.redis.initialize()
+        await app.state.services.redis.ping()
 
         app.state.services.http = aiohttp.ClientSession(
             json_serialize=lambda x: orjson.dumps(x).decode(),

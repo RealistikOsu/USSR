@@ -178,7 +178,7 @@ async def get_leaderboard(
             "beatmap": beatmap.song_name,
             "mode": mode.name,
             "mods": mods.name,
-            "time_elapsed": app.utils.format_time(end - start)
+            "time_elapsed": app.utils.format_time(end - start),
         },
     )
 

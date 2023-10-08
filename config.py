@@ -67,3 +67,9 @@ AMQP_PASS = config("AMQP_PASS", default=None)
 PERFORMANCE_SERVICE_URL = config("PERFORMANCE_SERVICE_URL")
 
 AMPLITUDE_API_KEY = config("AMPLITUDE_API_KEY", default=None)
+
+REDIS_HOST = config("REDIS_HOST")
+REDIS_PORT = config("REDIS_PORT", cast=int)
+REDIS_USER = config("REDIS_USER")
+REDIS_DB = config("REDIS_DB")
+REDIS_PASS = config("REDIS_PASS")
