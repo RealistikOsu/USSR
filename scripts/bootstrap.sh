@@ -15,7 +15,7 @@ cd /srv/root
 /scripts/await-service.sh $REDIS_HOST $REDIS_PORT $SERVICE_READINESS_TIMEOUT
 
 # await amqp availability
-if [[ $AMQP_PORT != "" ]] then
+if [[ $AMQP_PORT != "" ]]; then
   /scripts/await-service.sh $AMQP_HOST $AMQP_PORT $SERVICE_READINESS_TIMEOUT
 fi
 
