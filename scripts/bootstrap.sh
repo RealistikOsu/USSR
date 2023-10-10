@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-if [[ -n "$KUBERNETES" ]]; then
-  source /vault/secrets/secrets.txt
-fi
-
 if [ -z "$APP_ENV" ]; then
   echo "Please set APP_ENV"
   exit 1
 fi
 
 if [[ $PULL_SECRETS_FROM_VAULT -eq 1 ]]; then
-  pip install -i $PYPI_INDEX_URL akatsuki-cli
+  echo "Installing akatsuki-cli"
+  pip install --index-url $PYPI_INDEX_URL akatsuki-cli
+  echo "Installed akatsuki-cli"
+
+  echo "Fetching secrets from vault"
   akatsuki vault get score-service $APP_ENV -o .env
+  echo "Fetched secrets from vault"
   source .env
+  echo "Sourced secrets from vault"
 fi
 
 cd /srv/root
