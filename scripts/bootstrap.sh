@@ -5,6 +5,17 @@ if [[ -n "$KUBERNETES" ]]; then
   source /vault/secrets/secrets.txt
 fi
 
+if [ -z "$APP_ENV" ]; then
+  echo "Please set APP_ENV"
+  exit 1
+fi
+
+if [[ $PULL_SECRETS_FROM_VAULT -eq 1 ]]; then
+  pip install -i $PYPI_INDEX_URL akatsuki-cli
+  akatsuki vault get score-service $APP_ENV -o .env
+  source .env
+fi
+
 cd /srv/root
 
 # await database availability
