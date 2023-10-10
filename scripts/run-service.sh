@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source .env
+
 if [ "$CODE_HOTRELOAD" == "true" ]; then
   EXTRA_ARGUMENTS="--reload"
 else
