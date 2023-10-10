@@ -10,6 +10,7 @@ import config
 
 
 def main() -> int:
+    app.logging.configure_logging()
     app.utils.ensure_directory_structure()
     uvicorn.run(
         "app.init_api:asgi_app",
@@ -24,5 +25,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    app.logging.configure_logging()
     raise SystemExit(main())
