@@ -7,6 +7,8 @@ from typing import Optional
 @dataclass
 class ScoreSubmissionRequest:
     score_data: str
+    exited_out: bool
+    fail_time: int
     visual_settings_b64: str
     updated_beatmap_hash: str
     storyboard_md5: Optional[str]

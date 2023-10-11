@@ -267,6 +267,8 @@ async def submit_score(
         submission_request = dataclasses.asdict(
             ScoreSubmissionRequest(
                 score_data=score_data_b64.decode(),
+                exited_out=exited_out,
+                fail_time=fail_time,
                 visual_settings_b64=visual_settings_b64.decode(),
                 updated_beatmap_hash=updated_beatmap_hash,
                 storyboard_md5=storyboard_md5,
