@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass
-from dataclasses import field
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
@@ -12,7 +10,6 @@ from typing import Optional
 import config
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
-from app.objects.leaderboard import Leaderboard
 
 ONE_DAY = 86_400
 
@@ -67,8 +64,6 @@ class Beatmap:
     filename: str = ""
     frozen: bool = False
     rating: Optional[float] = None
-
-    leaderboards: dict[Mode, Leaderboard] = field(default_factory=dict)
 
     @property
     def url(self) -> str:

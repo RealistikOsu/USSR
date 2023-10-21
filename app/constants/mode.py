@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import IntEnum
+from typing import Literal
 from functools import cached_property
 
 from app.constants.mods import Mods
@@ -54,7 +55,7 @@ class Mode(IntEnum):
         return self.value == 7
 
     @cached_property
-    def scores_table(self) -> str:
+    def scores_table(self) -> Literal["scores_relax", "scores_ap", "scores"]:
         if self.relax:
             return "scores_relax"
 
@@ -114,7 +115,7 @@ class Mode(IntEnum):
         return "VN"
 
     @cached_property
-    def sort(self) -> str:
+    def sort(self) -> Literal["pp", "score"]:
         return "pp" if self.value > 3 else "score"
 
     @classmethod
