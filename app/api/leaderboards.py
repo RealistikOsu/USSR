@@ -124,9 +124,15 @@ async def get_leaderboard(
         country_filter = (
             user.country if leaderboard_type is LeaderboardType.COUNTRY else None
         )
+
+        # include their own user id in the filter to ensure the array is never empty
+        # this is also just correct because friend lbs should include their own user
         user_ids_filter = (
-            user.friends if leaderboard_type is LeaderboardType.FRIENDS else None
+            user.friends + [user.id]
+            if leaderboard_type is LeaderboardType.FRIENDS
+            else None
         )
+
         leaderboard = await app.usecases.leaderboards.fetch_beatmap_leaderboard(
             beatmap,
             mode,
