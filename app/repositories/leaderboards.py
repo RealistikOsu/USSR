@@ -66,7 +66,7 @@ async def fetch_beatmap_leaderboard(
         extra_queries.append("users_stats.country = :country_filter")
         params["country_filter"] = country_filter
 
-    if user_ids_filter is not None:
+    if user_ids_filter:
         extra_queries.append("s.userid IN :user_ids_filter")
         params["user_ids_filter"] = tuple(user_ids_filter)
 
@@ -245,7 +245,7 @@ async def fetch_beatmap_leaderboard_score_count(
         extra_queries.append("users_stats.country = :country_filter")
         params["country_filter"] = country_filter
 
-    if user_ids_filter is not None:
+    if user_ids_filter:
         extra_queries.append("s.userid IN :user_ids_filter")
         params["user_ids_filter"] = tuple(user_ids_filter)
 
