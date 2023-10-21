@@ -47,7 +47,6 @@ class Score:
     online_checksum: Optional[str] = None  # optional as checksum was not always stored
 
     rank: int = 0
-    old_best: Optional[Score] = None
 
     def osu_string(self, username: str, rank: int) -> str:
         if self.mode > Mode.MANIA:

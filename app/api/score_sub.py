@@ -141,7 +141,12 @@ async def submit_score(
         return b""  # empty resp tells osu to retry
 
     score = Score.from_submission(score_data[2:], beatmap_md5, user)
-    leaderboard = await app.usecases.leaderboards.fetch(beatmap, score.mode)
+    leaderboard = await app.usecases.leaderboards.fetch_beatmap_leaderboard(
+        beatmap,
+        score.mode,
+        requestee_user_id=user.id,
+    )
+    previous_best = leaderboard.personal_best
 
     score.acc = app.usecases.score.calculate_accuracy(score)
     score.quit = exited_out
@@ -206,22 +211,15 @@ async def submit_score(
 
             # calculate the score's status
             if score.passed:
-                old_best = await leaderboard.find_user_score(user.id)
-
-                if old_best is not None:
-                    score.old_best = old_best["score"]
-                    score.old_best.rank = old_best["rank"]
-
-                    if score.pp > score.old_best.pp:
+                if previous_best is not None:
+                    if score.pp > previous_best["pp"]:
                         score.status = ScoreStatus.BEST
-                        score.old_best.status = ScoreStatus.SUBMITTED
                     elif (
-                        score.pp == score.old_best.pp
-                        and score.score > score.old_best.score
+                        score.pp == previous_best["pp"]
+                        and score.score > previous_best["score"]
                     ):
                         # spin to win!
                         score.status = ScoreStatus.BEST
-                        score.old_best.status = ScoreStatus.SUBMITTED
                     else:
                         score.status = ScoreStatus.SUBMITTED
                 else:
@@ -347,19 +345,14 @@ async def submit_score(
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
 
-        if score.status == ScoreStatus.SUBMITTED:
-            leaderboard.add_submitted_score(score)
-        elif score.status == ScoreStatus.BEST:
-            leaderboard.replace_user_score(score)
-
             if score.pp:
                 await app.usecases.stats.full_recalc(stats, score.pp)
 
             if beatmap.status == RankedStatus.RANKED:
                 stats.ranked_score += score.score
 
-                if score.old_best is not None:
-                    stats.ranked_score -= score.old_best.score
+                if previous_best is not None:
+                    stats.ranked_score -= previous_best["score"]
 
     await app.usecases.stats.save(stats)
 
@@ -373,13 +366,10 @@ async def submit_score(
 
     await app.usecases.stats.refresh_stats(user.id)
 
-    if score.status == ScoreStatus.BEST:
-        score.rank = await leaderboard.find_score_rank(score.user_id, score.id)
-    elif score.status == ScoreStatus.SUBMITTED:
-        score.rank = await leaderboard.whatif_placement(
-            score.user_id,
-            score.pp if score.mode > Mode.MANIA else score.score,
-        )
+    score.rank = app.usecases.leaderboards.find_score_rank(
+        leaderboard_scores=leaderboard.scores,
+        score_to_judge=score,
+    )
 
     if (
         score.rank == 1
@@ -423,14 +413,18 @@ async def submit_score(
             ),
         )
 
-    if score.old_best:
+    if previous_best is not None:
         beatmap_ranking_chart = (
-            chart_entry("rank", score.old_best.rank, score.rank),
-            chart_entry("rankedScore", score.old_best.score, score.score),
-            chart_entry("totalScore", score.old_best.score, score.score),
-            chart_entry("maxCombo", score.old_best.max_combo, score.max_combo),
-            chart_entry("accuracy", round(score.old_best.acc, 2), round(score.acc, 2)),
-            chart_entry("pp", round(score.old_best.pp), round(score.pp)),
+            chart_entry("rank", previous_best["score_rank"], score.rank),
+            chart_entry("rankedScore", previous_best["score"], score.score),
+            chart_entry("totalScore", previous_best["score"], score.score),
+            chart_entry("maxCombo", previous_best["max_combo"], score.max_combo),
+            chart_entry(
+                "accuracy",
+                round(previous_best["accuracy"], 2),
+                round(score.acc, 2),
+            ),
+            chart_entry("pp", round(previous_best["pp"]), round(score.pp)),
         )
     else:
         beatmap_ranking_chart = (

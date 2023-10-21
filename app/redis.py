@@ -33,25 +33,6 @@ async def handle_privilege_change(payload: str) -> None:
     logging.info(f"Updated privileges for user ID {user_id}")
 
 
-@register_pubsub("peppy:wipe")
-async def handle_player_wipe(payload: str) -> None:
-    user_id, rx_int, mode_int = (int(part) for part in payload.split(","))
-    mods_int = {
-        0: 0,  # vn = nomod
-        1: 128,  # rx = relax
-        2: 8192,  # ap = autopilot
-    }[rx_int]
-
-    mode = Mode.from_lb(mode_int, mods_int)
-    beatmaps = await app.usecases.beatmap.fetch_all_cache()
-
-    for beatmap in beatmaps:
-        if leaderboard := beatmap.leaderboards.get(mode):
-            leaderboard.remove_user(user_id)
-
-    logging.info(f"Handled wipe for user ID {user_id} on {mode!r}")
-
-
 class UsernameChange(TypedDict):
     userID: str
 
@@ -72,32 +53,6 @@ class UpdateScorePP(TypedDict):
     new_pp: float
     mode_vn: int
     relax: int
-
-
-@register_pubsub("cache:update_score_pp")
-async def handle_update_score_pp(payload: str) -> None:
-    data: UpdateScorePP = orjson.loads(payload)
-
-    beatmap = app.usecases.beatmap.id_from_cache(data["beatmap_id"])
-    if beatmap is None:
-        return
-
-    mode = Mode.from_lb(data["mode_vn"], data["relax"])
-
-    has_leaderboard_cache = app.usecases.leaderboards.is_leaderboard_cached(
-        beatmap,
-        mode,
-    )
-    if not has_leaderboard_cache:
-        return
-
-    leaderboard = await app.usecases.leaderboards.fetch(beatmap, mode)
-    score = await leaderboard.find_user_score(data["user_id"], unrestricted=False)
-    if score is not None and score["score"].id == data["score_id"]:
-        score["score"].pp = data["new_pp"]
-        leaderboard.sort()
-
-        logging.info(f"Updated score PP on score ID {data['score_id']}")
 
 
 @register_pubsub("cache:map_update")
@@ -123,15 +78,6 @@ async def handle_beatmap_status_change(payload: str) -> None:
     if new_beatmap.status != cached_beatmap.status:
         # map's status changed, reflect it
         cached_beatmap.status = new_beatmap.status
-
-        if new_beatmap.status not in (
-            RankedStatus.RANKED,
-            RankedStatus.LOVED,
-            RankedStatus.APPROVED,
-            RankedStatus.QUALIFIED,
-        ):
-            # reset the leaderboards if they should no longer show
-            cached_beatmap.leaderboards = {}
 
         # reflect changes in the cache
         app.usecases.beatmap.MD5_CACHE[cached_beatmap.md5] = cached_beatmap

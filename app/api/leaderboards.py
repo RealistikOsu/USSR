@@ -15,9 +15,28 @@ from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.models.score import Score
 from app.models.user import User
+from app.repositories.leaderboards import LeaderboardScore
 from app.usecases.user import authenticate_user
 
 CUR_LB_VER = 4
+
+
+def format_leaderboard_score_string(
+    mode: Mode,
+    leaderboard_score: LeaderboardScore,
+) -> str:
+    if mode > Mode.MANIA:
+        score = int(leaderboard_score["pp"])
+    else:
+        score = leaderboard_score["score"]
+
+    return (
+        f"{leaderboard_score['score_id']}|{leaderboard_score['score_username']}|{score}|{leaderboard_score['max_combo']}|"
+        f"{leaderboard_score['count_50']}|{leaderboard_score['count_100']}|{leaderboard_score['count_300']}|{leaderboard_score['count_miss']}|"
+        f"{leaderboard_score['count_katu']}|{leaderboard_score['count_geki']}|{int(leaderboard_score['full_combo'])}|"
+        f"{leaderboard_score['mods']}|{leaderboard_score['user_id']}|{leaderboard_score['score_rank']}|{leaderboard_score['time']}|"
+        "1"  # has replay
+    )
 
 
 async def get_leaderboard(
@@ -99,74 +118,44 @@ async def get_leaderboard(
             ),
         )
     else:
-        # real leaderboard, let's get some scores!
-        leaderboard = await app.usecases.leaderboards.fetch(beatmap, mode)
+        leaderboard_type = LeaderboardType(leaderboard_type_arg)
+
+        mods_filter = mods if leaderboard_type is LeaderboardType.MODS else None
+        country_filter = (
+            user.country if leaderboard_type is LeaderboardType.COUNTRY else None
+        )
+        user_ids_filter = (
+            user.friends if leaderboard_type is LeaderboardType.FRIENDS else None
+        )
+        leaderboard = await app.usecases.leaderboards.fetch_beatmap_leaderboard(
+            beatmap,
+            mode,
+            user.id,
+            mods_filter,
+            country_filter,
+            user_ids_filter,
+        )
 
         response_lines.append(
             beatmap.osu_string(
-                score_count=len(leaderboard),
+                score_count=leaderboard.score_count,
                 rating=beatmap.rating or 10.0,
             ),
         )
 
-        personal_best = await leaderboard.find_user_score(user.id)
-        if personal_best:
+        if leaderboard.personal_best:
             response_lines.append(
-                personal_best["score"].osu_string(
-                    user.name,
-                    personal_best["rank"],
-                ),
+                format_leaderboard_score_string(mode, leaderboard.personal_best),
             )
         else:
             response_lines.append("")
 
-        leaderboard_type = LeaderboardType(leaderboard_type_arg)
-
-        scores: list[Score] = []
-
-        mod_arg = None
-        if leaderboard_type == LeaderboardType.MODS:
-            mod_arg = mods
-
-        for score in await leaderboard.get_unrestricted_scores(user.id, mods=mod_arg):
-            if len(scores) >= 100:  # max 100 scores on lb
-                break
-
-            if leaderboard_type == LeaderboardType.MODS and score.mods != mods:
-                continue
-
-            score_country = await app.usecases.countries.get_country(score.user_id)
-            if (
-                leaderboard_type == LeaderboardType.COUNTRY
-                and score_country != user.country
-            ):
-                continue
-
-            if (
-                leaderboard_type == LeaderboardType.FRIENDS
-                and score.user_id not in user.friends
-            ):
-                continue
-
-            scores.append(score)
-
-        # this double loop probably seems pointless
-        # however it's necessary to be able to limit score count and get accurate ranking at the same time
-        for idx, score in enumerate(scores):
-            if score.user_id == user.id:
-                displayed_name = user.name
-            else:
-                score_clan = await app.usecases.clans.get_clan(score.user_id)
-                score_username = await app.usecases.usernames.get_username(
-                    score.user_id,
-                )
-
-                if score_clan:
-                    displayed_name = f"[{score_clan}] {score_username}"
-                else:
-                    displayed_name = score_username
-
-            response_lines.append(score.osu_string(displayed_name, rank=idx + 1))
+        response_lines.extend(
+            [
+                format_leaderboard_score_string(mode, score)
+                for score in leaderboard.scores
+            ],
+        )
 
     end = time.perf_counter_ns()
 

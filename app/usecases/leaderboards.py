@@ -1,45 +1,99 @@
 from __future__ import annotations
 
-import app.state
+from dataclasses import dataclass
+
 from app.constants.mode import Mode
-from app.constants.score_status import ScoreStatus
+from app.constants.mods import Mods
 from app.models.beatmap import Beatmap
 from app.models.score import Score
-from app.objects.leaderboard import Leaderboard
+from app.repositories import leaderboards as leaderboards_repository
+from app.repositories.leaderboards import LeaderboardScore
 
 
-async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
-    leaderboard = Leaderboard(mode)
+@dataclass
+class Leaderboard:
+    beatmap_md5: str
+    mode: Mode
+    score_count: int
+    scores: list[LeaderboardScore]
+    personal_best: LeaderboardScore | None
 
-    db_scores = await app.state.services.database.fetch_all(
-        f"SELECT * FROM {mode.scores_table} WHERE beatmap_md5 = :md5 AND play_mode = :mode AND completed IN (2, 3)",
-        {
-            "md5": beatmap.md5,
-            "mode": mode.as_vn,
-        },
+
+async def fetch_beatmap_leaderboard(
+    beatmap: Beatmap,
+    mode: Mode,
+    requestee_user_id: int,
+    mods_filter: Mods | None = None,
+    country_filter: str | None = None,
+    user_ids_filter: list[int] | None = None,
+    leaderboard_size: int = 100,
+) -> Leaderboard:
+    # if there is a mods filter we will allow non-bests
+    # so that a user's best modded score will appear
+    best_scores_only = mods_filter is None
+
+    int_mods_filter = int(mods_filter) if mods_filter else None
+
+    scores = await leaderboards_repository.fetch_beatmap_leaderboard(
+        beatmap_md5=beatmap.md5,
+        play_mode=mode.as_vn,
+        requestee_user_id=requestee_user_id,
+        scores_table=mode.scores_table,
+        sort_column=mode.sort,
+        best_scores_only=best_scores_only,
+        mods_filter=int_mods_filter,
+        country_filter=country_filter,
+        user_ids_filter=user_ids_filter,
+        score_limit=leaderboard_size,
     )
 
-    for db_score in db_scores:
-        score = Score.from_mapping(db_score)
+    personal_best = await leaderboards_repository.fetch_user_score(
+        beatmap_md5=beatmap.md5,
+        play_mode=mode.as_vn,
+        user_id=requestee_user_id,
+        scores_table=mode.scores_table,
+        mods_filter=int_mods_filter,
+        best_scores_only=best_scores_only,
+        sort_column=mode.sort,
+    )
 
-        if score.status == ScoreStatus.BEST:
-            leaderboard.best_scores.append(score)
+    score_count = await leaderboards_repository.fetch_beatmap_leaderboard_score_count(
+        beatmap_md5=beatmap.md5,
+        play_mode=mode.as_vn,
+        requestee_user_id=requestee_user_id,
+        scores_table=mode.scores_table,
+        sort_column=mode.sort,
+        best_scores_only=best_scores_only,
+        mods_filter=int_mods_filter,
+        country_filter=country_filter,
+        user_ids_filter=user_ids_filter,
+    )
+
+    return Leaderboard(
+        beatmap_md5=beatmap.md5,
+        mode=beatmap.mode,
+        score_count=score_count,
+        scores=scores,
+        personal_best=personal_best,
+    )
+
+
+def find_score_rank(
+    leaderboard_scores: list[LeaderboardScore],
+    score_to_judge: Score,
+) -> int:
+    if score_to_judge.mode > Mode.MANIA:
+        comparison_value = score_to_judge.pp
+    else:
+        comparison_value = score_to_judge.score
+
+    for idx, leaderboard_score in enumerate(leaderboard_scores):
+        if score_to_judge.mode > Mode.MANIA:
+            to_beat = leaderboard_score["pp"]
         else:
-            leaderboard.non_best_scores.append(score)
+            to_beat = leaderboard_score["score"]
 
-    leaderboard.sort()
-    return leaderboard
+        if comparison_value > to_beat:
+            return idx + 1
 
-
-async def fetch(beatmap: Beatmap, mode: Mode) -> Leaderboard:
-    if leaderboard := beatmap.leaderboards.get(mode):
-        return leaderboard
-
-    leaderboard = await create(beatmap, mode)
-    beatmap.leaderboards[mode] = leaderboard
-
-    return leaderboard
-
-
-def is_leaderboard_cached(beatmap: Beatmap, mode: Mode) -> bool:
-    return mode in beatmap.leaderboards
+    return 1
