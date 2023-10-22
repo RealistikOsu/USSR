@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import hashlib
 from typing import TypedDict
 
@@ -41,7 +42,11 @@ async def calculate_performances(
         f"{config.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
         json=scores,
     ) as resp:
-        if resp.status != 200:
+        if resp.status not in range(200, 300):
+            logging.error(
+                "Performance service returned non-2xx code on calculate_performances",
+                extra={"status": resp.status},
+            )
             return [(0.0, 0.0)] * len(scores)
 
         data = await resp.json()
@@ -71,6 +76,10 @@ async def calculate_performance(
         ],
     ) as resp:
         if resp.status != 200:
+            logging.error(
+                "Performance service returned non-2xx code on calculate_performance",
+                extra={"status": resp.status},
+            )
             return 0.0, 0.0
 
         data = (await resp.json())[0]
