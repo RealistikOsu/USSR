@@ -336,10 +336,17 @@ async def submit_score(
 
     old_stats = copy(stats)
 
+    total_hits = score.n300 + score.n100
+    if score.mode.as_vn != Mode.CATCH:
+        total_hits += score.n50
+
+    if score.mode.as_vn in (Mode.TAIKO, Mode.MANIA):
+        total_hits += score.ngeki + score.nkatu
+
     stats.playcount += 1
     stats.playtime += score.time_elapsed // 1000
     stats.total_score += score.score
-    stats.total_hits += score.n300 + score.n100 + score.n50
+    stats.total_hits += total_hits
 
     if score.passed and beatmap.has_leaderboard:
         if stats.max_combo < score.max_combo:
