@@ -355,7 +355,10 @@ async def submit_score(
         if score.pp:
             await app.usecases.stats.full_recalc(stats, score.pp)
 
-        if beatmap.status in (RankedStatus.RANKED, RankedStatus.APPROVED):
+        if (
+            beatmap.status in (RankedStatus.RANKED, RankedStatus.APPROVED)
+            and score.status == ScoreStatus.BEST
+        ):
             stats.ranked_score += score.score
 
             if previous_best is not None:
