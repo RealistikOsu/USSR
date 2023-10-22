@@ -22,4 +22,4 @@ jobs:
             git pull origin master
             docker build -t score-service:latest .
             cd /home/akatsuki/workbench
-            docker-compose restart score-service
+            docker-compose restart score-service-api
