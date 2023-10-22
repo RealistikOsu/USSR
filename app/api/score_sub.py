@@ -352,14 +352,14 @@ async def submit_score(
         if stats.max_combo < score.max_combo:
             stats.max_combo = score.max_combo
 
-            if score.pp:
-                await app.usecases.stats.full_recalc(stats, score.pp)
+        if score.pp:
+            await app.usecases.stats.full_recalc(stats, score.pp)
 
-            if beatmap.status == RankedStatus.RANKED:
-                stats.ranked_score += score.score
+        if beatmap.status in (RankedStatus.RANKED, RankedStatus.APPROVED):
+            stats.ranked_score += score.score
 
-                if previous_best is not None:
-                    stats.ranked_score -= previous_best["score"]
+            if previous_best is not None:
+                stats.ranked_score -= previous_best["score"]
 
     await app.usecases.stats.save(stats)
 
