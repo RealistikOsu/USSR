@@ -376,9 +376,11 @@ async def submit_score(
 
     await app.usecases.stats.refresh_stats(user.id)
 
-    score.rank = app.usecases.leaderboards.find_score_rank(
-        leaderboard_scores=leaderboard.scores,
-        score_to_judge=score,
+    score.rank = await app.usecases.leaderboards.find_score_rank(
+        score_id_to_judge=score.id,
+        beatmap_md5=beatmap.md5,
+        user_id=score.user_id,
+        mode=score.mode,
     )
 
     if (

@@ -78,22 +78,21 @@ async def fetch_beatmap_leaderboard(
     )
 
 
-def find_score_rank(
-    leaderboard_scores: list[LeaderboardScore],
-    score_to_judge: Score,
+async def find_score_rank(
+    score_id_to_judge: int,
+    beatmap_md5: str,
+    user_id: int,
+    mode: Mode,
 ) -> int:
-    if score_to_judge.mode > Mode.MANIA:
-        comparison_value = score_to_judge.pp
-    else:
-        comparison_value = score_to_judge.score
+    print(score_id_to_judge)
+    leaderboard_score = await leaderboards_repository.fetch_score_on_leaderboard(
+        score_id=score_id_to_judge,
+        beatmap_md5=beatmap_md5,
+        play_mode=mode.as_vn,
+        user_id=user_id,
+        scores_table=mode.scores_table,
+        sort_column=mode.sort,
+    )
+    assert leaderboard_score is not None
 
-    for idx, leaderboard_score in enumerate(leaderboard_scores):
-        if score_to_judge.mode > Mode.MANIA:
-            to_beat = leaderboard_score["pp"]
-        else:
-            to_beat = leaderboard_score["score"]
-
-        if comparison_value > to_beat:
-            return idx + 1
-
-    return len(leaderboard_scores) + 1
+    return leaderboard_score["score_rank"]
