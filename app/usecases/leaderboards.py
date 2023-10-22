@@ -96,4 +96,4 @@ def find_score_rank(
         if comparison_value > to_beat:
             return idx + 1
 
-    return 1
+    return len(leaderboard_scores) + 1
