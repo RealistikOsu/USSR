@@ -354,7 +354,10 @@ async def submit_score(
         if score.pp:
             await app.usecases.stats.full_recalc(stats, score.pp)
 
-        if beatmap.status in (RankedStatus.RANKED, RankedStatus.APPROVED):
+        if (
+            beatmap.status in (RankedStatus.RANKED, RankedStatus.APPROVED)
+            and score.status == ScoreStatus.BEST
+        ):
             stats.ranked_score += score.score
 
             if previous_best is not None:
@@ -372,9 +375,11 @@ async def submit_score(
 
     await app.usecases.stats.refresh_stats(user.id)
 
-    score.rank = app.usecases.leaderboards.find_score_rank(
-        leaderboard_scores=leaderboard.scores,
-        score_to_judge=score,
+    score.rank = await app.usecases.leaderboards.find_score_rank(
+        score_id_to_judge=score.id,
+        beatmap_md5=beatmap.md5,
+        user_id=score.user_id,
+        mode=score.mode,
     )
 
     if (

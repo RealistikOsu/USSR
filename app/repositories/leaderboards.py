@@ -159,7 +159,6 @@ async def fetch_user_score(
     query = f"""
         WITH RankedScores AS (
             SELECT
-                c.tag,
                 users.username AS users_username,
                 s.id AS score_id,
                 s.beatmap_md5 AS beatmap_md5,
@@ -185,8 +184,6 @@ async def fetch_user_score(
                 row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
-            LEFT JOIN clans c ON users.clan_id = c.id
-            INNER JOIN users_stats ON users_stats.id = s.userid
             WHERE
                 s.beatmap_md5 = :beatmap_md5
                 AND s.play_mode = :play_mode
@@ -205,6 +202,67 @@ async def fetch_user_score(
         WHERE a.user_id = :user_id
         ORDER BY a.{sort_column} DESC
         LIMIT 1
+    """
+
+    score_record = await app.state.services.database.fetch_one(query, params)
+    return (
+        cast(LeaderboardScore, dict(score_record)) if score_record is not None else None
+    )
+
+
+async def fetch_score_on_leaderboard(
+    score_id: int,
+    beatmap_md5: str,
+    play_mode: int,
+    user_id: int,
+    scores_table: Literal["scores", "scores_relax", "scores_ap"],
+    sort_column: Literal["pp", "score"] = "pp",
+) -> LeaderboardScore | None:
+    params = {
+        "beatmap_md5": beatmap_md5,
+        "play_mode": play_mode,
+        "user_id": user_id,
+        "score_id": score_id,
+    }
+
+    query = f"""
+        SELECT
+            users.username AS users_username,
+            s.id AS score_id,
+            s.beatmap_md5 AS beatmap_md5,
+            s.userid AS user_id,
+            s.score AS score,
+            s.max_combo AS max_combo,
+            s.full_combo AS full_combo,
+            s.mods AS mods,
+            s.`300_count` AS count_300,
+            s.`100_count` AS count_100,
+            s.`50_count` AS count_50,
+            s.katus_count AS count_katu,
+            s.gekis_count AS count_geki,
+            s.misses_count AS count_miss,
+            s.time AS time,
+            s.play_mode AS play_mode,
+            s.completed AS completed,
+            s.accuracy AS accuracy,
+            s.pp AS pp,
+            s.checksum AS checksum,
+            s.patcher AS patcher,
+            s.pinned AS pinned,
+            (
+                SELECT COUNT(*) + 1
+                FROM {scores_table} b
+                INNER JOIN users u ON b.userid = u.id
+                WHERE
+                    b.beatmap_md5 = :beatmap_md5
+                    AND b.play_mode = :play_mode
+                    AND b.completed = 3
+                    AND (u.privileges & 1 > 0 OR u.id = :user_id)
+                    AND b.{sort_column} > s.{sort_column}
+            ) AS score_rank
+        FROM {scores_table} s
+        INNER JOIN users ON s.userid = users.id
+        WHERE s.id = :score_id
     """
 
     score_record = await app.state.services.database.fetch_one(query, params)
@@ -257,7 +315,6 @@ async def fetch_beatmap_leaderboard_score_count(
     query = f"""
         WITH RankedScores AS (
             SELECT
-                c.tag,
                 users.username AS users_username,
                 s.id AS score_id,
                 s.beatmap_md5 AS beatmap_md5,
@@ -283,7 +340,6 @@ async def fetch_beatmap_leaderboard_score_count(
                 row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
-            LEFT JOIN clans c ON users.clan_id = c.id
             INNER JOIN users_stats ON users_stats.id = s.userid
             WHERE
                 s.beatmap_md5 = :beatmap_md5
