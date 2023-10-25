@@ -10,7 +10,6 @@ from tenacity.stop import stop_after_attempt
 
 import app.state
 import config
-from app.objects.path import Path
 
 REQUIRED_FOLDERS = (
     config.DATA_DIR,

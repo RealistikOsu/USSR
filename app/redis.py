@@ -12,8 +12,6 @@ import redis.asyncio.client
 
 import app.state
 import app.usecases
-from app.constants.mode import Mode
-from app.constants.ranked_status import RankedStatus
 
 PUBSUB_HANDLER = Callable[[str], Awaitable[None]]
 

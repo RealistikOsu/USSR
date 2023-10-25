@@ -16,7 +16,6 @@ import app.state
 import app.usecases
 import config
 from app.adapters import amplitude
-from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user

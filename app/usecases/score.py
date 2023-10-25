@@ -8,7 +8,6 @@ from typing import Optional
 import app.state
 import app.usecases
 import app.utils
-from app.adapters import s3
 from app.models.achievement import Achievement
 from app.models.beatmap import Beatmap
 from app.models.score import Score

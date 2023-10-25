@@ -13,7 +13,6 @@ import app.utils
 from app.constants.leaderboard_type import LeaderboardType
 from app.constants.mode import Mode
 from app.constants.mods import Mods
-from app.models.score import Score
 from app.models.user import User
 from app.repositories.leaderboards import LeaderboardScore
 from app.usecases.user import authenticate_user

@@ -30,7 +30,6 @@ import app.usecases
 import app.utils
 import config
 from app.adapters import amplitude
-from app.adapters import s3
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
