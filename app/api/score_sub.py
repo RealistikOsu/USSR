@@ -118,7 +118,7 @@ async def submit_score(
     client_hash_b64: bytes = Form(..., alias="s"),
     fl_cheat_screenshot: Optional[bytes] = File(None, alias="i"),
 ):
-    start = time.perf_counter_ns()
+    start = time.perf_counter()
 
     score_params = await parse_form(await request.form())
     if not score_params:
@@ -497,7 +497,7 @@ async def submit_score(
         f"achievements-new:{achievements_str}",
     ]
 
-    end = time.perf_counter_ns()
+    end = time.perf_counter()
 
     logging.info(
         "Processed score submission",
@@ -509,7 +509,7 @@ async def submit_score(
             "beatmap_name": beatmap.song_name,
             "game_mode": score.mode.name,
             "performance": score.pp,
-            "time_elapsed": app.utils.format_time(end - start),
+            "time_elapsed": end - start,
         },
     )
 

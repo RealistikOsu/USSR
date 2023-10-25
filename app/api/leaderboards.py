@@ -52,7 +52,7 @@ async def get_leaderboard(
     map_package_hash: str = Query(..., alias="h"),  # TODO: whaat to do?
     aqn_files_found: bool = Query(..., alias="a"),  # TODO: whaat to do?
 ):
-    start = time.perf_counter_ns()
+    start = time.perf_counter()
 
     if map_md5 in app.state.cache.UNSUBMITTED:
         return b"-1|false"
@@ -163,7 +163,7 @@ async def get_leaderboard(
             ],
         )
 
-    end = time.perf_counter_ns()
+    end = time.perf_counter()
 
     logging.info(
         "Served leaderboard",
@@ -173,7 +173,7 @@ async def get_leaderboard(
             "beatmap": beatmap.song_name,
             "mode": mode.name,
             "mods": mods.name,
-            "time_elapsed": app.utils.format_time(end - start),
+            "time_elapsed": end - start,
         },
     )
 
