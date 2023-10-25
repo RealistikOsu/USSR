@@ -9,7 +9,7 @@ from base64 import b64decode
 from base64 import b64encode
 from copy import copy
 from datetime import datetime
-from typing import NamedTuple
+from typing import Awaitable, NamedTuple
 from typing import Optional
 from typing import TypeVar
 from typing import Union
@@ -370,7 +370,11 @@ async def submit_score(
         await app.usecases.user.update_latest_pp_awarded(user.id, score.mode)
         await app.usecases.stats.update_rank(stats)
 
-    await app.usecases.stats.refresh_stats(user.id)
+    async def run_after_delay(delay: float, coro):
+        await asyncio.sleep(delay)
+        await coro
+
+    asyncio.create_task(run_after_delay(1.0, app.usecases.stats.refresh_stats(user.id)))
 
     score.rank = app.usecases.leaderboards.find_score_rank(
         leaderboard_scores=leaderboard.scores,
