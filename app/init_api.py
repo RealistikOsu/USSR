@@ -109,8 +109,6 @@ def init_events(asgi_app: FastAPI) -> None:
             task = asyncio.create_task(_task())
             app.state.tasks.add(task)
 
-        app.state.locks["score_submission"] = asyncio.Lock()
-
         logging.info("Server has started!")
 
     @asgi_app.on_event("shutdown")
