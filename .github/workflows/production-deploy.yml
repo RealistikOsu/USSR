@@ -9,6 +9,10 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
       - name: Run deploy on production
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -19,7 +23,9 @@ jobs:
           script_stop: true
           script: |
             cd /home/akatsuki/score-service
-            git pull origin master
+            git fetch origin
+            git checkout origin/${{ steps.extract_branch.outputs.branch }}
+            git pull origin ${{ steps.extract_branch.outputs.branch }}
             docker build -t score-service:latest .
             cd /home/akatsuki/workbench
             docker-compose restart score-service-api
