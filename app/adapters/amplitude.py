@@ -6,10 +6,8 @@ from typing import TYPE_CHECKING
 
 from tenacity import retry
 from tenacity.stop import stop_after_attempt
-from tenacity.wait import wait_exponential
 
 import config
-from app.reliability import retry_if_exception_network_related
 from app.state import services
 
 if TYPE_CHECKING:
@@ -105,12 +103,8 @@ def format_achievement(achievement: Achievement) -> dict[str, Any]:
     }
 
 
-@retry(
-    retry=retry_if_exception_network_related(),
-    wait=wait_exponential(),
-    stop=stop_after_attempt(10),
-    reraise=True,
-)
+# TODO: better client error & 429 handling
+@retry(stop=stop_after_attempt(7))
 async def track(
     event_name: str,
     user_id: str | None = None,
@@ -210,12 +204,7 @@ async def track(
         resp.raise_for_status()
 
 
-@retry(
-    retry=retry_if_exception_network_related(),
-    wait=wait_exponential(),
-    stop=stop_after_attempt(10),
-    reraise=True,
-)
+@retry(stop=stop_after_attempt(7))
 async def identify(
     user_id: str | None = None,
     device_id: str | None = None,
