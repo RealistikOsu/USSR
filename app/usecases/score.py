@@ -125,7 +125,7 @@ async def handle_first_place(
     )
 
     msg = f"[{score.mode.relax_str}] User {user.embed} has submitted a #1 place on {beatmap.embed} +{score.mods!r} ({score.pp:.2f}pp)"
-    await app.utils.announce(msg)
+    await app.utils.send_announcement_as_side_effect(msg)
 
 
 OSU_VERSION = 2021_11_03
