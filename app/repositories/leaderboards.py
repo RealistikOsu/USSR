@@ -262,7 +262,7 @@ async def fetch_score_on_leaderboard(
                         b.{sort_column} > s.{sort_column}
                         OR (
                             b.{sort_column} = s.{sort_column}
-                            AND b.time > s.time
+                            AND b.time < s.time
                         )
                     )
             ) AS score_rank
