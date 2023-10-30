@@ -28,4 +28,5 @@ jobs:
             git pull origin ${{ steps.extract_branch.outputs.branch }}
             docker build -t score-service:latest .
             cd /home/akatsuki/workbench
-            docker-compose restart score-service-api
+            docker-compose stop score-service-api
+            docker-compose up -d score-service-api
