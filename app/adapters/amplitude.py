@@ -5,9 +5,11 @@ from typing import Mapping
 from typing import TYPE_CHECKING
 
 from tenacity import retry
+from tenacity import wait_exponential
 from tenacity.stop import stop_after_attempt
 
 import config
+from app.reliability import retry_if_exception_network_related
 from app.state import services
 
 if TYPE_CHECKING:
@@ -103,8 +105,12 @@ def format_achievement(achievement: Achievement) -> dict[str, Any]:
     }
 
 
-# TODO: better client error & 429 handling
-@retry(stop=stop_after_attempt(7))
+@retry(
+    retry=retry_if_exception_network_related(),
+    wait=wait_exponential(),
+    stop=stop_after_attempt(10),
+    reraise=True,
+)
 async def track(
     event_name: str,
     user_id: str | None = None,
@@ -189,7 +195,7 @@ async def track(
 
     amplitude_event = {k: v for k, v in amplitude_event.items() if v is not None}
 
-    async with services.http.post(
+    response = await services.http_client.post(
         url="https://api.amplitude.com/2/httpapi",
         headers={"Content-Type": "application/json"},
         json={
@@ -200,11 +206,16 @@ async def track(
             },
             "events": [amplitude_event],
         },
-    ) as resp:
-        resp.raise_for_status()
+    )
+    response.raise_for_status()
 
 
-@retry(stop=stop_after_attempt(7))
+@retry(
+    retry=retry_if_exception_network_related(),
+    wait=wait_exponential(),
+    stop=stop_after_attempt(10),
+    reraise=True,
+)
 async def identify(
     user_id: str | None = None,
     device_id: str | None = None,
@@ -252,12 +263,12 @@ async def identify(
 
     amplitude_event = {k: v for k, v in amplitude_event.items() if v is not None}
 
-    async with services.http.post(
+    response = await services.http_client.post(
         url="https://api.amplitude.com/identify",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data={
             "api_key": config.AMPLITUDE_API_KEY,
             "identification": [amplitude_event],
         },
-    ) as resp:
-        resp.raise_for_status()
+    )
+    response.raise_for_status()

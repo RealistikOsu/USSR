@@ -5,8 +5,8 @@ from typing import Mapping
 from typing import TYPE_CHECKING
 
 import aio_pika
-import aiohttp
 import databases
+import httpx
 import redis.asyncio as aioredis
 from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
@@ -21,7 +21,7 @@ redis: aioredis.Redis
 
 ftp_client: ftpretty
 
-http: aiohttp.ClientSession
+http_client: httpx.AsyncClient
 
 amqp: aio_pika.RobustConnection
 amqp_channel: aio_pika.RobustChannel

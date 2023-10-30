@@ -204,18 +204,18 @@ async def save(beatmap: Beatmap) -> None:
 async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
-    async with app.state.services.http.get(
+    response = await app.state.services.http_client.get(
         GET_BEATMAP_URL,
         params={"k": api_key, "h": md5},
-    ) as response:
-        if response.status == 404:
-            return None
+    )
+    if response.status_code == 404:
+        return None
 
-        response.raise_for_status()
+    response.raise_for_status()
 
-        response_json = await response.json()
-        if not response_json:
-            return None
+    response_json = response.json()
+    if not response_json:
+        return None
 
     beatmaps = parse_from_osu_api(response_json)
 
@@ -232,18 +232,18 @@ async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
 async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
-    async with app.state.services.http.get(
+    response = await app.state.services.http_client.get(
         GET_BEATMAP_URL,
         params={"k": api_key, "b": id},
-    ) as response:
-        if response.status == 404:
-            return None
+    )
+    if response.status_code == 404:
+        return None
 
-        response.raise_for_status()
+    response.raise_for_status()
 
-        response_json = await response.json()
-        if not response_json:
-            return None
+    response_json = response.json()
+    if not response_json:
+        return None
 
     beatmaps = parse_from_osu_api(response_json)
 
@@ -260,18 +260,18 @@ async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
 async def set_from_api(id: int, should_save: bool = True) -> Optional[list[Beatmap]]:
     api_key = random.choice(config.API_KEYS_POOL)
 
-    async with app.state.services.http.get(
+    response = await app.state.services.http_client.get(
         GET_BEATMAP_URL,
         params={"k": api_key, "s": id},
-    ) as response:
-        if response.status == 404:
-            return None
+    )
+    if response.status_code == 404:
+        return None
 
-        response.raise_for_status()
+    response.raise_for_status()
 
-        response_json = await response.json()
-        if not response_json:
-            return None
+    response_json = response.json()
+    if not response_json:
+        return None
 
     beatmaps = parse_from_osu_api(response_json)
 

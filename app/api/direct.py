@@ -5,7 +5,6 @@ from typing import Any
 from typing import Optional
 from urllib.parse import unquote_plus
 
-from aiohttp import ClientTimeout
 from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
@@ -60,19 +59,20 @@ async def osu_direct(
         params["status"] = RankedStatus.from_direct(ranked_status).osu_api
 
     try:
-        async with app.state.services.http.get(
+        response = await app.state.services.http_client.get(
             search_url,
             params=params,
-            timeout=ClientTimeout(total=5),
-        ) as response:
-            if response.status != status.HTTP_200_OK:
-                return b"-1\nFailed to retrieve data from the beatmap mirror."
+            timeout=5,
+        )
+        if response.status_code != status.HTTP_200_OK:
+            return b"-1\nFailed to retrieve data from the beatmap mirror."
 
-            result = await response.json()
+        result = response.json()
 
-            # if USING_KITSU: # kitsu is kinda annoying here and sends status in body
-            #    if result["code"] != 200:
-            #        return b"-1\nFailed to retrieve data from the beatmap mirror."
+        # if USING_KITSU: # kitsu is kinda annoying here and sends status in body
+        #    if result["code"] != 200:
+        #        return b"-1\nFailed to retrieve data from the beatmap mirror."
+
     except asyncio.exceptions.TimeoutError:
         return b"-1\n3rd party beatmap mirror we depend on timed out. Their server is likely down."
 
@@ -131,11 +131,11 @@ async def beatmap_card(
         map_set_id = bmap.set_id
 
     url = f"{config.DIRECT_URL}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
-    async with app.state.services.http.get(url) as response:
-        if response.status != 200:
-            return
+    response = await app.state.services.http_client.get(url, timeout=5)
+    if response.status_code != 200:
+        return
 
-        result = await response.json()
+    result = response.json()
 
     json_data = result["data"] if USING_CHIMU else result
 

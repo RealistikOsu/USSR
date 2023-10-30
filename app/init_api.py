@@ -7,8 +7,7 @@ import pprint
 
 import aio_pika
 import aiobotocore.session
-import aiohttp
-import orjson
+import httpx
 import redis.asyncio as aioredis
 from fastapi import FastAPI
 from fastapi import status
@@ -51,9 +50,7 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.redis.initialize()
         await app.state.services.redis.ping()
 
-        app.state.services.http = aiohttp.ClientSession(
-            json_serialize=lambda x: orjson.dumps(x).decode(),
-        )
+        app.state.services.http_client = httpx.AsyncClient()
 
         app.state.services.s3_client = None
         if (
@@ -119,7 +116,7 @@ def init_events(asgi_app: FastAPI) -> None:
 
         await app.state.services.redis.close()
 
-        await app.state.services.http.close()
+        await app.state.services.http_client.aclose()
 
         if app.state.services.ftp_client is not None:
             app.state.services.ftp_client.close()

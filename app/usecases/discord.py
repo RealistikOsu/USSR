@@ -5,9 +5,15 @@ import logging
 import traceback
 from typing import Optional
 
+from tenacity import retry
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
+
 import app.state
 import config
 from app.models.user import User
+from app.reliability import retry_if_exception_network_related
+
 
 # This portion is based off cmyui's discord hooks code
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/discord/webhook.py
@@ -155,28 +161,34 @@ class Webhook:
 
         return payload
 
+    @retry(
+        retry=retry_if_exception_network_related(),
+        wait=wait_exponential(),
+        stop=stop_after_attempt(10),
+        reraise=True,
+    )
     async def post(self) -> None:
         """Post the webhook in JSON format."""
+        response = await app.state.services.http_client.post(
+            self.url,
+            json=self.json,
+        )
+        response.raise_for_status()
 
-        async with app.state.services.http.post(self.url, json=self.json) as req:
-            if 200 <= req.status >= 300:
-                # status code is not in the 200s range (success case)
 
-                logging.warning(f"Discord webhook failed with status {req.status}")
-
-
-async def wrap_hook(hook: str, embed: Embed) -> None:
+async def wrap_hook(webhook_url: str, embed: Embed) -> None:
     """Handles sending the webhook to discord."""
 
     logging.info("Sending Discord webhook!")
 
     try:
-        wh = Webhook(hook, tts=False, username="LESS Score Server")
+        wh = Webhook(webhook_url, tts=False, username="LESS Score Server")
         wh.add_embed(embed)
         await wh.post()
     except Exception:
-        logging.error(
-            "Failed sending Discord webhook with exception " + traceback.format_exc(),
+        logging.exception(
+            "Failed to send Discord webhook",
+            extra={"embed": embed},
         )
 
 

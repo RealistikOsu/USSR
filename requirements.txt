@@ -1,12 +1,12 @@
 aio-pika
 aiobotocore
 aioftp
-aiohttp[speedups]
 bcrypt
 cryptography
 databases[asyncmy]
 fastapi
 ftpretty
+httpx
 orjson
 py3rijndael
 python-json-logger

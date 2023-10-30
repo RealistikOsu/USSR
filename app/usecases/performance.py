@@ -15,13 +15,13 @@ async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bo
         not osu_file_path.exists()
         or hashlib.md5(osu_file_path.read_bytes()).hexdigest() != map_md5
     ):
-        async with app.state.services.http.get(
+        response = await app.state.services.http_client.get(
             f"https://old.ppy.sh/osu/{map_id}",
-        ) as response:
-            if response.status != 200:
-                return False
+        )
+        if response.status_code != 200:
+            return False
 
-            osu_file_path.write_bytes(await response.read())
+        osu_file_path.write_bytes(response.read())
 
     return True
 
@@ -38,19 +38,19 @@ class PerformanceScore(TypedDict):
 async def calculate_performances(
     scores: list[PerformanceScore],
 ) -> list[tuple[float, float]]:
-    async with app.state.services.http.post(
+    response = await app.state.services.http_client.post(
         f"{config.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
         json=scores,
-    ) as resp:
-        if resp.status not in range(200, 300):
-            logging.error(
-                "Performance service returned non-2xx code on calculate_performances",
-                extra={"status": resp.status},
-            )
-            return [(0.0, 0.0)] * len(scores)
+    )
+    if not response.is_success:
+        logging.error(
+            "Performance service returned non-2xx code on calculate_performances",
+            extra={"status": response.status_code},
+        )
+        return [(0.0, 0.0)] * len(scores)
 
-        data = await resp.json()
-        return [(result["pp"], result["stars"]) for result in data]
+    data = response.json()
+    return [(result["pp"], result["stars"]) for result in data]
 
 
 # TODO: split sr & pp calculations
@@ -62,7 +62,7 @@ async def calculate_performance(
     acc: float,
     nmiss: int,
 ) -> tuple[float, float]:
-    async with app.state.services.http.post(
+    response = await app.state.services.http_client.post(
         f"{config.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
         json=[
             {
@@ -74,13 +74,13 @@ async def calculate_performance(
                 "miss_count": nmiss,
             },
         ],
-    ) as resp:
-        if resp.status != 200:
-            logging.error(
-                "Performance service returned non-2xx code on calculate_performance",
-                extra={"status": resp.status},
-            )
-            return 0.0, 0.0
+    )
+    if response.status_code != 200:
+        logging.error(
+            "Performance service returned non-2xx code on calculate_performance",
+            extra={"status": response.status_code},
+        )
+        return 0.0, 0.0
 
-        data = (await resp.json())[0]
-        return data["pp"], data["stars"]
+    data = response.json()[0]
+    return data["pp"], data["stars"]
