@@ -258,7 +258,13 @@ async def fetch_score_on_leaderboard(
                     AND b.play_mode = :play_mode
                     AND b.completed = 3
                     AND (u.privileges & 1 > 0 OR u.id = :user_id)
-                    AND b.{sort_column} > s.{sort_column}
+                    AND (
+                        b.{sort_column} > s.{sort_column}
+                        OR (
+                            b.{sort_column} = s.{sort_column}
+                            AND b.time > s.time
+                        )
+                    )
             ) AS score_rank
         FROM {scores_table} s
         INNER JOIN users ON s.userid = users.id
