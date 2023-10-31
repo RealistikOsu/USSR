@@ -101,7 +101,7 @@ async def fetch_beatmap_leaderboard(
                 s.checksum AS checksum,
                 s.patcher AS patcher,
                 s.pinned AS pinned,
-                row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
+                row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC, s.time ASC) score_order_rank
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
             LEFT JOIN clans c ON users.clan_id = c.id
@@ -117,11 +117,11 @@ async def fetch_beatmap_leaderboard(
             CONCAT(IF(a.tag IS NOT NULL AND a.user_id != :requestee_user_id, CONCAT("[", a.tag, "] "), ""), a.users_username) `score_username`,
             a.*
         FROM (
-            SELECT *, row_number() OVER (ORDER BY {sort_column} DESC) `score_rank`
+            SELECT *, row_number() OVER (ORDER BY {sort_column} DESC, time ASC) `score_rank`
             FROM RankedScores
             WHERE score_order_rank = 1
         ) a
-        ORDER BY a.{sort_column} DESC
+        ORDER BY a.{sort_column} DESC, a.time ASC
         LIMIT :score_limit
     """
 
@@ -181,7 +181,7 @@ async def fetch_user_score(
                 s.checksum AS checksum,
                 s.patcher AS patcher,
                 s.pinned AS pinned,
-                row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
+                row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC, s.time ASC) score_order_rank
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
             WHERE
@@ -195,12 +195,12 @@ async def fetch_user_score(
             a.*,
             a.users_username AS score_username
         FROM (
-            SELECT *, row_number() OVER (ORDER BY {sort_column} DESC) `score_rank`
+            SELECT *, row_number() OVER (ORDER BY {sort_column} DESC, time ASC) `score_rank`
             FROM RankedScores
             WHERE score_order_rank = 1
         ) a
         WHERE a.user_id = :user_id
-        ORDER BY a.{sort_column} DESC
+        ORDER BY a.{sort_column} DESC, a.time ASC
         LIMIT 1
     """
 
@@ -343,7 +343,7 @@ async def fetch_beatmap_leaderboard_score_count(
                 s.checksum AS checksum,
                 s.patcher AS patcher,
                 s.pinned AS pinned,
-                row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC) score_order_rank
+                row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC, s.time ASC) score_order_rank
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
             INNER JOIN users_stats ON users_stats.id = s.userid
@@ -357,7 +357,7 @@ async def fetch_beatmap_leaderboard_score_count(
         SELECT
             COUNT(*)
         FROM (
-            SELECT *, row_number() OVER (ORDER BY {sort_column} DESC) `score_rank`
+            SELECT *, row_number() OVER (ORDER BY {sort_column} DESC, time ASC) `score_rank`
             FROM RankedScores
             WHERE score_order_rank = 1
         ) a
