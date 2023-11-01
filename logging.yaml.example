@@ -5,6 +5,14 @@ loggers:
     level: INFO
     handlers: [console]
     propagate: no
+  httpx:
+    level: WARNING
+    handlers: [console]
+    propagate: no
+  httpcore:
+    level: WARNING
+    handlers: [console]
+    propagate: no
 handlers:
   console:
     class: logging.StreamHandler
