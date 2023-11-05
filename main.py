@@ -8,7 +8,6 @@ import uvicorn
 import app.exception_handling
 import app.logging
 import app.usecases.performance
-import app.utils
 import config
 
 
@@ -17,8 +16,6 @@ def main() -> int:
 
     app.exception_handling.hook_exception_handlers()
     atexit.register(app.exception_handling.unhook_exception_handlers)
-
-    app.utils.ensure_directory_structure()
 
     uvicorn.run(
         "app.init_api:asgi_app",

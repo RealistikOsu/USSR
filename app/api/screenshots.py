@@ -16,6 +16,7 @@ import app.state
 import app.utils
 import config
 from app.adapters import amplitude
+from app.adapters import s3
 from app.models.user import User
 from app.objects.path import Path
 from app.usecases.user import authenticate_user
@@ -24,8 +25,6 @@ SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000
 ERR_RESP = "https://akatsuki.gg/"
 SS_NAME_LEN = 8
-
-SS_PATH = Path(config.DATA_DIR) / "screenshots"
 
 
 async def is_ratelimit(ip: str) -> bool:
@@ -78,14 +77,10 @@ async def upload_screenshot(
         logging.error(f"{user} tried to upload unknown extension file")
         return ERR_RESP
 
-    while True:
-        file_name = f"{gen_rand_str(SS_NAME_LEN)}.{ext}"
+    file_name = f"{gen_rand_str(SS_NAME_LEN)}.{ext}"
 
-        ss_path = SS_PATH / file_name
-        if not ss_path.exists():
-            break
-
-    ss_path.write_bytes(content)
+    # TODO: background with retry policy
+    await s3.upload(content, file_name, "screenshots")
 
     if config.AMPLITUDE_API_KEY:
         asyncio.create_task(

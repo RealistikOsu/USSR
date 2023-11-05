@@ -8,10 +8,9 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 
 import app.usecases
-import config
+from app.adapters import s3
 from app.constants.mode import Mode
 from app.constants.mods import Mods
-from app.objects.path import Path
 from app.usecases.performance import PerformanceScore
 
 COMMON_PP_PERCENTAGES = (
@@ -20,8 +19,6 @@ COMMON_PP_PERCENTAGES = (
     98.0,
     95.0,
 )
-
-MAPS_PATH = Path(config.DATA_DIR) / "beatmaps"
 
 
 async def calculate_pp(
@@ -45,12 +42,12 @@ async def calculate_pp(
 
     combo = combo if combo else beatmap.max_combo
 
-    file_path = MAPS_PATH / f"{beatmap.id}.osu"
-    if not await app.usecases.performance.check_local_file(
-        file_path,
-        beatmap.id,
-        beatmap.md5,
-    ):
+    beatmap_exists = (
+        # TODO: s3.exists using HEAD request?
+        # though, do we even need to do this?
+        await s3.download(f"{beatmap.id}.osu", folder=f"beatmaps")
+    ) is not None
+    if beatmap_exists is None:
         return ORJSONResponse(
             content={"message": "Invalid/non-existent beatmap id."},
             status_code=status.HTTP_400_BAD_REQUEST,

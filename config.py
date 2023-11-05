@@ -24,8 +24,6 @@ READ_DB_USER = config("READ_DB_USER")
 READ_DB_PASS = config("READ_DB_PASS")
 READ_DB_NAME = config("READ_DB_NAME")
 
-DATA_DIR = config("DATA_DIR", default=".data")  # TODO: where should this go?
-
 DIRECT_URL = config("DIRECT_URL", default="https://catboy.best/api")
 
 API_KEYS_POOL: list[str] = list(config("API_KEYS_POOL", cast=CommaSeparatedStrings))

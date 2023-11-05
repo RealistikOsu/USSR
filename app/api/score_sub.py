@@ -89,10 +89,6 @@ def decrypt_score_data(
     return score_data, client_hash_decoded
 
 
-DATA_PATH = Path(config.DATA_DIR)
-MAPS_PATH = DATA_PATH / "beatmaps"
-
-
 T = TypeVar("T", bound=Union[int, float])
 
 
@@ -191,42 +187,34 @@ async def submit_score(
         if score_exists:
             return b"error: no"
 
-        osu_file_path = MAPS_PATH / f"{beatmap.id}.osu"
-        local_osu_file_exists = await app.usecases.performance.check_local_file(
-            osu_file_path,
+        score.pp, score.sr = await app.usecases.performance.calculate_performance(
             beatmap.id,
-            beatmap.md5,
+            score.mode,
+            score.mods.value,
+            score.max_combo,
+            score.acc,
+            score.nmiss,
         )
 
-        if local_osu_file_exists:
-            score.pp, score.sr = await app.usecases.performance.calculate_performance(
-                beatmap.id,
-                score.mode,
-                score.mods.value,
-                score.max_combo,
-                score.acc,
-                score.nmiss,
-            )
-
-            # calculate the score's status
-            if score.passed:
-                if previous_best is not None:
-                    if score.pp > previous_best["pp"]:
-                        score.status = ScoreStatus.BEST
-                    elif (
-                        score.pp == previous_best["pp"]
-                        and score.score > previous_best["score"]
-                    ):
-                        # spin to win!
-                        score.status = ScoreStatus.BEST
-                    else:
-                        score.status = ScoreStatus.SUBMITTED
-                else:
+        # calculate the score's status
+        if score.passed:
+            if previous_best is not None:
+                if score.pp > previous_best["pp"]:
                     score.status = ScoreStatus.BEST
-            elif score.quit:
-                score.status = ScoreStatus.QUIT
+                elif (
+                    score.pp == previous_best["pp"]
+                    and score.score > previous_best["score"]
+                ):
+                    # spin to win!
+                    score.status = ScoreStatus.BEST
+                else:
+                    score.status = ScoreStatus.SUBMITTED
             else:
-                score.status = ScoreStatus.FAILED
+                score.status = ScoreStatus.BEST
+        elif score.quit:
+            score.status = ScoreStatus.QUIT
+        else:
+            score.status = ScoreStatus.FAILED
 
         score.time_elapsed = score_time if score.passed else fail_time
 
