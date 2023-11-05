@@ -10,6 +10,7 @@ from fastapi import Depends
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
+from fastapi import Response
 from fastapi import UploadFile
 
 import app.state
@@ -45,13 +46,16 @@ def gen_rand_str(len: int) -> str:
     return "".join(random.choice(AV_CHARS) for _ in range(len))
 
 
-async def fetch_screenshot(file_path: str) -> bytes | None:
+async def fetch_screenshot(file_path: str):
     """Fetches a screenshot from the S3 bucket."""
 
     if ".." in file_path or "/" in file_path:
         return None
 
-    return await s3.download(file_path, "screenshots")
+    return Response(
+        await s3.download(file_path, "screenshots"),
+        media_type="image/png",
+    )
 
 
 async def upload_screenshot(
