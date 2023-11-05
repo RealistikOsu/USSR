@@ -32,6 +32,12 @@ router.add_api_route(
 )
 
 router.add_api_route(
+    "/ss/{file_path:path}",
+    screenshots.fetch_screenshot,
+    methods=["GET"],
+)
+
+router.add_api_route(
     "/web/osu-screenshot.php",
     screenshots.upload_screenshot,
     methods=["POST"],

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 
 from tenacity import retry
 from tenacity import wait_exponential

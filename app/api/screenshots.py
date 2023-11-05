@@ -18,7 +18,6 @@ import config
 from app.adapters import amplitude
 from app.adapters import s3
 from app.models.user import User
-from app.objects.path import Path
 from app.usecases.user import authenticate_user
 
 SS_DELAY = 10  # Seconds per screenshot.
@@ -44,6 +43,15 @@ AV_CHARS = string.ascii_letters + string.digits
 
 def gen_rand_str(len: int) -> str:
     return "".join(random.choice(AV_CHARS) for _ in range(len))
+
+
+async def fetch_screenshot(file_path: str) -> bytes | None:
+    """Fetches a screenshot from the S3 bucket."""
+
+    if ".." in file_path or "/" in file_path:
+        return None
+
+    return await s3.download(file_path, "screenshots")
 
 
 async def upload_screenshot(
