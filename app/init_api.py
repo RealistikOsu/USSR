@@ -46,6 +46,7 @@ def init_events(asgi_app: FastAPI) -> None:
             db=config.REDIS_DB,
             username=config.REDIS_USER if should_send_redis_authentication else None,
             password=config.REDIS_PASS if should_send_redis_authentication else None,
+            ssl=config.REDIS_USE_SSL,
         )
         await app.state.services.redis.initialize()
         await app.state.services.redis.ping()

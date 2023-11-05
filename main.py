@@ -23,6 +23,7 @@ def main() -> int:
         log_level=config.LOG_LEVEL,
         server_header=False,
         date_header=False,
+        host=config.APP_HOST,
         port=config.APP_PORT,
         access_log=False,
     )

@@ -7,6 +7,7 @@ from starlette.datastructures import CommaSeparatedStrings
 
 config = Config(".env")
 
+APP_HOST = config("APP_HOST")
 APP_PORT = config("APP_PORT", cast=int)
 
 LOG_LEVEL = config("LOG_LEVEL", cast=int, default=logging.WARNING)
@@ -71,3 +72,4 @@ REDIS_PORT = config("REDIS_PORT", cast=int)
 REDIS_USER = config("REDIS_USER")
 REDIS_DB = config("REDIS_DB")
 REDIS_PASS = config("REDIS_PASS")
+REDIS_USE_SSL = config("REDIS_USE_SSL", cast=bool)
