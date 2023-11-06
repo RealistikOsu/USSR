@@ -236,15 +236,17 @@ async def submit_score(
             score.mode,
             score.mods & Mods.FLASHLIGHT != 0,
         )
-        and not await app.usecases.verified.get_verified(user.id)
     ):
-        await restrict_user(
-            user,
-            f"Surpassing PP cap as unverified!",
-            "The user attempted to submit a score with PP higher than the "
-            f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
-            f" ID: {score.id} (score submit gate)",
-        )
+        # Separated from the previous clause to only call the pp cap function
+        # when necessary.
+        if not await app.usecases.verified.get_verified(user.id):
+            await restrict_user(
+                user,
+                f"Surpassing PP cap as unverified!",
+                "The user attempted to submit a score with PP higher than the "
+                f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
+                f" ID: {score.id} (score submit gate)",
+            )
 
     if score.status == ScoreStatus.BEST:
         await app.state.services.database.execute(
