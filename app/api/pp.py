@@ -8,7 +8,6 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 
 import app.usecases
-from app.adapters import s3
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.usecases.performance import PerformanceScore
@@ -42,20 +41,9 @@ async def calculate_pp(
 
     combo = combo if combo else beatmap.max_combo
 
-    beatmap_exists = (
-        # TODO: s3.exists using HEAD request?
-        # though, do we even need to do this?
-        await s3.download(f"{beatmap.id}.osu", folder=f"beatmaps")
-    ) is not None
-    if beatmap_exists is None:
-        return ORJSONResponse(
-            content={"message": "Invalid/non-existent beatmap id."},
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
     star_rating = pp_result = 0.0
     if use_common_pp_percentages:
-        pp_requests: list[PerformanceScore] = [
+        performance_requests: list[PerformanceScore] = [
             {
                 "beatmap_id": beatmap.id,
                 "mode": mode.as_vn,
@@ -67,12 +55,14 @@ async def calculate_pp(
             for accuracy in COMMON_PP_PERCENTAGES
         ]
 
-        pp_result = [
-            pp
-            for pp, _ in await app.usecases.performance.calculate_performances(
-                pp_requests,
-            )
-        ]
+        performance_results = await app.usecases.performance.calculate_performances(
+            performance_requests,
+        )  # [(pp, stars)]
+
+        pp_result = [pp for pp, stars in performance_results]
+
+        # fetching first SR as they are all the same
+        star_rating = performance_results[0][1]
     else:
         pp_result, star_rating = await app.usecases.performance.calculate_performance(
             beatmap.id,
