@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import random
 import time
 from typing import Optional
@@ -223,8 +222,10 @@ def parse_from_osu_api(
         id = int(response_json["beatmap_id"])
         set_id = int(response_json["beatmapset_id"])
 
-        filename = ("{artist} - {title} ({creator}) [{version}].osu").format(
-            **response_json
+        filename = (
+            ("{artist} - {title} ({creator}) [{version}].osu")
+            .format(**response_json)
+            .translate(IGNORED_BEATMAP_CHARS)
         )
 
         song_name = (
