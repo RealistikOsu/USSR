@@ -70,9 +70,6 @@ async def get_leaderboard(
         beatmap = await app.usecases.beatmap.update_beatmap(beatmap)
 
     if not beatmap:
-        if has_set_id:
-            return b"-1|false"
-
         filename = unquote_plus(map_filename)
         if has_set_id:
             bmap_set = await app.usecases.beatmap.fetch_by_set_id(map_set_id)
