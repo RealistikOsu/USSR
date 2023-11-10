@@ -11,14 +11,6 @@ from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.models.beatmap import Beatmap
 
-MD5_CACHE: dict[str, Beatmap] = {}
-ID_CACHE: dict[int, Beatmap] = {}
-SET_CACHE: dict[int, list[Beatmap]] = {}
-
-
-async def fetch_all_cache() -> list[Beatmap]:
-    return [beatmap for beatmap in MD5_CACHE.values()]
-
 
 async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     if not beatmap.deserves_update:
@@ -27,10 +19,6 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     new_beatmap = await id_from_api(beatmap.id, should_save=False)
     if new_beatmap is None:
         # it's now unsubmitted!
-
-        MD5_CACHE.pop(beatmap.md5, None)
-        ID_CACHE.pop(beatmap.id, None)
-        SET_CACHE.pop(beatmap.set_id, None)
 
         await app.state.services.database.execute(
             "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
@@ -42,10 +30,6 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     # handle deleting the old beatmap etc.
     if new_beatmap.md5 != beatmap.md5:
         # delete any instances of the old map
-        MD5_CACHE.pop(beatmap.md5, None)
-        ID_CACHE.pop(beatmap.id, None)
-        SET_CACHE.pop(beatmap.set_id, None)
-
         await app.state.services.database.execute(
             "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
             {"old_md5": beatmap.md5},
@@ -61,9 +45,6 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         new_beatmap.last_update = int(time.time())
 
         await save(new_beatmap)
-        MD5_CACHE[new_beatmap.md5] = new_beatmap
-        ID_CACHE[new_beatmap.id] = new_beatmap
-
         return new_beatmap
     else:
         beatmap.last_update = int(time.time())
@@ -73,83 +54,29 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
 
 
 async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
-    if beatmap := md5_from_cache(md5):
-        return beatmap
-
     if beatmap := await md5_from_database(md5):
-        MD5_CACHE[md5] = beatmap
-        ID_CACHE[beatmap.id] = beatmap
-
         return beatmap
 
     if beatmap := await md5_from_api(md5):
-        MD5_CACHE[md5] = beatmap
-        ID_CACHE[beatmap.id] = beatmap
-
         return beatmap
 
 
 async def fetch_by_id(id: int) -> Optional[Beatmap]:
-    if beatmap := id_from_cache(id):
-        return beatmap
-
     if beatmap := await id_from_database(id):
-        MD5_CACHE[beatmap.md5] = beatmap
-        ID_CACHE[beatmap.id] = beatmap
-
         return beatmap
 
     if beatmap := await id_from_api(id):
-        MD5_CACHE[beatmap.md5] = beatmap
-        ID_CACHE[beatmap.id] = beatmap
-
         return beatmap
 
 
-async def fetch_by_set_id(set_id: int) -> Optional[list[Beatmap]]:
-    if beatmaps := set_from_cache(set_id):
-        return beatmaps
-
+async def fetch_by_set_id(set_id: int) -> list[Beatmap]:
     if beatmaps := await set_from_database(set_id):
-        for beatmap in beatmaps:
-            MD5_CACHE[beatmap.md5] = beatmap
-            ID_CACHE[beatmap.id] = beatmap
-
-            add_to_set_cache(beatmap)
-
         return beatmaps
 
     if beatmaps := await set_from_api(set_id):
-        for beatmap in beatmaps:
-            MD5_CACHE[beatmap.md5] = beatmap
-            ID_CACHE[beatmap.id] = beatmap
-
-            add_to_set_cache(beatmap)
-
         return beatmaps
 
-
-def add_to_set_cache(beatmap: Beatmap) -> None:
-    if set_list := SET_CACHE.get(beatmap.set_id):
-        for _map in set_list:
-            if _map.id == beatmap.id or _map.md5 == beatmap.md5:
-                set_list.remove(_map)
-
-        set_list.append(beatmap)
-    else:
-        SET_CACHE[beatmap.set_id] = [beatmap]
-
-
-def set_from_cache(set_id: int) -> Optional[list[Beatmap]]:
-    return SET_CACHE.get(set_id)
-
-
-def md5_from_cache(md5: str) -> Optional[Beatmap]:
-    return MD5_CACHE.get(md5)
-
-
-def id_from_cache(id: int) -> Optional[Beatmap]:
-    return ID_CACHE.get(id)
+    return []
 
 
 async def md5_from_database(md5: str) -> Optional[Beatmap]:
@@ -221,8 +148,7 @@ async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
 
     if should_save:
         for beatmap in beatmaps:
-            asyncio.create_task(save(beatmap))
-            add_to_set_cache(beatmap)
+            await save(beatmap)
 
     for beatmap in beatmaps:
         if beatmap.md5 == md5:
@@ -249,8 +175,7 @@ async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
 
     if should_save:
         for beatmap in beatmaps:
-            asyncio.create_task(save(beatmap))
-            add_to_set_cache(beatmap)
+            await save(beatmap)
 
     for beatmap in beatmaps:
         if beatmap.id == id:
@@ -277,8 +202,7 @@ async def set_from_api(id: int, should_save: bool = True) -> Optional[list[Beatm
 
     if should_save:
         for beatmap in beatmaps:
-            asyncio.create_task(save(beatmap))
-            add_to_set_cache(beatmap)
+            await save(beatmap)
 
     return beatmaps
 

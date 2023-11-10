@@ -44,9 +44,7 @@ async def get_replay(
         return b""
 
     if db_score["userid"] != user.id:
-        asyncio.create_task(
-            app.usecases.user.increment_replays_watched(db_score["userid"], mode),
-        )
+        await app.usecases.user.increment_replays_watched(db_score["userid"], mode)
 
     if config.AMPLITUDE_API_KEY:
         asyncio.create_task(
@@ -81,15 +79,15 @@ async def get_full_replay(
     score = Score.from_mapping(db_score)
 
     replay = await app.usecases.score.build_full_replay(score)
-    if not replay:
+    if replay is None:
         return b"Replay not found!"
 
     beatmap = await app.usecases.beatmap.fetch_by_md5(score.map_md5)
-    if not beatmap:
+    if beatmap is None:
         return b"Beatmap not found!"
 
     username = await app.usecases.usernames.get_username(score.user_id)
-    if not username:
+    if username is None:
         return b"User not found!"
 
     filename = f"{username} - {beatmap.song_name} ({score_id}).osr"

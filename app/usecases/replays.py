@@ -18,11 +18,4 @@ async def download_replay(score_id: int) -> bytes | None:
         if replay_data is not None:
             return replay_data
 
-    if app.state.services.ftp_client is not None:
-        replay_data = app.state.services.ftp_client.get(
-            f"/replays/replay_{score_id}.osr",
-        )
-        if replay_data is not None:
-            return replay_data
-
     return replay_data

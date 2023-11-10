@@ -1,11 +1,9 @@
 aio-pika
 aiobotocore
-aioftp
 bcrypt
 cryptography
 databases[asyncmy]
 fastapi
-ftpretty
 httpx
 orjson
 py3rijndael

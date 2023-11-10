@@ -8,7 +8,6 @@ import aio_pika
 import databases
 import httpx
 import redis.asyncio as aioredis
-from ftpretty import ftpretty
 from sqlalchemy.sql import ClauseElement
 
 if TYPE_CHECKING:
@@ -18,8 +17,6 @@ import config
 
 
 redis: aioredis.Redis
-
-ftp_client: ftpretty
 
 http_client: httpx.AsyncClient
 

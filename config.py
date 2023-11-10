@@ -45,15 +45,6 @@ AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default=None)
 AWS_ENDPOINT_URL = config("AWS_ENDPOINT_URL", default=None)
 AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default=None)
 
-FTP_HOST = config("FTP_HOST", default=None)
-ftp_port = config("FTP_PORT", default=None)  # optional int
-if ftp_port:
-    FTP_PORT = int(ftp_port)
-else:
-    FTP_PORT = None
-FTP_USER = config("FTP_USER", default=None)
-FTP_PASS = config("FTP_PASS", default=None)
-
 AMQP_HOST = config("AMQP_HOST", default=None)
 amqp_port = config("AMQP_PORT", default=None)  # optional int
 if amqp_port:

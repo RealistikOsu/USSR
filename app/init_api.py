@@ -16,10 +16,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
-from ftpretty import ftpretty
 from starlette.middleware.base import RequestResponseEndpoint
 
-import app.redis
 import app.state
 import app.usecases
 import config
@@ -70,15 +68,6 @@ def init_events(asgi_app: FastAPI) -> None:
                 ),
             )
 
-        app.state.services.ftp_client = None
-        if config.FTP_HOST and config.FTP_PORT and config.FTP_USER and config.FTP_PASS:
-            app.state.services.ftp_client = ftpretty(
-                host=config.FTP_HOST,
-                port=config.FTP_PORT,
-                user=config.FTP_USER,
-                password=config.FTP_PASS,
-            )
-
         app.state.services.amqp = None
         app.state.services.amqp_channel = None
         if (
@@ -94,33 +83,16 @@ def init_events(asgi_app: FastAPI) -> None:
             app.state.services.amqp_channel = await app.state.services.amqp.channel()
 
         await app.state.cache.init_cache()
-        await app.redis.initialise_pubsubs()
-
-        for _task in (
-            app.usecases.privileges.update_privileges_task,
-            app.usecases.usernames.update_usernames_task,
-            app.usecases.countries.update_countries_task,
-            app.usecases.clans.update_clans_task,
-            app.usecases.pp_cap.update_pp_cap_task,
-            app.usecases.whitelist.update_whitelist_task,
-        ):
-            task = asyncio.create_task(_task())
-            app.state.tasks.add(task)
 
         logging.info("Server has started!")
 
     @asgi_app.on_event("shutdown")
     async def on_shutdown() -> None:
-        await app.state.cancel_tasks()
-
         await app.state.services.database.disconnect()
 
         await app.state.services.redis.close()
 
         await app.state.services.http_client.aclose()
-
-        if app.state.services.ftp_client is not None:
-            app.state.services.ftp_client.close()
 
         if app.state.services.amqp_channel is not None:
             await app.state.services.amqp_channel.close()

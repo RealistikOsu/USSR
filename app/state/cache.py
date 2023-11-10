@@ -3,8 +3,6 @@ from __future__ import annotations
 import app.state
 from app.models.achievement import Achievement
 
-UNSUBMITTED: set[str] = set()
-REQUIRES_UPDATE: set[str] = set()
 ACHIEVEMENTS: list[Achievement] = []
 
 

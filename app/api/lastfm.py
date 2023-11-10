@@ -94,7 +94,7 @@ async def lastfm(
     flags = LastFMFlags(int(map_id_or_anticheat_flag.removeprefix("a")))
     expl_str = "\n".join(get_flag_explanation(flags))
 
-    asyncio.create_task(log_lastfm_flag(user.id, flags.value, expl_str))
+    await log_lastfm_flag(user.id, flags.value, expl_str)
 
     logging.info(f"{user} has been flagged with {flags!r}!\n{expl_str}")
     return b"-3"

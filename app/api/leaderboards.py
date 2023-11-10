@@ -53,11 +53,6 @@ async def get_leaderboard(
 ):
     start = time.perf_counter()
 
-    if map_md5 in app.state.cache.UNSUBMITTED:
-        return b"-1|false"
-    elif map_md5 in app.state.cache.REQUIRES_UPDATE:
-        return b"1|false"
-
     mode = Mode.from_lb(mode_arg, mods_arg)
     mods = Mods(mods_arg)
 
@@ -69,21 +64,19 @@ async def get_leaderboard(
         )
 
     has_set_id = map_set_id > 0
-    if has_set_id:
-        await app.usecases.beatmap.fetch_by_set_id(map_set_id)
 
     beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
     if beatmap and beatmap.deserves_update:
         beatmap = await app.usecases.beatmap.update_beatmap(beatmap)
 
     if not beatmap:
-        if has_set_id and map_set_id not in app.usecases.beatmap.SET_CACHE:
-            app.state.cache.UNSUBMITTED.add(map_md5)
+        if has_set_id:
             return b"-1|false"
 
         filename = unquote_plus(map_filename)
         if has_set_id:
-            for bmap in app.usecases.beatmap.SET_CACHE[map_set_id]:
+            bmap_set = await app.usecases.beatmap.fetch_by_set_id(map_set_id)
+            for bmap in bmap_set:
                 if bmap.filename == filename:
                     map_exists = True
                     break
@@ -96,12 +89,8 @@ async def get_leaderboard(
             )
 
         if map_exists:
-            app.state.cache.REQUIRES_UPDATE.add(map_md5)
             return b"1|false"
         else:
-            if map_md5 not in app.state.cache.UNSUBMITTED:
-                app.state.cache.UNSUBMITTED.add(map_md5)
-
             return b"-1|false"
 
     if not beatmap.has_leaderboard:

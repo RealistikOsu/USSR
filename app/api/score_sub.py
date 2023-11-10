@@ -376,12 +376,10 @@ async def submit_score(
         and beatmap.has_leaderboard
         and not user.privileges.is_restricted
     ):
-        asyncio.create_task(
-            app.usecases.score.handle_first_place(
-                score,
-                beatmap,
-                user,
-            ),
+        await app.usecases.score.handle_first_place(
+            score,
+            beatmap,
+            user,
         )
 
     # NOTE: osu! login double hashes with md5, while score submission

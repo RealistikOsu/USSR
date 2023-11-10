@@ -89,12 +89,10 @@ async def unlock_achievements(score: Score, stats: Stats) -> list[Achievement]:
             new_achievements.append(achievement)
 
             # db insertion is not required immediately, let's run it in the bg!
-            asyncio.create_task(
-                app.usecases.user.unlock_achievement(
-                    achievement.id,
-                    score.user_id,
-                    score.mode,
-                ),
+            await app.usecases.user.unlock_achievement(
+                achievement.id,
+                score.user_id,
+                score.mode,
             )
 
     return new_achievements
@@ -142,7 +140,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         return
 
     username = await app.usecases.usernames.get_username(score.user_id)
-    if not username:
+    if username is None:
         return
 
     replay_md5 = hashlib.md5(

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from . import beatmap
-from . import clans
 from . import countries
 from . import discord
 from . import leaderboards
