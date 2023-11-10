@@ -44,7 +44,7 @@ async def get_leaderboard(
     leaderboard_version: int = Query(..., alias="vv"),
     leaderboard_type_arg: int = Query(..., alias="v", ge=0, le=4),
     map_md5: str = Query(..., alias="c", min_length=32, max_length=32),
-    map_filename: str = Query(..., alias="f"),
+    map_file_name: str = Query(..., alias="f"),
     mode_arg: int = Query(..., alias="m", ge=0, le=3),
     map_set_id: int = Query(..., alias="i", ge=-1, le=2_147_483_647),
     mods_arg: int = Query(..., alias="mods", ge=0, le=2_147_483_647),
@@ -63,28 +63,16 @@ async def get_leaderboard(
             f"{CUR_LB_VER}, but the client sent {leaderboard_version}. (leaderboard gate)",
         )
 
-    has_set_id = map_set_id > 0
-
     beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
     if beatmap and beatmap.deserves_update:
         beatmap = await app.usecases.beatmap.update_beatmap(beatmap)
 
     if not beatmap:
-        filename = unquote_plus(map_filename)
-        if has_set_id:
-            bmap_set = await app.usecases.beatmap.fetch_by_set_id(map_set_id)
-            for bmap in bmap_set:
-                if bmap.filename == filename:
-                    map_exists = True
-                    break
-            else:
-                map_exists = False
-        else:
-            map_exists = await app.state.services.database.fetch_val(
-                "SELECT 1 FROM beatmaps WHERE file_name = :filename",
-                {"filename": filename},
-            )
-
+        file_name = unquote_plus(map_file_name)
+        map_exists = await app.state.services.database.fetch_val(
+            "SELECT 1 FROM beatmaps WHERE file_name = :file_name",
+            {"file_name": file_name},
+        )
         if map_exists:
             return b"1|false"
         else:
