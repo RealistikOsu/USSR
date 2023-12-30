@@ -130,7 +130,6 @@ dmypy.json
 
 # Various akatsuki additions
 config.json
-logging.yaml
 .vscode/
 test_data/
 .data/

@@ -10,6 +10,7 @@ from fastapi import status
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
+import app.state.services
 from . import direct
 from . import lastfm
 from . import leaderboards
@@ -23,6 +24,14 @@ from app.models.user import User
 from app.usecases.user import authenticate_user
 
 router = APIRouter(default_response_class=Response)
+
+
+@router.get("/_health")
+async def healthcheck():
+    await app.state.services.redis.ping()
+    await app.state.services.database.execute("SELECT 1")
+    return ORJSONResponse({"status": "ok"})
+
 
 router.add_api_route("/web/osu-osz2-getscores.php", leaderboards.get_leaderboard)
 router.add_api_route(

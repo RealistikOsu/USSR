@@ -1,0 +1,34 @@
+apps:
+  - name: score-service-api
+    environment: production
+    codebase: score-service
+    replicaCount: 2
+    container:
+      image:
+        repository: osuakatsuki/score-service
+        tag: latest
+      port: 80
+      readinessProbe:
+        httpGet:
+          path: /_health
+          port: 80
+        initialDelaySeconds: 10
+        periodSeconds: 10
+        timeoutSeconds: 1
+        successThreshold: 1
+        failureThreshold: 3
+      resources:
+        limits:
+          cpu: 300m
+          memory: 250Mi
+        requests:
+          cpu: 200m
+          memory: 200Mi
+      env:
+        - name: APP_COMPONENT
+          value: api
+      imagePullSecrets:
+        - name: osuakatsuki-registry-secret
+    service:
+      type: ClusterIP
+      port: 80
