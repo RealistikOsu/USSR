@@ -14,7 +14,7 @@ apps:
           port: 80
         initialDelaySeconds: 10
         periodSeconds: 10
-        timeoutSeconds: 1
+        timeoutSeconds: 2
         successThreshold: 1
         failureThreshold: 3
       resources:
