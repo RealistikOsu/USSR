@@ -10,4 +10,3 @@ async def get_verified(user_id: int) -> bool:
         "SELECT 1 FROM user_badges WHERE user = :uid AND badge = :bid",
         {"uid": user_id, "bid": config.srv_verified_badge},
     )
-
