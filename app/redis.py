@@ -24,25 +24,8 @@ def register_pubsub(channel: str):
     return decorator
 
 
-@register_pubsub("peppy:ban")
-async def handle_privilege_change(payload: str) -> None:
-    user_id = int(payload)
-    await app.usecases.privileges.update_privilege(user_id)
-
-    logger.info(f"Updated privileges for user ID {user_id}")
-
-
 class UsernameChange(TypedDict):
     userID: str
-
-
-@register_pubsub("peppy:change_username")
-async def handle_username_change(payload: str) -> None:
-    data: UsernameChange = orjson.loads(payload)
-    user_id = int(data["userID"])
-
-    username = await app.usecases.usernames.update_username(user_id)
-    logger.info(f"Updated user ID {user_id}'s username to {username}")
 
 
 @register_pubsub("ussr:refresh_bmap")
@@ -67,30 +50,12 @@ async def handle_beatmap_status_change(payload: str) -> None:
         # map's status changed, reflect it
         cached_beatmap.status = new_beatmap.status
 
-        if new_beatmap.status not in (
-            RankedStatus.RANKED,
-            RankedStatus.LOVED,
-            RankedStatus.APPROVED,
-            RankedStatus.QUALIFIED,
-        ):
-            # reset the leaderboards if they should no longer show
-            cached_beatmap.leaderboards = {}
-
         # reflect changes in the cache
         app.usecases.beatmap.MD5_CACHE[cached_beatmap.md5] = cached_beatmap
         app.usecases.beatmap.ID_CACHE[cached_beatmap.id] = cached_beatmap
         app.usecases.beatmap.add_to_set_cache(cached_beatmap)
 
     logger.info(f"Updated {cached_beatmap.song_name} in cache!")
-
-
-@register_pubsub("rosu:clan_update")
-async def handle_clan_change(payload: str) -> None:
-    user_id = int(payload)
-    await app.usecases.clans.update_clan(user_id)
-
-    logger.info(f"Updated clan for user ID {user_id}")
-
 
 @register_pubsub("ussr:recalculate_user")
 async def handle_user_recalculate(payload: str) -> None:
