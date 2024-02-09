@@ -77,7 +77,7 @@ async def get_full_replay(
     if not beatmap:
         return _make_not_found_resp("Beatmap not found!")
 
-    username = await app.usecases.usernames.get_username(score.user_id)
+    username = await app.usecases.usernames.fetch(score.user_id)
     if not username:
         return _make_not_found_resp("User not found!")
 

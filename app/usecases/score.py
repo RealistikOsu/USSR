@@ -203,7 +203,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
     if not replay_bytes:
         return
 
-    username = await app.usecases.usernames.get_username(score.user_id)
+    username = await app.usecases.usernames.fetch(score.user_id)
     if not username:
         return
 
