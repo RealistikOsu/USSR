@@ -11,10 +11,8 @@ class CapValue(NamedTuple):
     pp: int
     flashlight_pp: int
 
-
 async def get_pp_cap(mode: Mode, flashlight: bool) -> int:
     pp_cap = await fetch(mode)
-
     assert pp_cap is not None
 
     if flashlight:

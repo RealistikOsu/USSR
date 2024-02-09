@@ -240,9 +240,11 @@ async def log_first_place(
     embed.set_author(name=f"[{score.mode.relax_str}] New #1 score set by {user.name}!")
     embed.add_field(
         name=f"Score pp: {score.pp:.2f}pp",
-        value=f"Gained: {pp_gained:.2f}pp"
-        if pp_gained >= 0
-        else f"Lost: {pp_gained:.2f}pp",
+        value=(
+            f"Gained: {pp_gained:.2f}pp"
+            if pp_gained >= 0
+            else f"Lost: {pp_gained:.2f}pp"
+        ),
     )
     embed.add_field(
         name=f"Global Rank: {new_stats.rank}",
