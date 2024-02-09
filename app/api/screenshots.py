@@ -42,7 +42,6 @@ AV_CHARS = string.ascii_letters + string.digits
 
 
 def gen_rand_str(len: int) -> str:
-
     return "".join(random.choice(AV_CHARS) for _ in range(len))
 
 

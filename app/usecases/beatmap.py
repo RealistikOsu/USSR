@@ -280,7 +280,7 @@ def parse_from_osu_api(
         set_id = int(response_json["beatmapset_id"])
 
         filename = ("{artist} - {title} ({creator}) [{version}].osu").format(
-            **response_json
+            **response_json,
         )
 
         song_name = (

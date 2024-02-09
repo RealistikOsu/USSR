@@ -14,6 +14,7 @@ from app.models.stats import Stats
 from app.models.user import User
 from config import config
 
+
 # This portion is based off cmyui's discord hooks code
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/discord/webhook.py
 class Footer:

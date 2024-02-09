@@ -15,6 +15,7 @@ from app.constants.mode import Mode
 from app.models.score import Score
 from config import config
 
+
 async def get_replay(
     score_id: int = Query(..., alias="c"),
 ):
@@ -30,8 +31,10 @@ async def get_replay(
         return b"error: no"
 
     mode = Mode.from_lb(db_score["play_mode"], db_score["mods"])
-    replay_bytes = await app.state.services.replay_storage.load(f"replay_{score_id}.osr")
-    
+    replay_bytes = await app.state.services.replay_storage.load(
+        f"replay_{score_id}.osr",
+    )
+
     if not replay_bytes:
         logger.error(f"Requested replay ID {score_id}, but no file could be found.")
         return b"error: no"

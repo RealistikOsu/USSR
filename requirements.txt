@@ -1,3 +1,4 @@
+aiobotocore == 2.5.2
 aiodns
 aiohttp
 aioredis==2.0.1
@@ -13,7 +14,6 @@ py3rijndael
 rosu-pp-py==0.7.2
 # Pinned as it breaks databases
 sqlalchemy==1.4.41
+types-aiobotocore[s3] == 2.5.2
 uvicorn
 uvloop
-aiobotocore == 2.5.2
-types-aiobotocore[s3] == 2.5.2

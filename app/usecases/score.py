@@ -197,7 +197,9 @@ OSU_VERSION = 20211103
 
 
 async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
-    replay_bytes = await app.state.services.replay_storage.load(f"replay_{score.id}.osr")
+    replay_bytes = await app.state.services.replay_storage.load(
+        f"replay_{score.id}.osr",
+    )
     if not replay_bytes:
         return
 

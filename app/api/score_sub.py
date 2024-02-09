@@ -24,10 +24,10 @@ import app.usecases
 import app.utils
 import logger
 from app.constants.mode import Mode
+from app.constants.mods import Mods
 from app.constants.privileges import Privileges
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
-from app.constants.mods import Mods
 from app.models.score import Score
 from app.objects.path import Path
 from app.usecases.user import restrict_user
@@ -232,7 +232,8 @@ async def submit_score(
     if (
         beatmap.gives_pp
         and score.passed
-        and score.pp > await app.usecases.pp_cap.get_pp_cap(
+        and score.pp
+        > await app.usecases.pp_cap.get_pp_cap(
             score.mode,
             score.mods & Mods.FLASHLIGHT != 0,
         )
@@ -276,7 +277,9 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            await app.state.services.replay_storage.save(f"replay_{score.id}.osr", replay_data)
+            await app.state.services.replay_storage.save(
+                f"replay_{score.id}.osr", replay_data,
+            )
 
     asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
     asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))
