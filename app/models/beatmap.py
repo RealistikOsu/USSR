@@ -45,8 +45,6 @@ class Beatmap:
     frozen: bool = False
     rating: Optional[float] = None
 
-    leaderboards: dict[Mode, Leaderboard] = field(default_factory=dict)
-
     @property
     def url(self) -> str:
         # i hate this

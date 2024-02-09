@@ -150,8 +150,8 @@ async def get_leaderboard(
             if score.user_id == user.id:
                 displayed_name = user.name
             else:
-                score_clan = await app.usecases.clans.get_clan(score.user_id)
-                score_username = await app.usecases.usernames.get_username(
+                score_clan = await app.usecases.clans.fetch(score.user_id)
+                score_username = await app.usecases.usernames.fetch(
                     score.user_id,
                 )
 
