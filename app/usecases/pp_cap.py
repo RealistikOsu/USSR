@@ -11,9 +11,11 @@ from app.constants.mode import Mode
 class CapKey(NamedTuple):
     mode: Mode
 
+
 class CapValue(NamedTuple):
     pp: int
     flashlight_pp: int
+
 
 PP_CAPS: dict[CapKey, CapValue] = {}
 FIVE_MINUTES = 60 * 5
@@ -25,12 +27,12 @@ async def get_pp_cap(mode: Mode, flashlight: bool) -> int:
     pp_cap = PP_CAPS.get(cap_key)
     if pp_cap is None:
         pp_cap = await update_pp_cap(mode)
-        
+
     assert pp_cap is not None
-    
+
     if flashlight:
         return pp_cap.flashlight_pp
-    
+
     return pp_cap.pp
 
 
