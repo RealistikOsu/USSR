@@ -32,6 +32,9 @@ def init_events(asgi_app: FastAPI) -> None:
 
         await app.state.services.database.connect()
         await app.state.services.redis.initialize()
+        
+        if config.s3_enabled:
+            await app.state.services.replay_storage.connect()
 
         app.state.services.http = aiohttp.ClientSession(
             json_serialize=lambda x: orjson.dumps(x).decode(),
@@ -59,6 +62,9 @@ def init_events(asgi_app: FastAPI) -> None:
 
         await app.state.services.database.disconnect()
         await app.state.services.redis.close()
+        
+        if config.s3_enabled:
+            await app.state.services.replay_storage.disconnect()
 
         await app.state.services.http.close()
 

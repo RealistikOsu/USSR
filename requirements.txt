@@ -15,3 +15,5 @@ rosu-pp-py==0.7.2
 sqlalchemy==1.4.41
 uvicorn
 uvloop
+aiobotocore == 2.5.2
+types-aiobotocore[s3] == 2.5.2
