@@ -57,6 +57,7 @@ async def handle_beatmap_status_change(payload: str) -> None:
 
     logger.info(f"Updated {cached_beatmap.song_name} in cache!")
 
+
 @register_pubsub("ussr:recalculate_user")
 async def handle_user_recalculate(payload: str) -> None:
     user_id = int(payload)
