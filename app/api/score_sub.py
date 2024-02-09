@@ -278,7 +278,8 @@ async def submit_score(
             )
         else:
             await app.state.services.replay_storage.save(
-                f"replay_{score.id}.osr", replay_data,
+                f"replay_{score.id}.osr",
+                replay_data,
             )
 
     asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
