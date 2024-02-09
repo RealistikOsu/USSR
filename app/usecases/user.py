@@ -211,8 +211,6 @@ async def restrict_user(
     await notify_ban(user)
     await remove_from_leaderboard(user)
 
-    app.usecases.privileges.set_privilege(user.id, user.privileges)
-
     await app.usecases.discord.log_user_edit(user, "restricted", summary)
     logger.info(f"{user} has been restricted for {summary}!")
 
