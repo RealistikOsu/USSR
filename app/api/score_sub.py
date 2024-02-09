@@ -268,13 +268,6 @@ async def submit_score(
     if score.passed:
         replay_data = await replay_file.read()
 
-        replay_path = app.utils.VANILLA_REPLAYS
-        if score.mode.relax:
-            replay_path = app.utils.RELAX_REPLAYS
-
-        if score.mode.autopilot:
-            replay_path = app.utils.AUTOPILOT_REPLAYS
-
         if len(replay_data) < 24:
             await restrict_user(
                 user,
@@ -284,8 +277,10 @@ async def submit_score(
                 "a replay editor. (score submit gate)",
             )
         else:
-            replay_file = replay_path / f"replay_{score.id}.osr"
-            replay_file.write_bytes(replay_data)
+            await app.state.services.replay_storage.save(
+                f"replay_{score.id}.osr",
+                replay_data,
+            )
 
     asyncio.create_task(app.usecases.beatmap.increment_playcount(beatmap))
     asyncio.create_task(app.usecases.user.increment_playtime(score, beatmap))

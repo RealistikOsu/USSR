@@ -13,6 +13,7 @@ import app.utils
 import logger
 from app.constants.mode import Mode
 from app.models.score import Score
+from config import config
 
 
 async def get_replay(
@@ -30,17 +31,12 @@ async def get_replay(
         return b"error: no"
 
     mode = Mode.from_lb(db_score["play_mode"], db_score["mods"])
+    replay_bytes = await app.state.services.replay_storage.load(
+        f"replay_{score_id}.osr",
+    )
 
-    replay_path = app.utils.VANILLA_REPLAYS
-    if mode.relax:
-        replay_path = app.utils.RELAX_REPLAYS
-
-    if mode.autopilot:
-        replay_path = app.utils.AUTOPILOT_REPLAYS
-
-    replay_file = replay_path / f"replay_{score_id}.osr"
-    if not replay_file.exists():
-        logger.error(f"Requested replay ID {score_id}, but no file could be found")
+    if not replay_bytes:
+        logger.error(f"Requested replay ID {score_id}, but no file could be found.")
         return b"error: no"
 
     asyncio.create_task(
@@ -48,7 +44,7 @@ async def get_replay(
     )
 
     logger.info(f"Served replay ID {score_id}")
-    return Response(content=replay_file.read_bytes())
+    return Response(content=replay_bytes)
 
 
 def _make_not_found_resp(text: str) -> Response:

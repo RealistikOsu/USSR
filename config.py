@@ -33,6 +33,12 @@ class Config:
     ws_write_key: str = ""
     bot_user_id: int = 999
     performance_service_url: str = ""
+    s3_enabled: bool = False
+    s3_bucket: str = "ussr"
+    s3_region: str = ""
+    s3_endpoint: str = ""
+    s3_access_key: str = ""
+    s3_secret_key: str = ""
 
 
 def read_config_json() -> dict[str, Any]:

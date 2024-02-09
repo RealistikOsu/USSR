@@ -7,7 +7,6 @@ from typing import Optional
 import app.state
 import app.usecases
 import app.utils
-from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.score_status import ScoreStatus
 from app.models.beatmap import Beatmap
@@ -15,6 +14,7 @@ from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
 from app.objects.binary import BinaryWriter
+from config import config
 
 
 def calculate_accuracy(score: Score) -> float:
@@ -197,22 +197,16 @@ OSU_VERSION = 20211103
 
 
 async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
-    replay_path = app.utils.VANILLA_REPLAYS
-    if score.mode.relax:
-        replay_path = app.utils.RELAX_REPLAYS
-
-    if score.mode.autopilot:
-        replay_path = app.utils.AUTOPILOT_REPLAYS
-
-    replay_file = replay_path / f"replay_{score.id}.osr"
-    if not replay_file.exists():
+    replay_bytes = await app.state.services.replay_storage.load(
+        f"replay_{score.id}.osr",
+    )
+    if not replay_bytes:
         return
 
     username = await app.usecases.usernames.fetch(score.user_id)
     if not username:
         return
 
-    raw_data = replay_file.read_bytes()
     replay_md5 = hashlib.md5(
         "{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}".format(
             score.n100 + score.n300,
@@ -250,7 +244,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         .write_i32_le(score.mods.value)
         .write_u8_le(0)
         .write_i64_le(app.utils.ts_to_utc_ticks(score.time))
-        .write_i32_le(len(raw_data))
-        .write_raw(raw_data)
+        .write_i32_le(len(replay_bytes))
+        .write_raw(replay_bytes)
         .write_i64_le(score.id)
     )
