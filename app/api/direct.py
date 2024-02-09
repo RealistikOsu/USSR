@@ -19,7 +19,6 @@ from app.usecases.user import authenticate_user
 from config import config
 
 USING_CHIMU = "https://api.chimu.moe/v1" == config.direct_url
-USING_NASUYA = "https://nasuya.xyz" in config.direct_url
 CHIMU_SPELL = "SetId" if USING_CHIMU else "SetID"
 
 DIRECT_SET_INFO_FMTSTR = (
@@ -126,16 +125,9 @@ async def osu_direct_cheesegull(
     if ranked_status != 4:
         params["status"] = RankedStatus.from_direct(ranked_status).osu_api
 
-    if USING_NASUYA:
-        params["osu_direct"] = "true"
-
     async with app.state.services.http.get(search_url, params=params) as response:
         if response.status != status.HTTP_200_OK:
             return b"-1\nFailed to retrieve data from the beatmap mirror."
-
-        if USING_NASUYA:
-            result = await response.read()
-            return result
 
         result = await response.json()
 

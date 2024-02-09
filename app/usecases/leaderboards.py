@@ -7,7 +7,7 @@ from app.models.score import Score
 from app.objects.leaderboard import Leaderboard
 
 
-async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
+async def fetch(beatmap: Beatmap, mode: Mode) -> Leaderboard:
     leaderboard = Leaderboard(mode)
 
     db_scores = await app.state.services.database.fetch_all(
@@ -23,14 +23,4 @@ async def create(beatmap: Beatmap, mode: Mode) -> Leaderboard:
         leaderboard.scores.append(score)
 
     leaderboard.sort()
-    return leaderboard
-
-
-async def fetch(beatmap: Beatmap, mode: Mode) -> Leaderboard:
-    if leaderboard := beatmap.leaderboards.get(mode):
-        return leaderboard
-
-    leaderboard = await create(beatmap, mode)
-    beatmap.leaderboards[mode] = leaderboard
-
     return leaderboard

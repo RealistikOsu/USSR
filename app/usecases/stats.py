@@ -15,27 +15,7 @@ class StatsInfo(NamedTuple):
     mode: Mode
 
 
-STATS: dict[StatsInfo, Stats] = {}
-
-
 async def fetch(user_id: int, mode: Mode) -> Optional[Stats]:
-    stats_info = StatsInfo(
-        user_id=user_id,
-        mode=mode,
-    )
-
-    if stats := STATS.get(stats_info):
-        return stats
-
-    stats = await fetch_db(user_id, mode)
-    if not stats:
-        return None
-
-    STATS[stats_info] = stats
-    return stats
-
-
-async def fetch_db(user_id: int, mode: Mode) -> Optional[Stats]:
     db_stats = await app.state.services.database.fetch_one(
         (
             "SELECT ranked_score_{m} ranked_score, total_score_{m} total_score, pp_{m} pp, avg_accuracy_{m} accuracy, "
