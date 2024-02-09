@@ -14,6 +14,7 @@ __all__ = (
     "debug",
 )
 
+
 # https://github.com/cmyui/cmyui_pkg/blob/master/cmyui/logging.py#L20-L45
 class Ansi(IntEnum):
     BLACK = 30

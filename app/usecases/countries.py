@@ -13,4 +13,3 @@ async def get_country(user_id: int) -> str:
         return "XX"  # xd
 
     return country
-

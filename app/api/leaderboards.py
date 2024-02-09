@@ -11,9 +11,9 @@ import app.usecases
 import app.utils
 import logger
 from app.constants.leaderboard_type import LeaderboardType
-from app.constants.privileges import Privileges
 from app.constants.mode import Mode
 from app.constants.mods import Mods
+from app.constants.privileges import Privileges
 from app.models.score import Score
 from app.models.user import User
 from app.usecases.user import authenticate_user

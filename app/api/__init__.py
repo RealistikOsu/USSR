@@ -50,11 +50,7 @@ router.add_api_route("/d/{set_id}", direct.download_map)
 
 router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
 
-router.add_api_route(
-    "/web/lastfm.php", 
-    lastfm.lastfm,
-    methods=["POST"]
-)
+router.add_api_route("/web/lastfm.php", lastfm.lastfm, methods=["POST"])
 
 router.add_api_route(
     "/web/osu-error.php",

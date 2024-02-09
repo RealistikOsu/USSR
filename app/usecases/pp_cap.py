@@ -6,6 +6,7 @@ from typing import NamedTuple
 import app.state
 from app.constants.mode import Mode
 
+
 class CapValue(NamedTuple):
     pp: int
     flashlight_pp: int
@@ -13,12 +14,12 @@ class CapValue(NamedTuple):
 
 async def get_pp_cap(mode: Mode, flashlight: bool) -> int:
     pp_cap = await fetch(mode)
-        
+
     assert pp_cap is not None
-    
+
     if flashlight:
         return pp_cap.flashlight_pp
-    
+
     return pp_cap.pp
 
 
