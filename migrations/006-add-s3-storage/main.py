@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import glob
 import json
 import logging
-import glob
 import os
-
 from typing import Any
 
 CONFIG_PATH = "config.json"
+
 
 def load_json(path: str) -> dict[str, Any]:
     with open(path) as f:
@@ -19,8 +19,10 @@ def set_cwd() -> None:
 
     os.chdir("../../")
 
+
 def determine_full_path(path: str) -> str:
     return os.path.join(os.getcwd(), path) if not path.startswith("/") else path
+
 
 def main() -> int:
     logging.basicConfig(
@@ -42,15 +44,15 @@ def main() -> int:
         logging.error("The data directory within the config file was not found!")
         return 1
 
-
     for folder in ("replays_relax", "replays_ap"):
         if not os.path.exists(os.path.join(data_dir, folder)):
             continue
-        
+
         for path in glob.glob(os.path.join(data_dir, folder, "*.osr")):
             file = os.path.basename(path)
             os.rename(path, os.path.join(data_dir, "replays", file))
             logging.info(f"Moved {file}!")
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import glob
 import json
 import logging
-import glob
 import os
-
 from typing import Any
 
 CONFIG_PATH = "config.json"
+
 
 def load_json(path: str) -> dict[str, Any]:
     with open(path) as f:
@@ -19,8 +19,10 @@ def set_cwd() -> None:
 
     os.chdir("../../")
 
+
 def determine_full_path(path: str) -> str:
     return os.path.join(os.getcwd(), path) if not path.startswith("/") else path
+
 
 def main() -> int:
     logging.basicConfig(
@@ -42,12 +44,12 @@ def main() -> int:
         logging.error("The data directory within the config file was not found!")
         return 1
 
-
     for path in glob.glob(os.path.join(data_dir, "maps", "*.osu")):
         with open(path, "rb") as f:
             if b"osu file format" not in f.read():
                 logging.info(f"Removing invalid .osu file: {path}")
                 os.remove(path)
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
