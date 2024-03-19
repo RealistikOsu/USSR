@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import app.state
+
+import app.state.services
 from app.constants.mode import Mode
 from app.models.beatmap import Beatmap
 from app.models.score import Score

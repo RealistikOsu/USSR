@@ -11,8 +11,8 @@ from fastapi import Query
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
-import app.state
-import app.usecases
+import app.state.services
+import app.usecases.beatmap
 from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user
