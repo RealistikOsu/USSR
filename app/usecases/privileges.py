@@ -3,6 +3,7 @@ from __future__ import annotations
 import app.state.services
 from app.constants.privileges import Privileges
 
+
 async def fetch(user_id: int) -> Privileges:
     db_privilege = await app.state.services.database.fetch_val(
         "SELECT privileges FROM users WHERE id = :id",

@@ -63,7 +63,8 @@ class Leaderboard:
         scores = []
 
         for score in self.scores:
-            import app.usecases.privileges # hotfix until we fix the code.
+            import app.usecases.privileges  # hotfix until we fix the code.
+
             user_privilege = await app.usecases.privileges.fetch(score.user_id)
             if user_privilege.is_restricted and not (
                 score.user_id == user_id and include_self
