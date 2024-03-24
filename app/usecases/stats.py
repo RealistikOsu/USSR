@@ -98,7 +98,7 @@ async def calc_bonus(stats: Stats) -> float:
         },
     )
 
-    stats._cur_bonus_pp = 416.6667 * (1 - (0.9994**count))
+    stats._cur_bonus_pp = 416.6667 * (1 - (0.995 ** min(1000, count)))
     return stats._cur_bonus_pp
 
 

@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from dataclasses import field
 from typing import Optional
 
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
-from app.objects.leaderboard import Leaderboard
 from config import config
 
 ONE_DAY = 86_400
