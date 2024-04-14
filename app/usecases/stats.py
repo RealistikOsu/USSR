@@ -96,7 +96,7 @@ async def calc_bonus(stats: Stats) -> float:
             "JOIN beatmaps b USING(beatmap_md5) "
             "WHERE b.ranked IN (2, 3) AND s.completed = 3 "
             "AND s.play_mode = :mode AND s.userid = :id "
-            "LIMIT 25397"
+            "LIMIT 1000"
         ),
         {
             "mode": stats.mode.as_vn,
@@ -104,7 +104,7 @@ async def calc_bonus(stats: Stats) -> float:
         },
     )
 
-    return 416.6667 * (1 - (0.9994**count))
+    return 416.6667 * (1 - (0.995**count))
 
 
 async def save(stats: Stats) -> None:
