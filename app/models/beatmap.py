@@ -50,11 +50,6 @@ class Beatmap:
     od: float
     ar: float
 
-    difficulty_std: float
-    difficulty_taiko: float
-    difficulty_ctb: float
-    difficulty_mania: float
-
     hit_length: int
 
     last_update: int = 0
@@ -107,8 +102,7 @@ class Beatmap:
             f"0\n{self.song_name}\n{rating:.1f}"  # 0 = offset
         )
 
-    @property
-    def to_mapping(self) -> Mapping[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "beatmap_md5": self.md5,
             "beatmap_id": self.id,
@@ -120,10 +114,6 @@ class Beatmap:
             "mode": self.mode.value,
             "od": self.od,
             "ar": self.ar,
-            "difficulty_std": self.difficulty_std,
-            "difficulty_taiko": self.difficulty_taiko,
-            "difficulty_ctb": self.difficulty_ctb,
-            "difficulty_mania": self.difficulty_mania,
             "hit_length": self.hit_length,
             "latest_update": self.last_update,
             "max_combo": self.max_combo,
@@ -134,27 +124,23 @@ class Beatmap:
         }
 
     @classmethod
-    def from_mapping(cls, result: Mapping[str, Any]) -> Beatmap:
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> Beatmap:
         return cls(
-            md5=result["beatmap_md5"],
-            id=result["beatmap_id"],
-            set_id=result["beatmapset_id"],
-            song_name=result["song_name"],
-            status=RankedStatus(result["ranked"]),
-            plays=result["playcount"],
-            passes=result["passcount"],
-            mode=Mode(result["mode"]),
-            od=result["od"],
-            ar=result["ar"],
-            difficulty_std=result["difficulty_std"],
-            difficulty_taiko=result["difficulty_taiko"],
-            difficulty_ctb=result["difficulty_ctb"],
-            difficulty_mania=result["difficulty_mania"],
-            hit_length=result["hit_length"],
-            last_update=result["latest_update"],
-            max_combo=result["max_combo"],
-            bpm=result["bpm"],
-            filename=result["file_name"],
-            frozen=result["ranked_status_freezed"],
-            rating=result["rating"],
+            md5=mapping["beatmap_md5"],
+            id=mapping["beatmap_id"],
+            set_id=mapping["beatmapset_id"],
+            song_name=mapping["song_name"],
+            status=RankedStatus(mapping["ranked"]),
+            plays=mapping["playcount"],
+            passes=mapping["passcount"],
+            mode=Mode(mapping["mode"]),
+            od=mapping["od"],
+            ar=mapping["ar"],
+            hit_length=mapping["hit_length"],
+            last_update=mapping["latest_update"],
+            max_combo=mapping["max_combo"],
+            bpm=mapping["bpm"],
+            filename=mapping["file_name"],
+            frozen=mapping["ranked_status_freezed"],
+            rating=mapping["rating"],
         )
