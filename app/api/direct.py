@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 from typing import Optional
 from urllib.parse import unquote_plus
-
+import httpx
 from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
@@ -64,17 +65,29 @@ async def osu_direct(
             params=params,
             timeout=5,
         )
-        if response.status_code != status.HTTP_200_OK:
-            return b"-1\nFailed to retrieve data from the beatmap mirror."
+    except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
+        if isinstance(exc, httpx.HTTPStatusError):
+            if exc.response.status_code == status.HTTP_404_NOT_FOUND:
+                return None
 
-        result = response.json()
+        logging.exception(
+            "Failed to search for results from the beatmap mirror",
+            extra={
+                "query": query,
+                "page_num": page_num,
+                "game_mode": mode,
+                "ranked_status": ranked_status,
+                "url": search_url,
+                "user_id": user.id,
+            },
+        )
+        return b"-1\nFailed to retrieve data from the beatmap mirror."
 
-        # if USING_KITSU: # kitsu is kinda annoying here and sends status in body
-        #    if result["code"] != 200:
-        #        return b"-1\nFailed to retrieve data from the beatmap mirror."
+    result = response.json()
 
-    except asyncio.exceptions.TimeoutError:
-        return b"-1\n3rd party beatmap mirror we depend on timed out. Their server is likely down."
+    # if USING_KITSU: # kitsu is kinda annoying here and sends status in body
+    #    if result["code"] != 200:
+    #        return b"-1\nFailed to retrieve data from the beatmap mirror."
 
     result_len = len(result)
     ret = [f"{'101' if result_len == 100 else result_len}"]
@@ -131,9 +144,24 @@ async def beatmap_card(
         map_set_id = bmap.set_id
 
     url = f"{config.DIRECT_URL}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
-    response = await app.state.services.http_client.get(url, timeout=5)
-    if response.status_code != 200:
-        return
+    try:
+        response = await app.state.services.http_client.get(url, timeout=5)
+        response.raise_for_status()
+    except (httpx.RequestError, httpx.HTTPStatusError) as exc:
+        if isinstance(exc, httpx.HTTPStatusError):
+            if exc.response.status_code == status.HTTP_404_NOT_FOUND:
+                return None
+
+        logging.exception(
+            "Failed to retrieve data from the beatmap mirror",
+            extra={
+                "beatmapset_id": map_set_id,
+                "beatmap_id": map_id,
+                "url": url,
+                "user_id": user.id,
+            },
+        )
+        return None
 
     result = response.json()
 
