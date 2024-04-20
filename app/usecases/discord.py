@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import asyncio
 import logging
-import traceback
 from typing import Optional
 
 from tenacity import retry
@@ -11,6 +9,7 @@ from tenacity import wait_exponential
 
 import app.state
 import config
+from app import job_scheduling
 from app.models.user import User
 from app.reliability import retry_if_exception_network_related
 
@@ -198,8 +197,7 @@ def schedule_hook(hook: Optional[str], embed: Embed):
     if not hook:
         return
 
-    loop = asyncio.get_event_loop()
-    loop.create_task(wrap_hook(hook, embed))
+    job_scheduling.schedule_job(wrap_hook(hook, embed))
 
     logging.debug("Scheduled the performing of a discord webhook!")
 

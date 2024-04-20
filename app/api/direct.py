@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 from typing import Optional
@@ -16,6 +15,7 @@ from fastapi.responses import RedirectResponse
 import app.state
 import app.usecases
 import config
+from app import job_scheduling
 from app.adapters import amplitude
 from app.constants.ranked_status import RankedStatus
 from app.models.user import User
@@ -114,7 +114,7 @@ async def osu_direct(
         )
 
     if config.AMPLITUDE_API_KEY:
-        asyncio.create_task(
+        job_scheduling.schedule_job(
             amplitude.track(
                 event_name="osudirect_search",
                 user_id=str(user.id),
@@ -170,7 +170,7 @@ async def beatmap_card(
     json_data = result["data"] if USING_CHIMU else result
 
     if config.AMPLITUDE_API_KEY:
-        asyncio.create_task(
+        job_scheduling.schedule_job(
             amplitude.track(
                 event_name="osudirect_card_view",
                 user_id=str(user.id),

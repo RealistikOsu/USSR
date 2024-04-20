@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import logging
 import pprint
@@ -21,6 +20,7 @@ from starlette.middleware.base import RequestResponseEndpoint
 import app.state
 import app.usecases
 import config
+from app import job_scheduling
 
 ctx_stack = contextlib.AsyncExitStack()
 
@@ -88,6 +88,8 @@ def init_events(asgi_app: FastAPI) -> None:
 
     @asgi_app.on_event("shutdown")
     async def on_shutdown() -> None:
+        await job_scheduling.await_running_jobs(timeout=7.5)
+
         await app.state.services.database.disconnect()
 
         await app.state.services.redis.close()

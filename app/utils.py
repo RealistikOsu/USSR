@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-import logging
-
 from tenacity import retry
 from tenacity import wait_exponential
 from tenacity.stop import stop_after_attempt
@@ -22,7 +19,7 @@ def make_safe(username: str) -> str:
     stop=stop_after_attempt(10),
     reraise=True,
 )
-async def channel_message(channel: str, message: str) -> None:
+async def send_message_to_channel(channel: str, message: str) -> None:
     response = await app.state.services.http_client.get(
         f"{config.BANCHO_SERVICE_URL}/api/v1/fokabotMessage",
         params={
@@ -33,15 +30,6 @@ async def channel_message(channel: str, message: str) -> None:
         timeout=2,
     )
     response.raise_for_status()
-
-
-async def send_announcement_as_side_effect(message: str) -> None:
-    try:
-        asyncio.create_task(channel_message("#announce", message))
-    except asyncio.TimeoutError:
-        logging.warning(
-            "Failed to send message to #announce, bancho-service is likely down",
-        )
 
 
 async def check_online(user_id: int) -> bool:

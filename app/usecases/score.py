@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import logging
 from typing import Optional
@@ -8,6 +7,7 @@ from typing import Optional
 import app.state
 import app.usecases
 import app.utils
+from app import job_scheduling
 from app.models.achievement import Achievement
 from app.models.beatmap import Beatmap
 from app.models.score import Score
@@ -123,7 +123,9 @@ async def handle_first_place(
     )
 
     msg = f"[{score.mode.relax_str}] User {user.embed} has submitted a #1 place on {beatmap.embed} +{score.mods!r} ({score.pp:.2f}pp)"
-    await app.utils.send_announcement_as_side_effect(msg)
+    await job_scheduling.schedule_job(
+        app.utils.send_message_to_channel("#announce", msg),
+    )
 
 
 OSU_VERSION = 2021_11_03

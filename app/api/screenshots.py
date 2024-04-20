@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 import random
 import string
@@ -16,6 +15,7 @@ from fastapi import UploadFile
 import app.state
 import app.utils
 import config
+from app import job_scheduling
 from app.adapters import amplitude
 from app.adapters import s3
 from app.models.user import User
@@ -95,7 +95,7 @@ async def upload_screenshot(
     await s3.upload(content, file_name, "screenshots")
 
     if config.AMPLITUDE_API_KEY:
-        asyncio.create_task(
+        job_scheduling.schedule_job(
             amplitude.track(
                 event_name="upload_screenshot",
                 user_id=str(user.id),

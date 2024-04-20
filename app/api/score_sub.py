@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import dataclasses
 import hashlib
 import logging
@@ -29,6 +28,7 @@ import app.state
 import app.usecases
 import app.utils
 import config
+from app import job_scheduling
 from app.adapters import amplitude
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
@@ -398,7 +398,7 @@ async def submit_score(
         device_id = hashlib.sha1(login_disk_id.encode()).hexdigest()
 
     if config.AMPLITUDE_API_KEY:
-        asyncio.create_task(
+        job_scheduling.schedule_job(
             amplitude.track(
                 event_name="score_submission",
                 user_id=str(user.id),
@@ -453,7 +453,7 @@ async def submit_score(
         # fire amplitude events for each
         for achievement in new_achievements:
             if config.AMPLITUDE_API_KEY:
-                asyncio.create_task(
+                job_scheduling.schedule_job(
                     amplitude.track(
                         event_name="achievement_unlocked",
                         user_id=str(score.user_id),

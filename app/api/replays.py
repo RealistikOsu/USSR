@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 
 from fastapi import Depends
@@ -12,6 +11,7 @@ import app.state
 import app.usecases
 import app.utils
 import config
+from app import job_scheduling
 from app.adapters import amplitude
 from app.constants.mode import Mode
 from app.models.score import Score
@@ -47,7 +47,7 @@ async def get_replay(
         await app.usecases.user.increment_replays_watched(db_score["userid"], mode)
 
     if config.AMPLITUDE_API_KEY:
-        asyncio.create_task(
+        job_scheduling.schedule_job(
             amplitude.track(
                 event_name="watched_replay",
                 user_id=str(user.id),

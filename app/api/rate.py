@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from typing import Optional
@@ -11,6 +10,7 @@ from fastapi import Query
 import app.state
 import app.usecases
 import config
+from app import job_scheduling
 from app.adapters import amplitude
 from app.models.beatmap import Beatmap
 from app.models.user import User
@@ -66,7 +66,7 @@ async def rate_map(
         beatmap.rating = new_rating
 
         if config.AMPLITUDE_API_KEY:
-            asyncio.create_task(
+            job_scheduling.schedule_job(
                 amplitude.track(
                     event_name="rated_beatmap",
                     user_id=str(user.id),
