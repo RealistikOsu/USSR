@@ -54,6 +54,8 @@ else:
 AMQP_USER = config("AMQP_USER", default=None)
 AMQP_PASS = config("AMQP_PASS", default=None)
 
+BANCHO_SERVICE_URL = config("BANCHO_SERVICE_URL")
+
 PERFORMANCE_SERVICE_URL = config("PERFORMANCE_SERVICE_URL")
 
 AMPLITUDE_API_KEY = config("AMPLITUDE_API_KEY", default=None)

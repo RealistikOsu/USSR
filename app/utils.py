@@ -24,7 +24,7 @@ def make_safe(username: str) -> str:
 )
 async def channel_message(channel: str, message: str) -> None:
     response = await app.state.services.http_client.get(
-        "http://localhost:5001/api/v1/fokabotMessage",
+        f"{config.BANCHO_SERVICE_URL}/api/v1/fokabotMessage",
         params={
             "to": channel,
             "msg": message,
