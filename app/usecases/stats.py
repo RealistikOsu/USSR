@@ -12,7 +12,7 @@ from app.models.stats import Stats
 async def fetch(user_id: int, mode: Mode) -> Optional[Stats]:
     db_stats = await app.state.services.database.fetch_one(
         """
-        SELECT ranked_score, total_score, pp, avg_accuracy, playcount,
+        SELECT ranked_score, total_score, pp, avg_accuracy AS accuracy, playcount,
                playtime, max_combo, total_hits, replays_watched
         FROM user_stats
         WHERE user_id = :user_id
