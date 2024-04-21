@@ -112,38 +112,6 @@ async def save(stats: Stats) -> None:
     await app.state.services.database.execute(
         (
             """
-            UPDATE {t}
-            SET ranked_score_{m} = :ranked_score,
-                total_score_{m} = :total_score,
-                pp_{m} = :pp,
-                avg_accuracy_{m} = :avg_accuracy,
-                playcount_{m} = :playcount,
-                playtime_{m} = :playtime,
-                max_combo_{m} = :max_combo,
-                total_hits_{m} = :total_hits,
-                replays_watched_{m} = :replays_watched
-                WHERE id = :id
-            """
-        ).format(
-            t=stats.mode.stats_table,
-            m=stats.mode.stats_prefix,
-        ),
-        {
-            "ranked_score": stats.ranked_score,
-            "total_score": stats.total_score,
-            "pp": stats.pp,
-            "avg_accuracy": stats.accuracy,
-            "playcount": stats.playcount,
-            "playtime": stats.playtime,
-            "max_combo": stats.max_combo,
-            "total_hits": stats.total_hits,
-            "replays_watched": stats.replays_watched,
-            "id": stats.user_id,
-        },
-    )
-    await app.state.services.database.execute(
-        (
-            """
             UPDATE user_stats
             SET ranked_score = :ranked_score,
                 total_score = :total_score,
