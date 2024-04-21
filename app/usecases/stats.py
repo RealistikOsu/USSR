@@ -140,6 +140,37 @@ async def save(stats: Stats) -> None:
             "id": stats.user_id,
         },
     )
+    await app.state.services.database.execute(
+        (
+            """
+            UPDATE user_stats
+            SET ranked_score = :ranked_score,
+                total_score = :total_score,
+                pp = :pp,
+                avg_accuracy = :avg_accuracy,
+                playcount = :playcount,
+                playtime = :playtime,
+                max_combo = :max_combo,
+                total_hits = :total_hits,
+                replays_watched = :replays_watched
+            WHERE user_id = :user_id
+            AND mode = :mode
+            """
+        ),
+        {
+            "ranked_score": stats.ranked_score,
+            "total_score": stats.total_score,
+            "pp": stats.pp,
+            "avg_accuracy": stats.accuracy,
+            "playcount": stats.playcount,
+            "playtime": stats.playtime,
+            "max_combo": stats.max_combo,
+            "total_hits": stats.total_hits,
+            "replays_watched": stats.replays_watched,
+            "user_id": stats.user_id,
+            "mode": stats.mode.value,
+        },
+    )
 
 
 async def update_rank(stats: Stats) -> None:

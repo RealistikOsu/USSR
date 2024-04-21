@@ -258,6 +258,17 @@ async def increment_replays_watched(user_id: int, mode: Mode) -> None:
         ),
         {"id": user_id},
     )
+    await app.state.services.database.execute(
+        (
+            """
+            UPDATE user_stats
+            SET replays_watched = replays_watched + 1
+            WHERE user_id = :user_id
+            AND mode = :mode
+            """
+        ),
+        {"user_id": user_id, "mode": mode.value},
+    )
 
 
 async def update_latest_activity(user_id: int) -> None:
@@ -280,6 +291,17 @@ async def update_latest_pp_awarded(user_id: int, mode: Mode) -> None:
             m=mode.stats_prefix,
         ),
         {"id": user_id},
+    )
+    await app.state.services.database.execute(
+        (
+            """
+            UPDATE user_stats
+            SET latest_pp_awarded = UNIX_TIMESTAMP()
+            WHERE user_id = :user_id
+            AND mode = :mode
+            """
+        ),
+        {"user_id": user_id, "mode": mode.value},
     )
 
 
