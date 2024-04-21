@@ -206,6 +206,7 @@ async def track(
             },
             "events": [amplitude_event],
         },
+        timeout=10,
     )
     response.raise_for_status()
 
