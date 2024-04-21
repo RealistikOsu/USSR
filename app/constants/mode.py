@@ -30,29 +30,23 @@ class Mode(IntEnum):
     STD_RX = 4
     TAIKO_RX = 5
     CATCH_RX = 6
-    STD_AP = 7
+
+    STD_AP = 8
 
     def __repr__(self) -> str:
         return mode_str[self.value]
 
     @cached_property
     def as_vn(self) -> int:
-        if self.value in (0, 4, 7):
-            return 0
-        elif self.value in (1, 5):
-            return 1
-        elif self.value in (2, 6):
-            return 2
-        else:
-            return self.value
+        return self.value % 4
 
     @cached_property
     def relax(self) -> bool:
-        return self.value > 3 and self.value != 7
+        return self.value in (self.STD_RX, self.TAIKO_RX, self.CATCH_RX)
 
     @cached_property
     def autopilot(self) -> bool:
-        return self.value == 7
+        return self is self.STD_AP
 
     @cached_property
     def scores_table(self) -> Literal["scores_relax", "scores_ap", "scores"]:

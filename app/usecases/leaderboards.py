@@ -71,7 +71,7 @@ async def fetch_beatmap_leaderboard(
 
     return Leaderboard(
         beatmap_md5=beatmap.md5,
-        mode=beatmap.mode,
+        mode=mode,
         score_count=score_count,
         scores=scores,
         personal_best=personal_best,

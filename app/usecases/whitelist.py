@@ -12,7 +12,7 @@ from app.constants.mode import Mode
 
 def _match_verified(whitelist_int: int, mode: Mode) -> bool:
     if mode.autopilot:
-        return whitelist_int & 2 != 0  # TODO: make this 4
+        return whitelist_int & 2 != 0  # TODO: make this 4 to separate from rx
     elif mode.relax:
         return whitelist_int & 2 != 0
     else:

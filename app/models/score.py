@@ -49,7 +49,7 @@ class Score:
     rank: int = 0
 
     def osu_string(self, username: str, rank: int) -> str:
-        if self.mode > Mode.MANIA:
+        if self.mode.relax or self.mode.autopilot:
             score = int(self.pp)
         else:
             score = self.score

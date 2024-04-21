@@ -29,7 +29,7 @@ def format_mode(mode: int) -> str:
         5: "osu!taiko relax",
         6: "osu!catch relax",
         # no mania relax
-        7: "osu!std autopilot",
+        8: "osu!std autopilot",
         # no taiko autopilot
         # no catch autopilot
         # no mania autopilot
