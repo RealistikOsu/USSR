@@ -59,16 +59,6 @@ class Mode(IntEnum):
         return "scores"
 
     @cached_property
-    def stats_table(self) -> str:
-        if self.relax:
-            return "rx_stats"
-
-        if self.autopilot:
-            return "ap_stats"
-
-        return "users_stats"
-
-    @cached_property
     def stats_prefix(self) -> str:
         mode_vn = self.as_vn
 
