@@ -63,7 +63,7 @@ async def fetch_beatmap_leaderboard(
         params["mods_filter"] = mods_filter
 
     if country_filter is not None:
-        extra_queries.append("users_stats.country = :country_filter")
+        extra_queries.append("users.country = :country_filter")
         params["country_filter"] = country_filter
 
     if user_ids_filter is not None:
@@ -105,7 +105,6 @@ async def fetch_beatmap_leaderboard(
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
             LEFT JOIN clans c ON users.clan_id = c.id
-            INNER JOIN users_stats ON users_stats.id = s.userid
             WHERE
                 s.beatmap_md5 = :beatmap_md5
                 AND s.play_mode = :play_mode
@@ -306,7 +305,7 @@ async def fetch_beatmap_leaderboard_score_count(
         params["mods_filter"] = mods_filter
 
     if country_filter is not None:
-        extra_queries.append("users_stats.country = :country_filter")
+        extra_queries.append("users.country = :country_filter")
         params["country_filter"] = country_filter
 
     if user_ids_filter is not None:
@@ -346,7 +345,6 @@ async def fetch_beatmap_leaderboard_score_count(
                 row_number() OVER (PARTITION BY s.userid ORDER BY s.{sort_column} DESC, s.time ASC) score_order_rank
             FROM {scores_table} s
             INNER JOIN users ON users.id = s.userid
-            INNER JOIN users_stats ON users_stats.id = s.userid
             WHERE
                 s.beatmap_md5 = :beatmap_md5
                 AND s.play_mode = :play_mode

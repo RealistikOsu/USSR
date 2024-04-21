@@ -5,7 +5,7 @@ import app.state
 
 async def get_country(user_id: int) -> str:
     country = await app.state.services.database.fetch_val(
-        "SELECT country FROM users_stats WHERE id = :id",
+        "SELECT country FROM users WHERE id = :id",
         {"id": user_id},
     )
 

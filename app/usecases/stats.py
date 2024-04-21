@@ -11,13 +11,14 @@ from app.models.stats import Stats
 
 async def fetch(user_id: int, mode: Mode) -> Optional[Stats]:
     db_stats = await app.state.services.database.fetch_one(
-        (
-            "SELECT ranked_score_{m} ranked_score, total_score_{m} total_score, pp_{m} pp, avg_accuracy_{m} accuracy, "
-            "playcount_{m} playcount, playtime_{m} playtime, max_combo_{m} max_combo, total_hits_{m} total_hits, "
-            "replays_watched_{m} replays_watched "
-            "FROM {s} WHERE id = :id"
-        ).format(m=mode.stats_prefix, s=mode.stats_table),
-        {"id": user_id},
+        """
+        SELECT ranked_score, total_score, pp, avg_accuracy, playcount,
+               playtime, max_combo, total_hits, replays_watched
+        FROM user_stats
+        WHERE user_id = :user_id
+        AND mode = :mode
+        """,
+        {"user_id": user_id, "mode": mode.value},
     )
 
     if not db_stats:

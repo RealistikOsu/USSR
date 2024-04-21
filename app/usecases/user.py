@@ -34,11 +34,6 @@ async def fetch_db(username: str) -> Optional[User]:
     if not db_user:
         return None
 
-    country = await app.state.services.database.fetch_val(
-        "SELECT country FROM users_stats WHERE id = :id",
-        {"id": db_user["id"]},
-    )
-
     db_friends = await app.state.services.database.fetch_all(
         "SELECT user2 FROM users_relationships WHERE user1 = :id",
         {"id": db_user["id"]},
@@ -52,7 +47,7 @@ async def fetch_db(username: str) -> Optional[User]:
         privileges=Privileges(db_user["privileges"]),
         friends=friends,
         password_bcrypt=db_user["password_md5"],
-        country=country,
+        country=db_user["country"],
     )
 
 
@@ -65,11 +60,6 @@ async def fetch_db_id(user_id: int) -> Optional[User]:
     if not db_user:
         return None
 
-    country = await app.state.services.database.fetch_val(
-        "SELECT country FROM users_stats WHERE id = :id",
-        {"id": db_user["id"]},
-    )
-
     db_friends = await app.state.services.database.fetch_all(
         "SELECT user2 FROM users_relationships WHERE user1 = :id",
         {"id": db_user["id"]},
@@ -83,7 +73,7 @@ async def fetch_db_id(user_id: int) -> Optional[User]:
         privileges=Privileges(db_user["privileges"]),
         friends=friends,
         password_bcrypt=db_user["password_md5"],
-        country=country,
+        country=db_user["country"],
     )
 
 
