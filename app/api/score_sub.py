@@ -26,11 +26,11 @@ from starlette.datastructures import UploadFile as StarletteUploadFile
 
 import app.state
 import app.usecases
-import app.utils
 import config
 from app import job_scheduling
 from app.adapters import amplitude
 from app.constants.mode import Mode
+from app.constants.mods import Mods
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.achievement import Achievement
@@ -216,7 +216,7 @@ async def submit_score(
         else:
             score.status = ScoreStatus.FAILED
 
-        score.time_elapsed = score_time if score.passed else fail_time
+        score.time_elapsed = score_time
 
         if score.status == ScoreStatus.BEST:
             await app.state.services.database.execute(

@@ -9,7 +9,6 @@ from fastapi import Response
 
 import app.state
 import app.usecases
-import app.utils
 import config
 from app import job_scheduling
 from app.adapters import amplitude

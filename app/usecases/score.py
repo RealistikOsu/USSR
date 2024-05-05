@@ -6,7 +6,6 @@ from typing import Optional
 
 import app.state
 import app.usecases
-import app.utils
 from app import job_scheduling
 from app.models.achievement import Achievement
 from app.models.beatmap import Beatmap
@@ -14,6 +13,7 @@ from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
 from app.objects.binary import BinaryWriter
+from app.utils.datetime import timestamp_to_dotnet_ticks
 
 
 def calculate_accuracy(score: Score) -> float:
@@ -124,7 +124,7 @@ async def handle_first_place(
 
     msg = f"[{score.mode.relax_str}] User {user.embed} has submitted a #1 place on {beatmap.embed} +{score.mods!r} ({score.pp:.2f}pp)"
     await job_scheduling.schedule_job(
-        app.utils.send_message_to_channel("#announce", msg),
+        app.usecases.chat.send_message_to_channel("#announce", msg),
     )
 
 
@@ -181,7 +181,7 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         .write_u8_le(score.full_combo)
         .write_i32_le(score.mods.value)
         .write_u8_le(0)
-        .write_i64_le(app.utils.ts_to_utc_ticks(score.time))
+        .write_i64_le(timestamp_to_dotnet_ticks(score.time))
         .write_i32_le(len(replay_bytes))
         .write_raw(replay_bytes)
         .write_i64_le(score.id)

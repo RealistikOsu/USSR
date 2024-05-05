@@ -13,7 +13,6 @@ from fastapi import Response
 from fastapi import UploadFile
 
 import app.state
-import app.utils
 import config
 from app import job_scheduling
 from app.adapters import amplitude
@@ -64,7 +63,7 @@ async def upload_screenshot(
     user_agent: str = Header(...),
     x_real_ip: str = Header(...),
 ):
-    if not await app.utils.check_online(user.id):
+    if not await app.usecases.user.user_is_online(user.id):
         logging.error(f"{user} tried to upload a screenshot while offline")
         return ERR_RESP
 

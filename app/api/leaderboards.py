@@ -9,7 +9,6 @@ from fastapi import Query
 
 import app.state
 import app.usecases
-import app.utils
 from app.constants.leaderboard_type import LeaderboardType
 from app.constants.mode import Mode
 from app.constants.mods import Mods

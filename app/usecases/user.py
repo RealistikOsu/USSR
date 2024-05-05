@@ -16,15 +16,18 @@ import app.usecases.discord
 import app.usecases.password
 import app.usecases.privileges
 import app.usecases.score
-import app.utils
 import config
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.user import User
 
 
+def make_safe_username(username: str) -> str:
+    return username.rstrip().lower().replace(" ", "_")
+
+
 async def fetch_db(username: str) -> Optional[User]:
-    safe_name = app.utils.make_safe(username)
+    safe_name = make_safe_username(username)
 
     db_user = await app.state.services.database.fetch_one(
         "SELECT * FROM users WHERE username_safe = :safe_name",
@@ -282,3 +285,8 @@ async def handle_pending_username_change(user_id: int) -> None:
     )
 
     await app.state.services.redis.publish("api:change_username", user_id)
+
+
+async def user_is_online(user_id: int) -> bool:
+    key = f"bancho:tokens:ids:{user_id}"
+    return await app.state.services.redis.exists(key)
