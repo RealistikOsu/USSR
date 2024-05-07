@@ -28,7 +28,7 @@ def schedule_job(
     shutting down the application.
     """
     task = asyncio.create_task(coro)
-    task.add_done_callback(_handle_task_exception)
+    task.add_done_callback(_handle_task_completion)
     _register_task(task)
     return task
 
@@ -41,7 +41,7 @@ def _unregister_task(task: asyncio.Task[Any]) -> None:
     ACTIVE_TASKS.remove(task)
 
 
-def _handle_task_exception(task: asyncio.Task[Any]) -> None:
+def _handle_task_completion(task: asyncio.Task[Any]) -> None:
     _unregister_task(task)
 
     if task.cancelled():
