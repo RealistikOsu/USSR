@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from fastapi import Depends
 from fastapi import Query
 
@@ -23,3 +21,12 @@ async def add_favourite(
     )
 
     return b"Added favourite!"
+
+
+async def get_favourites(
+    user: User = Depends(authenticate_user(Query, "u", "h")),
+) -> bytes:
+    favourites = await app.usecases.favourites.fetch_all(user.id)
+    return "\n".join(
+        [str(favourite.beatmapset_id) for favourite in favourites],
+    ).encode()

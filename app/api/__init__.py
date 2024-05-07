@@ -67,6 +67,7 @@ router.add_api_route("/web/lastfm.php", lastfm.lastfm)
 router.add_api_route("/web/osu-rate.php", rate.rate_map)
 
 router.add_api_route("/web/osu-addfavourite.php", favourites.add_favourite)
+router.add_api_route("/web/osu-getfavourites.php", favourites.get_favourites)
 
 router.add_api_route("/api/v1/pp", pp.calculate_pp)
 
