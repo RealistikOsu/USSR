@@ -320,6 +320,13 @@ async def submit_score(
 
     stats = await app.usecases.stats.fetch(user.id, score.mode)
     if stats is None:
+        logging.error(
+            "Failed to fetch stats for user during score submission",
+            extra={
+                "user_id": user.id,
+                "mode": score.mode.value,
+            },
+        )
         return b"error: no"
 
     old_stats = copy(stats)
