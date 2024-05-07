@@ -8,6 +8,7 @@ from base64 import b64decode
 from base64 import b64encode
 from copy import copy
 from datetime import datetime
+from datetime import timezone
 from typing import NamedTuple
 from typing import Optional
 from typing import TypeVar
@@ -475,12 +476,17 @@ async def submit_score(
 
     achievements_str = "/".join(ach.full_name for ach in new_achievements)
 
+    beatmap_last_update_datetime = datetime.fromtimestamp(
+        beatmap.last_update,
+        tz=timezone.utc,
+    )
+
     submission_charts = [
         f"beatmapId:{beatmap.id}",
         f"beatmapSetId:{beatmap.set_id}",
         f"beatmapPlaycount:{beatmap.plays}",
         f"beatmapPasscount:{beatmap.passes}",
-        f"approvedDate:{datetime.utcfromtimestamp(beatmap.last_update).strftime('%Y-%m-%d %H:%M:%S')}",
+        f"approvedDate:{beatmap_last_update_datetime:%Y-%m-%d %H:%M:%S}",
         "\n",
         "chartId:beatmap",
         f"chartUrl:{beatmap.set_url}",

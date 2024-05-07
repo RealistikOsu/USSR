@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime
+from datetime import timezone
 from typing import Any
 from typing import Awaitable
 from typing import Callable
@@ -164,7 +165,7 @@ async def insert_restrict_log(user: User, detail: str) -> None:
     """
 
     # Prefix the detail with a less autoban.
-    detail = f"[{datetime.utcnow()}] LESS Restrict: " + detail
+    detail = f"[{datetime.now(tz=timezone.utc)}] LESS Restrict: " + detail
 
     await app.state.services.database.execute(
         f"UPDATE users SET notes = CONCAT(IFNULL(notes, ''), :detail) WHERE id = :id",
