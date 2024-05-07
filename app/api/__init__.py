@@ -12,6 +12,7 @@ from fastapi.responses import RedirectResponse
 
 import app.state.services
 from . import direct
+from . import favourites
 from . import lastfm
 from . import leaderboards
 from . import pp
@@ -64,6 +65,8 @@ router.add_api_route("/web/osu-getseasonal.php", seasonals.get_seasonals)
 router.add_api_route("/web/lastfm.php", lastfm.lastfm)
 
 router.add_api_route("/web/osu-rate.php", rate.rate_map)
+
+router.add_api_route("/web/osu-addfavourite.php", favourites.add_favourite)
 
 router.add_api_route("/api/v1/pp", pp.calculate_pp)
 

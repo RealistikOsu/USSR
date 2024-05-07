@@ -4,6 +4,7 @@ from . import beatmap
 from . import chat
 from . import countries
 from . import discord
+from . import favourites
 from . import leaderboards
 from . import password
 from . import performance
