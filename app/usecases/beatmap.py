@@ -298,9 +298,13 @@ def parse_from_osu_api(
     return maps
 
 
-async def increment_playcount(beatmap: Beatmap, passcount: bool = True) -> None:
+async def increment_playcount(
+    *,
+    beatmap: Beatmap,
+    increment_passcount: bool,
+) -> None:
     beatmap.plays += 1
-    if passcount:
+    if increment_passcount:
         beatmap.passes += 1
 
     await app.state.services.database.execute(

@@ -362,6 +362,11 @@ async def submit_score(
 
     await app.usecases.stats.save(stats)
 
+    await app.usecases.beatmap.increment_playcount(
+        beatmap=beatmap,
+        increment_passcount=score.passed,
+    )
+
     if (
         score.status == ScoreStatus.BEST
         and not user.privileges.is_restricted
