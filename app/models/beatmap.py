@@ -14,25 +14,6 @@ from app.constants.ranked_status import RankedStatus
 ONE_DAY = 86_400
 
 
-def _should_get_updates(ranked_status: int, last_updated: datetime) -> bool:
-    match ranked_status:
-        case RankedStatus.QUALIFIED:
-            update_interval = timedelta(minutes=5)
-        case RankedStatus.PENDING:
-            update_interval = timedelta(minutes=10)
-        case RankedStatus.LOVED:
-            # loved maps can *technically* be updated
-            update_interval = timedelta(days=1)
-        case RankedStatus.RANKED | RankedStatus.APPROVED:
-            # in very rare cases, the osu! team has updated ranked/appvoed maps
-            # this is usually done to remove things like inappropriate content
-            update_interval = timedelta(days=1)
-        case _:
-            raise NotImplementedError(f"Unknown ranked status: {ranked_status}")
-
-    return last_updated <= (datetime.now() - update_interval)
-
-
 @dataclass
 class Beatmap:
     md5: str
@@ -91,10 +72,23 @@ class Beatmap:
         """Checks if there should be an attempt to update a map/check if
         should be updated."""
 
-        return _should_get_updates(
-            int(self.status),
-            datetime.fromtimestamp(self.last_update),
-        )
+        match self.status:
+            case RankedStatus.QUALIFIED:
+                update_interval = timedelta(minutes=5)
+            case RankedStatus.PENDING:
+                update_interval = timedelta(minutes=10)
+            case RankedStatus.LOVED:
+                # loved maps can *technically* be updated
+                update_interval = timedelta(days=1)
+            case RankedStatus.RANKED | RankedStatus.APPROVED:
+                # in very rare cases, the osu! team has updated ranked/appvoed maps
+                # this is usually done to remove things like inappropriate content
+                update_interval = timedelta(days=1)
+            case _:
+                raise NotImplementedError(f"Unknown ranked status: {self.status}")
+
+        last_updated = datetime.fromtimestamp(self.last_update)
+        return last_updated <= (datetime.now() - update_interval)
 
     def osu_string(self, score_count: int, rating: float) -> str:
         return (

@@ -32,7 +32,7 @@ async def calculate_pp(
 
     use_common_pp_percentages = acc is None
 
-    beatmap = await app.usecases.beatmap.id_from_api(beatmap_id, should_save=False)
+    beatmap = await app.usecases.beatmap.id_from_api(beatmap_id)
     if not beatmap:
         return ORJSONResponse(
             content={"message": "Invalid/non-existent beatmap id."},

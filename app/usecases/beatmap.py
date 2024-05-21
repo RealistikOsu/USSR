@@ -15,7 +15,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     if not beatmap.deserves_update:
         return beatmap
 
-    new_beatmap = await id_from_api(beatmap.id, should_save=False)
+    new_beatmap = await id_from_api(beatmap.id)
     if new_beatmap is None:
         # it's now unsubmitted!
 
@@ -57,7 +57,10 @@ async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
     if beatmap := await md5_from_database(md5):
         return beatmap
 
-    if beatmap := await md5_from_api(md5):
+    if beatmap := await md5_from_api(
+        md5,
+        should_replace_db_beatmap=True,
+    ):
         return beatmap
 
 
@@ -65,7 +68,10 @@ async def fetch_by_id(id: int) -> Optional[Beatmap]:
     if beatmap := await id_from_database(id):
         return beatmap
 
-    if beatmap := await id_from_api(id):
+    if beatmap := await id_from_api(
+        id,
+        should_replace_db_beatmap=True,
+    ):
         return beatmap
 
 
@@ -146,7 +152,11 @@ async def save(beatmap: Beatmap) -> None:
     )
 
 
-async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
+async def md5_from_api(
+    md5: str,
+    *,
+    should_replace_db_beatmap: bool = False,
+) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
     response = await app.state.services.http_client.get(
@@ -164,7 +174,7 @@ async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
 
     beatmaps = parse_from_osu_api(response_json)
 
-    if should_save:
+    if should_replace_db_beatmap:
         for beatmap in beatmaps:
             await save(beatmap)
 
@@ -173,7 +183,11 @@ async def md5_from_api(md5: str, should_save: bool = True) -> Optional[Beatmap]:
             return beatmap
 
 
-async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
+async def id_from_api(
+    id: int,
+    *,
+    should_replace_db_beatmap: bool = False,
+) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
     response = await app.state.services.http_client.get(
@@ -191,7 +205,7 @@ async def id_from_api(id: int, should_save: bool = True) -> Optional[Beatmap]:
 
     beatmaps = parse_from_osu_api(response_json)
 
-    if should_save:
+    if should_replace_db_beatmap:
         for beatmap in beatmaps:
             await save(beatmap)
 
@@ -230,10 +244,7 @@ IGNORED_BEATMAP_CHARS = dict.fromkeys(map(ord, r':\/*<>?"|'), None)
 FROZEN_STATUSES = (RankedStatus.RANKED, RankedStatus.APPROVED, RankedStatus.LOVED)
 
 
-def parse_from_osu_api(
-    response_json_list: list[dict],
-    frozen: bool = False,
-) -> list[Beatmap]:
+def parse_from_osu_api(response_json_list: list[dict]) -> list[Beatmap]:
     maps = []
 
     for response_json in response_json_list:
@@ -261,8 +272,7 @@ def parse_from_osu_api(
             max_combo = 0
 
         ranked_status = RankedStatus.from_osu_api(int(response_json["approved"]))
-        if ranked_status in FROZEN_STATUSES:
-            frozen = True  # beatmaps are always frozen when ranked/approved/loved
+        frozen = ranked_status in FROZEN_STATUSES
 
         mode = Mode(int(response_json["mode"]))
 

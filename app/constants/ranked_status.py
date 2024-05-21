@@ -14,7 +14,7 @@ class RankedStatus(IntEnum):
     LOVED = 5
 
     @functools.cached_property
-    def osu_api(self) -> int:
+    def osu_api(self) -> int | None:
         return {
             self.PENDING: 0,
             self.RANKED: 1,
