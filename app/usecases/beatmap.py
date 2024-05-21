@@ -33,23 +33,24 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
             "DELETE FROM beatmaps WHERE beatmap_md5 = :old_md5",
             {"old_md5": beatmap.md5},
         )
-
-        if beatmap.frozen:
-            # if the previous version is status frozen
-            # we should force the old status on the new version
-            new_beatmap.status = beatmap.status
-            new_beatmap.frozen = True
-
-        # update for new shit
-        new_beatmap.last_update = int(time.time())
-
-        await save(new_beatmap)
-        return new_beatmap
     else:
-        beatmap.last_update = int(time.time())
-        await save(beatmap)
+        # the map may have changed in some ways (e.g. ranked status),
+        # but we want to make sure to keep our stats, because the map
+        # is the same from the player's pov (hit objects, ar/od, etc.)
+        new_beatmap.plays = beatmap.plays
+        new_beatmap.passes = beatmap.passes
+        new_beatmap.rating = beatmap.rating
 
-        return beatmap
+    if beatmap.frozen:
+        # if the previous version is status frozen
+        # we should force the old status on the new version
+        new_beatmap.status = beatmap.status
+        new_beatmap.frozen = True
+
+    new_beatmap.last_update = int(time.time())
+
+    await save(new_beatmap)
+    return new_beatmap
 
 
 async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
