@@ -52,17 +52,19 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
             RankedStatus.APPROVED,
             RankedStatus.LOVED,
         }:
-            action_taken = "frozen"
+            app.usecases.discord.beatmap_status_change(
+                old_beatmap=beatmap,
+                new_beatmap=new_beatmap,
+                action_taken="frozen",
+            )
             new_beatmap.status = beatmap.status
             new_beatmap.frozen = True
         else:
-            action_taken = "status_change"
-
-        app.usecases.discord.beatmap_status_change(
-            old_beatmap=beatmap,
-            new_beatmap=new_beatmap,
-            action_taken=action_taken,
-        )
+            app.usecases.discord.beatmap_status_change(
+                old_beatmap=beatmap,
+                new_beatmap=new_beatmap,
+                action_taken="status_change",
+            )
 
     new_beatmap.last_update = int(time.time())
 
@@ -141,11 +143,17 @@ GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
 async def save(beatmap: Beatmap) -> None:
     await app.state.services.database.execute(
         (
-            "REPLACE INTO beatmaps (beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode, rating, "
-            "max_combo, hit_length, bpm, playcount, passcount, ranked, latest_update, ranked_status_freezed, "
-            "file_name) VALUES (:beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, :ar, :od, :mode, "
-            ":rating, :max_combo, :hit_length, :bpm, :playcount, :passcount, :ranked, :latest_update, "
-            ":ranked_status_freezed, :file_name)"
+            """
+            REPLACE INTO beatmaps (
+                beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode,
+                rating, max_combo, hit_length, bpm, playcount, passcount, ranked,
+                latest_update, ranked_status_freezed, file_name
+            ) VALUES (
+                :beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, :ar, :od, :mode,
+                :rating, :max_combo, :hit_length, :bpm, :playcount, :passcount, :ranked,
+                :latest_update, :ranked_status_freezed, :file_name
+            )
+            """
         ),
         {
             "beatmap_id": beatmap.id,
