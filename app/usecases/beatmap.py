@@ -47,9 +47,21 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         new_beatmap.status = beatmap.status
         new_beatmap.frozen = True
     elif beatmap.status != new_beatmap.status:
+        if new_beatmap.status is RankedStatus.PENDING and beatmap.status in {
+            RankedStatus.RANKED,
+            RankedStatus.APPROVED,
+            RankedStatus.LOVED,
+        }:
+            action_taken = "frozen"
+            new_beatmap.status = beatmap.status
+            new_beatmap.frozen = True
+        else:
+            action_taken = "status_change"
+
         app.usecases.discord.beatmap_status_change(
             old_beatmap=beatmap,
             new_beatmap=new_beatmap,
+            action_taken=action_taken,
         )
 
     new_beatmap.last_update = int(time.time())

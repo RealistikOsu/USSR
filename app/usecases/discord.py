@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Literal
 from typing import Optional
 
 from tenacity import retry
@@ -227,9 +228,17 @@ def log_user_edit(
     schedule_hook(admin_hook, embed)
 
 
-def beatmap_status_change(old_beatmap: Beatmap, new_beatmap: Beatmap) -> None:
-    embed = Embed(title="Beatmap Status Change!", color=EDIT_COL)
-    embed.description = f"Non-frozen {old_beatmap.embed} has just been changed from {old_beatmap.status.name} to {new_beatmap.status.name}!"
+def beatmap_status_change(
+    *,
+    old_beatmap: Beatmap,
+    new_beatmap: Beatmap,
+    action_taken: Literal["status_change", "frozen"],
+) -> None:
+    embed = Embed(title="Beatmap Status/Freeze Change During Update!", color=EDIT_COL)
+    if action_taken == "status_change":
+        embed.description = f"Non-frozen {old_beatmap.embed} has just been changed from {old_beatmap.status.name} to {new_beatmap.status.name}!"
+    else:
+        embed.description = f"{new_beatmap.embed} has just been frozen in transit from {old_beatmap.status.name} to {new_beatmap.status.name}!"
     embed.set_author(name="LESS Score Server", icon_url=EDIT_ICON)
     embed.set_footer(text="This is an automated action performed by the server.")
 
