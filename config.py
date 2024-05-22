@@ -35,6 +35,7 @@ SRV_URL = config("SRV_URL", default="akatsuki.gg")
 SRV_NAME = config("SRV_NAME", default="osu!Akatsuki")
 
 DISCORD_ADMIN_HOOK = config("DISCORD_ADMIN_HOOK")
+BEATMAP_UPDATE_HOOK = config("BEATMAP_UPDATE_HOOK")
 
 BOT_USER_ID = config("BOT_USER_ID", cast=int)
 FOKABOT_KEY = config("FOKABOT_KEY")

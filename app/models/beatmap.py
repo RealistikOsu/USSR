@@ -11,8 +11,6 @@ import config
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 
-ONE_DAY = 86_400
-
 
 @dataclass
 class Beatmap:
@@ -43,14 +41,12 @@ class Beatmap:
 
     @property
     def url(self) -> str:
-        # i hate this
         server_url = config.SRV_URL.replace("https://", "").replace("http://", "")
 
         return f"https://osu.{server_url}/beatmaps/{self.id}"
 
     @property
     def set_url(self) -> str:
-        # i hate this
         server_url = config.SRV_URL.replace("https://", "").replace("http://", "")
 
         return f"https://osu.{server_url}/beatmapsets/{self.set_id}"

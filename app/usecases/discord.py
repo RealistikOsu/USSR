@@ -10,6 +10,7 @@ from tenacity import wait_exponential
 import app.state
 import config
 from app import job_scheduling
+from app.models.beatmap import Beatmap
 from app.models.user import User
 from app.reliability import retry_if_exception_network_related
 
@@ -206,9 +207,10 @@ EDIT_COL = "4360181"
 EDIT_ICON = "https://cdn3.iconfinder.com/data/icons/bold-blue-glyphs-free-samples/32/Info_Circle_Symbol_Information_Letter-512.png"
 
 admin_hook = a_hook if (a_hook := config.DISCORD_ADMIN_HOOK) else None
+beatmap_hook = b_hook if (b_hook := config.BEATMAP_UPDATE_HOOK) else None
 
 
-async def log_user_edit(
+def log_user_edit(
     user: User,
     action: str,
     reason: str,
@@ -223,3 +225,12 @@ async def log_user_edit(
     embed.set_footer(text="This is an automated action performed by the server.")
 
     schedule_hook(admin_hook, embed)
+
+
+def beatmap_status_change(old_beatmap: Beatmap, new_beatmap: Beatmap) -> None:
+    embed = Embed(title="Beatmap Status Change!", color=EDIT_COL)
+    embed.description = f"Non-frozen {old_beatmap.embed} has just been changed from {old_beatmap.status.name} to {new_beatmap.status.name}!"
+    embed.set_author(name="LESS Score Server", icon_url=EDIT_ICON)
+    embed.set_footer(text="This is an automated action performed by the server.")
+
+    schedule_hook(beatmap_hook, embed)

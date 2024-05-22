@@ -46,6 +46,11 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         # we should force the old status on the new version
         new_beatmap.status = beatmap.status
         new_beatmap.frozen = True
+    elif beatmap.status != new_beatmap.status:
+        app.usecases.discord.beatmap_status_change(
+            old_beatmap=beatmap,
+            new_beatmap=new_beatmap,
+        )
 
     new_beatmap.last_update = int(time.time())
 
