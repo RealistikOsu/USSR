@@ -40,12 +40,14 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
         new_beatmap.plays = beatmap.plays
         new_beatmap.passes = beatmap.passes
         new_beatmap.rating = beatmap.rating
+        new_beatmap.rankedby = beatmap.rankedby
 
     if beatmap.frozen:
         # if the previous version is status frozen
         # we should force the old status on the new version
         new_beatmap.status = beatmap.status
         new_beatmap.frozen = True
+        new_beatmap.rankedby = beatmap.rankedby
     elif beatmap.status != new_beatmap.status:
         if new_beatmap.status is RankedStatus.PENDING and beatmap.status in {
             RankedStatus.RANKED,
@@ -147,11 +149,11 @@ async def save(beatmap: Beatmap) -> None:
             REPLACE INTO beatmaps (
                 beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode,
                 rating, max_combo, hit_length, bpm, playcount, passcount, ranked,
-                latest_update, ranked_status_freezed, file_name
+                latest_update, ranked_status_freezed, file_name, rankedby
             ) VALUES (
                 :beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, :ar, :od, :mode,
                 :rating, :max_combo, :hit_length, :bpm, :playcount, :passcount, :ranked,
-                :latest_update, :ranked_status_freezed, :file_name
+                :latest_update, :ranked_status_freezed, :file_name, :rankedby
             )
             """
         ),
@@ -173,6 +175,7 @@ async def save(beatmap: Beatmap) -> None:
             "latest_update": beatmap.last_update,
             "ranked_status_freezed": beatmap.frozen,
             "file_name": beatmap.filename,
+            "rankedby": beatmap.rankedby,
         },
     )
 
@@ -327,6 +330,7 @@ def parse_from_osu_api(response_json_list: list[dict]) -> list[Beatmap]:
                 bpm=bpm,
                 filename=filename,
                 frozen=frozen,
+                rankedby=None,
                 rating=10.0,
             ),
         )
