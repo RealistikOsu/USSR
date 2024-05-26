@@ -40,7 +40,7 @@ class Beatmap:
     rankedby: Optional[int]
     rating: Optional[float]
 
-    bancho_ranked_status: RankedStatus
+    bancho_ranked_status: RankedStatus | None
 
     @property
     def url(self) -> str:
@@ -139,5 +139,9 @@ class Beatmap:
             frozen=mapping["ranked_status_freezed"],
             rankedby=mapping["rankedby"],
             rating=mapping["rating"],
-            bancho_ranked_status=RankedStatus(mapping["bancho_ranked_status"]),
+            bancho_ranked_status=(
+                RankedStatus(mapping["bancho_ranked_status"])
+                if mapping["bancho_ranked_status"] is not None
+                else None
+            ),
         )
