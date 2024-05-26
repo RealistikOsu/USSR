@@ -40,6 +40,8 @@ class Beatmap:
     rankedby: Optional[int]
     rating: Optional[float]
 
+    bancho_ranked_status: RankedStatus
+
     @property
     def url(self) -> str:
         server_url = config.SRV_URL.replace("https://", "").replace("http://", "")
@@ -113,6 +115,7 @@ class Beatmap:
             "ranked_status_freezed": self.frozen,
             "rankedby": self.rankedby,
             "rating": self.rating,
+            "bancho_ranked_status": self.bancho_ranked_status,
         }
 
     @classmethod
@@ -136,4 +139,5 @@ class Beatmap:
             frozen=mapping["ranked_status_freezed"],
             rankedby=mapping["rankedby"],
             rating=mapping["rating"],
+            bancho_ranked_status=RankedStatus(mapping["bancho_ranked_status"]),
         )

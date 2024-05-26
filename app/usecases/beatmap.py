@@ -149,11 +149,13 @@ async def save(beatmap: Beatmap) -> None:
             REPLACE INTO beatmaps (
                 beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode,
                 rating, max_combo, hit_length, bpm, playcount, passcount, ranked,
-                latest_update, ranked_status_freezed, file_name, rankedby
+                latest_update, ranked_status_freezed, file_name, rankedby,
+                bancho_ranked_status
             ) VALUES (
                 :beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, :ar, :od, :mode,
                 :rating, :max_combo, :hit_length, :bpm, :playcount, :passcount, :ranked,
-                :latest_update, :ranked_status_freezed, :file_name, :rankedby
+                :latest_update, :ranked_status_freezed, :file_name, :rankedby,
+                :bancho_ranked_status
             )
             """
         ),
@@ -176,6 +178,7 @@ async def save(beatmap: Beatmap) -> None:
             "ranked_status_freezed": beatmap.frozen,
             "file_name": beatmap.filename,
             "rankedby": beatmap.rankedby,
+            "bancho_ranked_status": beatmap.bancho_ranked_status,
         },
     )
 
@@ -299,8 +302,8 @@ def parse_from_osu_api(response_json_list: list[dict]) -> list[Beatmap]:
         else:
             max_combo = 0
 
-        ranked_status = RankedStatus.from_osu_api(int(response_json["approved"]))
-        frozen = ranked_status in FROZEN_STATUSES
+        bancho_ranked_status = RankedStatus.from_osu_api(int(response_json["approved"]))
+        frozen = bancho_ranked_status in FROZEN_STATUSES
 
         mode = Mode(int(response_json["mode"]))
 
@@ -318,7 +321,7 @@ def parse_from_osu_api(response_json_list: list[dict]) -> list[Beatmap]:
                 id=id,
                 set_id=set_id,
                 song_name=song_name,
-                status=ranked_status,
+                status=bancho_ranked_status,
                 plays=0,
                 passes=0,
                 mode=mode,
@@ -332,6 +335,7 @@ def parse_from_osu_api(response_json_list: list[dict]) -> list[Beatmap]:
                 frozen=frozen,
                 rankedby=None,
                 rating=10.0,
+                bancho_ranked_status=bancho_ranked_status,
             ),
         )
 
