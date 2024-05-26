@@ -80,7 +80,7 @@ async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
 
     if beatmap := await md5_from_api(
         md5,
-        should_replace_db_beatmap=True,
+        is_definitely_new_beatmap=True,
     ):
         return beatmap
 
@@ -91,7 +91,7 @@ async def fetch_by_id(id: int) -> Optional[Beatmap]:
 
     if beatmap := await id_from_api(
         id,
-        should_replace_db_beatmap=True,
+        is_definitely_new_beatmap=True,
     ):
         return beatmap
 
@@ -100,7 +100,10 @@ async def fetch_by_set_id(set_id: int) -> list[Beatmap]:
     if beatmaps := await set_from_database(set_id):
         return beatmaps
 
-    if beatmaps := await set_from_api(set_id):
+    if beatmaps := await set_from_api(
+        set_id,
+        is_definitely_new_beatmapset=True,
+    ):
         return beatmaps
 
     return []
@@ -190,7 +193,7 @@ async def save(beatmap: Beatmap) -> None:
 async def md5_from_api(
     md5: str,
     *,
-    should_replace_db_beatmap: bool = False,
+    is_definitely_new_beatmap: bool = False,
 ) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
@@ -209,7 +212,7 @@ async def md5_from_api(
 
     beatmaps = parse_from_osu_api(response_json)
 
-    if should_replace_db_beatmap:
+    if is_definitely_new_beatmap:
         for beatmap in beatmaps:
             await save(beatmap)
 
@@ -221,7 +224,7 @@ async def md5_from_api(
 async def id_from_api(
     id: int,
     *,
-    should_replace_db_beatmap: bool = False,
+    is_definitely_new_beatmap: bool = False,
 ) -> Optional[Beatmap]:
     api_key = random.choice(config.API_KEYS_POOL)
 
@@ -240,7 +243,7 @@ async def id_from_api(
 
     beatmaps = parse_from_osu_api(response_json)
 
-    if should_replace_db_beatmap:
+    if is_definitely_new_beatmap:
         for beatmap in beatmaps:
             await save(beatmap)
 
@@ -249,7 +252,10 @@ async def id_from_api(
             return beatmap
 
 
-async def set_from_api(id: int, should_save: bool = True) -> Optional[list[Beatmap]]:
+async def set_from_api(
+    id: int,
+    is_definitely_new_beatmapset: bool = True,
+) -> Optional[list[Beatmap]]:
     api_key = random.choice(config.API_KEYS_POOL)
 
     response = await app.state.services.http_client.get(
@@ -267,7 +273,7 @@ async def set_from_api(id: int, should_save: bool = True) -> Optional[list[Beatm
 
     beatmaps = parse_from_osu_api(response_json)
 
-    if should_save:
+    if is_definitely_new_beatmapset:
         for beatmap in beatmaps:
             await save(beatmap)
 
