@@ -178,7 +178,11 @@ async def save(beatmap: Beatmap) -> None:
             "ranked_status_freezed": beatmap.frozen,
             "file_name": beatmap.filename,
             "rankedby": beatmap.rankedby,
-            "bancho_ranked_status": beatmap.bancho_ranked_status,
+            "bancho_ranked_status": (
+                beatmap.bancho_ranked_status.value
+                if beatmap.bancho_ranked_status is not None
+                else None
+            ),
         },
     )
 
