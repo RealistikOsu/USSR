@@ -1,0 +1,18 @@
+aiobotocore == 2.5.2
+aiodns
+aiohttp
+aioredis==2.0.1
+bcrypt==4.0.1
+Brotli
+cchardet
+databases[asyncmy]==0.5.5
+fastapi
+meilisearch-python-async
+orjson
+py3rijndael
+python-dotenv
+# Pinned as it breaks databases
+sqlalchemy==1.4.41
+types-aiobotocore[s3] == 2.5.2
+uvicorn
+uvloop
