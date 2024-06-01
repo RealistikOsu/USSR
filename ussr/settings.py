@@ -19,9 +19,16 @@ HTTP_PORT = int(os.environ["HTTP_PORT"])
 
 # MySQL Database Configuration
 MYSQL_HOST = os.environ["MYSQL_HOST"]
+MYSQL_PORT = int(os.environ["MYSQL_PORT"])
 MYSQL_USER = os.environ["MYSQL_USER"]
 MYSQL_DATABASE = os.environ["MYSQL_DATABASE"]
 MYSQL_PASSWORD = os.environ["MYSQL_PASSWORD"]
+
+# Redis Configuration
+REDIS_HOST = os.environ["REDIS_HOST"]
+REDIS_PORT = int(os.environ["REDIS_PORT"])
+REDIS_PASSWORD = os.environ["REDIS_PASSWORD"]
+REDIS_DB = int(os.environ["REDIS_DB"])
 
 # MeiliSearch Configuration
 USE_MEILI_DIRECT = _parse_bool(os.environ["MEILI_DIRECT"])

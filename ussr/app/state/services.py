@@ -12,20 +12,23 @@ from .storage import AbstractStorage
 from .storage import LocalStorage
 from .storage import S3Storage
 
-redis: aioredis.Redis = aioredis.from_url("redis://localhost")
+redis: aioredis.Redis = aioredis.from_url(
+    f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}"
+)
 
 url = databases.DatabaseURL(
-    "mysql+asyncmy://{username}:{password}@{host}:3306/{db}".format(
-        username=config.sql_user,
-        password=quote(config.sql_pass),
-        host=config.sql_host,
-        db=config.sql_db,
+    "mysql+asyncmy://{username}:{password}@{host}:{port}/{db}".format(
+        username=settings.MYSQL_USER,
+        password=quote(settings.MYSQL_PASSWORD),
+        host=settings.MYSQL_HOST,
+        port=settings.MYSQL_PORT,
+        db=settings.MYSQL_DATABASE,
     ),
 )
 database: databases.Database = databases.Database(url)
 meili = meilisearch_python_async.Client(
-    url=config.meili_url,
-    api_key=config.meili_key,
+    url=settings.MEILI_URL,
+    api_key=settings.MEILI_KEY,
 )
 replay_storage: AbstractStorage
 
