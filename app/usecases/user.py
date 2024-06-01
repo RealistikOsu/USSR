@@ -8,6 +8,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 
+import settings
 import app.state.services
 import app.usecases.discord
 import app.usecases.password
@@ -20,7 +21,6 @@ from app.constants.privileges import Privileges
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.user import User
-from config import config
 
 
 async def fetch_db(username: str) -> Optional[User]:
@@ -176,7 +176,7 @@ async def insert_ban_log(user: User, summary: str, detail: str) -> None:
     await app.state.services.database.execute(
         "INSERT INTO ban_logs (from_id, to_id, summary, detail) VALUES (:from_id, :to_id, :summary, :detail)",
         {
-            "from_id": config.bot_user_id,
+            "from_id": settings.PS_BOT_USER_ID,
             "to_id": user.id,
             "summary": summary,
             "detail": detail,

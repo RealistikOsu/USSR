@@ -19,6 +19,7 @@ from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
+import settings
 import app.state
 import app.usecases
 import app.utils
@@ -31,7 +32,6 @@ from app.constants.score_status import ScoreStatus
 from app.models.score import Score
 from app.objects.path import Path
 from app.usecases.user import restrict_user
-from config import config
 
 
 class ScoreData(NamedTuple):
@@ -82,8 +82,7 @@ def decrypt_score_data(
     return score_data, client_hash_decoded
 
 
-DATA_PATH = Path(config.data_dir)
-MAPS_PATH = DATA_PATH / "maps"
+MAPS_PATH = Path(settings.DATA_BEATMAP_DIRECTORY)
 
 
 T = TypeVar("T", bound=Union[int, float])

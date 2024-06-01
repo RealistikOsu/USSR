@@ -24,13 +24,14 @@ MYSQL_DATABASE = os.environ["MYSQL_DATABASE"]
 MYSQL_PASSWORD = os.environ["MYSQL_PASSWORD"]
 
 # MeiliSearch Configuration
-MEILI_DIRECT = _parse_bool(os.environ["MEILI_DIRECT"])
+USE_MEILI_DIRECT = _parse_bool(os.environ["MEILI_DIRECT"])
 MEILI_URL = os.environ["MEILI_URL"]
 MEILI_KEY = os.environ["MEILI_KEY"]
 
 # Directories and URLs
 DATA_BEATMAP_DIRECTORY = os.environ["DATA_BEATMAP_DIRECTORY"]
 DATA_SCREENSHOT_DIRECTORY = os.environ["DATA_SCREENSHOT_DIRECTORY"]
+DATA_REPLAY_DIRECTORY = os.environ["DATA_REPLAY_DIRECTORY"]
 
 # API Configuration
 API_KEYS_POOL = _parse_string_list(os.environ["API_KEYS_POOL"])

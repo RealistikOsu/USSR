@@ -6,13 +6,13 @@ from fastapi import Query
 from fastapi import status
 from fastapi.responses import ORJSONResponse
 
+import settings
 import app.usecases
 import logger
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.objects.path import Path
 from app.usecases.performance import PerformanceScore
-from config import config
 
 COMMON_PP_PERCENTAGES = (
     100.0,
@@ -21,7 +21,7 @@ COMMON_PP_PERCENTAGES = (
     95.0,
 )
 
-MAPS_PATH = Path(config.data_dir) / "maps"
+MAPS_PATH = Path(settings.DATA_BEATMAP_DIRECTORY)
 
 
 async def calculate_pp(

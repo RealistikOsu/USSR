@@ -9,6 +9,7 @@ from fastapi import Response
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
+import settings
 from . import direct
 from . import error
 from . import lastfm
@@ -21,7 +22,6 @@ from . import screenshots
 from . import seasonals
 from app.models.user import User
 from app.usecases.user import authenticate_user
-from config import config
 
 router = APIRouter(default_response_class=Response)
 
@@ -41,7 +41,7 @@ router.add_api_route(
 router.add_api_route("/web/osu-getreplay.php", replays.get_replay)
 router.add_api_route("/web/replays/{score_id}", replays.get_full_replay)
 
-if config.meili_direct:
+if settings.USE_MEILI_DIRECT:
     router.add_api_route("/web/osu-search.php", direct.osu_direct_meili)
 else:
     router.add_api_route("/web/osu-search.php", direct.osu_direct_cheesegull)

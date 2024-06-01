@@ -7,11 +7,10 @@ import aioredis
 import databases
 import meilisearch_python_async
 
-import app.utils
+import settings
 from .storage import AbstractStorage
 from .storage import LocalStorage
 from .storage import S3Storage
-from config import config
 
 redis: aioredis.Redis = aioredis.from_url("redis://localhost")
 
@@ -30,17 +29,17 @@ meili = meilisearch_python_async.Client(
 )
 replay_storage: AbstractStorage
 
-if config.s3_enabled:
+if settings.S3_ENABLED:
     replay_storage = S3Storage(
-        config.s3_region,
-        config.s3_endpoint,
-        config.s3_access_key,
-        config.s3_secret_key,
-        config.s3_bucket,
+        settings.S3_REGION,
+        settings.S3_ENDPOINT,
+        settings.S3_ACCESS_KEY,
+        settings.S3_SECRET_KEY,
+        settings.S3_BUCKET,
         retries=10,
         timeout=5,
     )
 else:
-    replay_storage = LocalStorage(str(app.utils.REPLAYS))
+    replay_storage = LocalStorage(settings.DATA_REPLAY_DIRECTORY)
 
 http: aiohttp.ClientSession

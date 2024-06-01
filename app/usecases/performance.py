@@ -3,15 +3,15 @@ from __future__ import annotations
 import hashlib
 from typing import TypedDict
 
+import settings
 import app.state
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.objects.path import Path
-from config import config
 
 OSU_BASE_URL = "https://old.ppy.sh/osu"
-if not config.api_keys_pool:
-    OSU_BASE_URL = config.api_osu_fallback_url
+if not settings.API_KEYS_POOL:
+    OSU_BASE_URL = settings.API_OSU_FALLBACK_URL
 
 
 async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
@@ -43,7 +43,7 @@ async def calculate_performances(
     scores: list[PerformanceScore],
 ) -> list[tuple[float, float]]:
     async with app.state.services.http.post(
-        f"{config.performance_service_url}/api/v1/calculate",
+        f"{settings.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
         json=scores,
     ) as resp:
         if resp.status != 200:
@@ -63,7 +63,7 @@ async def calculate_performance(
     nmiss: int,
 ) -> tuple[float, float]:
     async with app.state.services.http.post(
-        f"{config.performance_service_url}/api/v1/calculate",
+        f"{settings.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
         json=[
             {
                 "beatmap_id": beatmap_id,

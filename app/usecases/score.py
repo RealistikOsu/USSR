@@ -14,7 +14,6 @@ from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
 from app.objects.binary import BinaryWriter
-from config import config
 
 
 def calculate_accuracy(score: Score) -> float:

@@ -13,8 +13,6 @@ import app.utils
 import logger
 from app.constants.mode import Mode
 from app.models.score import Score
-from config import config
-
 
 async def get_replay(
     score_id: int = Query(..., alias="c"),

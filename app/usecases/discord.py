@@ -4,15 +4,13 @@ import asyncio
 import traceback
 from typing import Optional
 
-import orjson
-
+import settings
 import app.state
 import logger
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.stats import Stats
 from app.models.user import User
-from config import config
 
 
 # This portion is based off cmyui's discord hooks code
@@ -202,8 +200,8 @@ def schedule_hook(hook: Optional[str], embed: Embed):
 EDIT_COL = "4360181"
 EDIT_ICON = "https://cdn3.iconfinder.com/data/icons/bold-blue-glyphs-free-samples/32/Info_Circle_Symbol_Information_Letter-512.png"
 
-admin_hook = a_hook if (a_hook := config.discord_admin_hook) else None
-first_hook = one_hook if (one_hook := config.discord_first_place) else None
+admin_hook = a_hook if (a_hook := settings.DISCORD_ADMIN_HOOK) else None
+first_hook = one_hook if (one_hook := settings.DISCORD_FIRST_PLACE) else None
 
 
 async def log_user_edit(
@@ -248,11 +246,11 @@ async def log_first_place(
     )
     embed.add_field(
         name=f"Global Rank: {new_stats.rank}",
-        value=f"[__[Download Map]({config.srv_url}/d/{beatmap.set_id})__]",
+        value=f"[__[Download Map]({settings.PS_DOMAIN}/d/{beatmap.set_id})__]",
     )
     embed.add_field(
         name=f"Played by: {user.name}",
-        value=f"[__[User Profile]({config.srv_url}/u/{user.id})__]",
+        value=f"[__[User Profile]({settings.PS_DOMAIN}/u/{user.id})__]",
     )
 
     embed.set_image(

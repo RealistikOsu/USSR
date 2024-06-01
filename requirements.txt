@@ -11,8 +11,6 @@ meilisearch-python-async
 orjson
 py3rijndael
 python-dotenv
-# Specifying this version is important
-rosu-pp-py==0.7.2
 # Pinned as it breaks databases
 sqlalchemy==1.4.41
 types-aiobotocore[s3] == 2.5.2

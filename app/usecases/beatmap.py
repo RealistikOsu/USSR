@@ -6,11 +6,11 @@ import time
 from typing import Any
 from typing import Optional
 
+import settings
 import app.state
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.models.beatmap import Beatmap
-from config import config
 
 MD5_CACHE: dict[str, Beatmap] = {}
 ID_CACHE: dict[int, Beatmap] = {}
@@ -190,14 +190,14 @@ async def save(beatmap: Beatmap) -> None:
 
 
 GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
-GET_BEATMAP_FALLBACK_URL = config.api_fallback_url + "/get_beatmaps"
+GET_BEATMAP_FALLBACK_URL = settings.API_FALLBACK_URL + "/get_beatmaps"
 
 
 async def _make_get_beatmaps_request(args: dict[str, Any]) -> Optional[list[Beatmap]]:
     url = GET_BEATMAP_FALLBACK_URL
-    if config.api_keys_pool:
+    if settings.API_KEYS_POOL:
         url = GET_BEATMAP_URL
-        args["k"] = random.choice(config.api_keys_pool)
+        args["k"] = random.choice(settings.API_KEYS_POOL)
 
     async with app.state.services.http.get(
         url,

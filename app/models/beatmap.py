@@ -4,9 +4,9 @@ import time
 from dataclasses import dataclass
 from typing import Optional
 
+import settings
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
-from config import config
 
 ONE_DAY = 86_400
 
@@ -46,14 +46,14 @@ class Beatmap:
     @property
     def url(self) -> str:
         # i hate this
-        server_url = config.srv_url.replace("https://", "").replace("http://", "")
+        server_url = settings.PS_DOMAIN.replace("https://", "").replace("http://", "")
 
         return f"https://osu.{server_url}/beatmaps/{self.id}"
 
     @property
     def set_url(self) -> str:
         # i hate this
-        server_url = config.srv_url.replace("https://", "").replace("http://", "")
+        server_url = settings.PS_DOMAIN.replace("https://", "").replace("http://", "")
 
         return f"https://osu.{server_url}/beatmapsets/{self.set_id}"
 

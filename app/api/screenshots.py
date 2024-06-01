@@ -10,20 +10,20 @@ from fastapi import Header
 from fastapi import Query
 from fastapi import UploadFile
 
+import settings
 import app.state
 import app.utils
 import logger
 from app.models.user import User
 from app.objects.path import Path
 from app.usecases.user import authenticate_user
-from config import config
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000  # Rosu screenshots don't exceed this.
 ERR_RESP = "https://c.ussr.pl/"  # We do a lil trolley.
 SS_NAME_LEN = 8
 
-SS_PATH = Path(config.data_dir) / "screenshots"
+SS_PATH = Path(settings.DATA_SCREENSHOT_DIRECTORY)
 
 
 async def is_ratelimit(ip: str) -> bool:
