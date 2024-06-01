@@ -11,22 +11,8 @@ import logger
 from app.objects.path import Path
 from config import config
 
-REQUIRED_FOLDERS = (
-    config.data_dir,
-    f"{config.data_dir}/replays/",
-    f"{config.data_dir}/maps/",
-    f"{config.data_dir}/screenshots/",
-)
-
 DATA_PATH = Path(config.data_dir)
 REPLAYS = DATA_PATH / "replays"
-
-
-def ensure_folders():
-    for folder in REQUIRED_FOLDERS:
-        if not os.path.exists(folder):
-            logger.warning(f"Creating data folder {folder}...")
-            os.makedirs(folder, exist_ok=True)
 
 
 def make_safe(username: str) -> str:

@@ -14,18 +14,18 @@ from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
 from starlette.middleware.base import RequestResponseEndpoint
 
+import settings
 import app.redis
 import app.state
 import app.usecases
 import logger
-from config import config
 
 
 def init_events(asgi_app: FastAPI) -> None:
     @asgi_app.on_event("startup")
     async def on_startup() -> None:
         # TODO: maybe not here?
-        if not config.api_keys_pool:
+        if not settings.API_KEYS_POOL:
             logger.warning(
                 "No osu!api v1 keys in the pool! Using fallback API v1 + osu.",
             )
@@ -33,7 +33,7 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.database.connect()
         await app.state.services.redis.initialize()
 
-        if config.s3_enabled:
+        if settings.S3_ENABLED:
             await app.state.services.replay_storage.connect()
 
         app.state.services.http = aiohttp.ClientSession(
@@ -53,7 +53,7 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.state.services.database.disconnect()
         await app.state.services.redis.close()
 
-        if config.s3_enabled:
+        if settings.S3_ENABLED:
             await app.state.services.replay_storage.disconnect()
 
         await app.state.services.http.close()

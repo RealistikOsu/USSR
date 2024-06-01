@@ -7,9 +7,9 @@ import sys
 import uvicorn
 import uvloop
 
+import settings
 import app.utils
 import logger
-from config import config
 
 uvloop.install()
 
@@ -18,7 +18,6 @@ DEBUG = "debug" in sys.argv
 
 def main() -> int:
     logger.ensure_log_file()
-    app.utils.ensure_folders()
 
     uvicorn.run(
         "app.init_api:asgi_app",
@@ -27,7 +26,7 @@ def main() -> int:
         server_header=False,
         date_header=False,
         host="127.0.0.1",
-        port=config.port,
+        port=settings.HTTP_PORT,
     )
 
     return 0
