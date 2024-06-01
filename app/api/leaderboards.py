@@ -22,8 +22,9 @@ CUR_LB_VER = 4
 def format_leaderboard_score_string(
     mode: Mode,
     leaderboard_score: LeaderboardScore,
+    vanilla_pp_leaderboards: bool,
 ) -> str:
-    if mode > Mode.MANIA:
+    if mode > Mode.MANIA or vanilla_pp_leaderboards:
         score = int(leaderboard_score["pp"])
     else:
         score = leaderboard_score["score"]
@@ -109,6 +110,7 @@ async def get_leaderboard(
             beatmap,
             mode,
             user.id,
+            user.vanilla_pp_leaderboards,
             mods_filter,
             country_filter,
             user_ids_filter,
@@ -123,14 +125,22 @@ async def get_leaderboard(
 
         if leaderboard.personal_best:
             response_lines.append(
-                format_leaderboard_score_string(mode, leaderboard.personal_best),
+                format_leaderboard_score_string(
+                    mode,
+                    leaderboard.personal_best,
+                    user.vanilla_pp_leaderboards,
+                ),
             )
         else:
             response_lines.append("")
 
         response_lines.extend(
             [
-                format_leaderboard_score_string(mode, score)
+                format_leaderboard_score_string(
+                    mode,
+                    score,
+                    user.vanilla_pp_leaderboards,
+                )
                 for score in leaderboard.scores
             ],
         )

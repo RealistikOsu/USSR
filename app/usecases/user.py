@@ -52,6 +52,7 @@ async def fetch_db(username: str) -> Optional[User]:
         friends=friends,
         password_bcrypt=db_user["password_md5"],
         country=db_user["country"],
+        vanilla_pp_leaderboards=db_user["vanilla_pp_leaderboards"],
     )
 
 
@@ -78,6 +79,7 @@ async def fetch_db_id(user_id: int) -> Optional[User]:
         friends=friends,
         password_bcrypt=db_user["password_md5"],
         country=db_user["country"],
+        vanilla_pp_leaderboards=db_user["vanilla_pp_leaderboards"],
     )
 
 

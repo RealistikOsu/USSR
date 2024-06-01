@@ -215,7 +215,7 @@ async def fetch_score_on_leaderboard(
     play_mode: int,
     user_id: int,
     scores_table: Literal["scores", "scores_relax", "scores_ap"],
-    sort_column: Literal["pp", "score"] = "pp",
+    sort_column: Literal["pp", "score"],
 ) -> LeaderboardScore | None:
     params = {
         "beatmap_md5": beatmap_md5,

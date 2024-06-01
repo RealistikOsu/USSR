@@ -14,6 +14,7 @@ class User:
     friends: list[int]
     password_bcrypt: str
     country: str
+    vanilla_pp_leaderboards: bool
 
     def __repr__(self) -> str:
         return f"<{self.name} ({self.id})>"
