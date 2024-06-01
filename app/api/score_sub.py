@@ -141,6 +141,7 @@ async def submit_score(
         beatmap,
         score.mode,
         requestee_user_id=user.id,
+        vanilla_pp_leaderboards=False,
     )
     previous_best = leaderboard.personal_best
 
