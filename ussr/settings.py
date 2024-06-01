@@ -7,12 +7,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 _BOOLEAN_STRINGS = ("true", "1", "yes")
+
+
 def _parse_bool(value: str) -> bool:
     return value.strip().lower() in _BOOLEAN_STRINGS
 
 
 def _parse_string_list(value: str) -> list[str]:
     return value.strip().replace(", ", ",").split(",")
+
 
 # HTTP Configuration
 HTTP_PORT = int(os.environ["HTTP_PORT"])

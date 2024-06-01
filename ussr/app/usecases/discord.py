@@ -4,9 +4,9 @@ import asyncio
 import traceback
 from typing import Optional
 
-import settings
 import app.state
 import logger
+import settings
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.stats import Stats

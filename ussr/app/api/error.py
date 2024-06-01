@@ -4,12 +4,11 @@ import asyncio
 import time
 from typing import Optional
 
-from fastapi import Form
-
 import app.state
 import app.usecases
 import logger
 from app.models.user import User
+from fastapi import Form
 
 
 async def log_user_error(

@@ -3,20 +3,19 @@ from __future__ import annotations
 import random
 import string
 
+import app.state
+import app.utils
+import logger
+import settings
+from app.models.user import User
+from app.objects.path import Path
+from app.usecases.user import authenticate_user
 from fastapi import Depends
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
 from fastapi import Query
 from fastapi import UploadFile
-
-import settings
-import app.state
-import app.utils
-import logger
-from app.models.user import User
-from app.objects.path import Path
-from app.usecases.user import authenticate_user
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000  # Rosu screenshots don't exceed this.

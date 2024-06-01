@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import settings
 import app.state
+import settings
 
 
 async def get_verified(user_id: int) -> bool:

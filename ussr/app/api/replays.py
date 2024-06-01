@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import Path
-from fastapi import Query
-from fastapi import Response
-from fastapi.responses import FileResponse
-
 import app.state
 import app.usecases
 import app.utils
 import logger
 from app.constants.mode import Mode
 from app.models.score import Score
+from fastapi import Path
+from fastapi import Query
+from fastapi import Response
+from fastapi.responses import FileResponse
+
 
 async def get_replay(
     score_id: int = Query(..., alias="c"),

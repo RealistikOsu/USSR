@@ -4,7 +4,12 @@ import asyncio
 import pprint
 
 import aiohttp
+import app.redis
+import app.state
+import app.usecases
+import logger
 import orjson
+import settings
 from fastapi import FastAPI
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -13,12 +18,6 @@ from fastapi.requests import Request
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import Response
 from starlette.middleware.base import RequestResponseEndpoint
-
-import settings
-import app.redis
-import app.state
-import app.usecases
-import logger
 
 
 def init_events(asgi_app: FastAPI) -> None:

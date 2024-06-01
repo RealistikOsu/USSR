@@ -10,20 +10,11 @@ from typing import Optional
 from typing import TypeVar
 from typing import Union
 
-from fastapi import File
-from fastapi import Form
-from fastapi import Header
-from fastapi import Request
-from fastapi.datastructures import FormData
-from py3rijndael import Pkcs7Padding
-from py3rijndael import RijndaelCbc
-from starlette.datastructures import UploadFile as StarletteUploadFile
-
-import settings
 import app.state
 import app.usecases
 import app.utils
 import logger
+import settings
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.privileges import Privileges
@@ -32,6 +23,14 @@ from app.constants.score_status import ScoreStatus
 from app.models.score import Score
 from app.objects.path import Path
 from app.usecases.user import restrict_user
+from fastapi import File
+from fastapi import Form
+from fastapi import Header
+from fastapi import Request
+from fastapi.datastructures import FormData
+from py3rijndael import Pkcs7Padding
+from py3rijndael import RijndaelCbc
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 
 class ScoreData(NamedTuple):

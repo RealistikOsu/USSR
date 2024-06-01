@@ -6,9 +6,6 @@ from typing import Awaitable
 from typing import Callable
 from typing import Optional
 
-from fastapi import HTTPException
-
-import settings
 import app.state.services
 import app.usecases.discord
 import app.usecases.password
@@ -16,11 +13,13 @@ import app.usecases.privileges
 import app.usecases.score
 import app.utils
 import logger
+import settings
 from app.constants.mode import Mode
 from app.constants.privileges import Privileges
 from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.user import User
+from fastapi import HTTPException
 
 
 async def fetch_db(username: str) -> Optional[User]:

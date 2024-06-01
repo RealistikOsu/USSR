@@ -5,18 +5,17 @@ from typing import Any
 from typing import Optional
 from urllib.parse import unquote_plus
 
+import app.state.services
+import app.usecases.beatmap
+import settings
+from app.constants.ranked_status import RankedStatus
+from app.models.user import User
+from app.usecases.user import authenticate_user
 from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi import status
 from fastapi.responses import RedirectResponse
-
-import settings
-import app.state.services
-import app.usecases.beatmap
-from app.constants.ranked_status import RankedStatus
-from app.models.user import User
-from app.usecases.user import authenticate_user
 
 USING_CHIMU = "https://api.chimu.moe/v1" == settings.DIRECT_URL
 CHIMU_SPELL = "SetId" if USING_CHIMU else "SetID"

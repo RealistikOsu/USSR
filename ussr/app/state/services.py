@@ -6,14 +6,14 @@ import aiohttp
 import aioredis
 import databases
 import meilisearch_python_async
-
 import settings
+
 from .storage import AbstractStorage
 from .storage import LocalStorage
 from .storage import S3Storage
 
 redis: aioredis.Redis = aioredis.from_url(
-    f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}"
+    f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}",
 )
 
 url = databases.DatabaseURL(

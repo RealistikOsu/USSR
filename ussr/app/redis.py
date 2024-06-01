@@ -6,11 +6,10 @@ from typing import Callable
 from typing import TypedDict
 
 import aioredis.client
-import orjson
-
 import app.state
 import app.usecases
 import logger
+import orjson
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 

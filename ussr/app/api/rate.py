@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import Depends
-from fastapi import Query
-
 import app.state
 import app.usecases
 import logger
 from app.models.beatmap import Beatmap
 from app.models.user import User
 from app.usecases.user import authenticate_user
+from fastapi import Depends
+from fastapi import Query
 
 
 async def check_user_rated(user: User, beatmap: Beatmap):

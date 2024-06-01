@@ -6,8 +6,8 @@ import time
 from typing import Any
 from typing import Optional
 
-import settings
 import app.state
+import settings
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.models.beatmap import Beatmap

@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Optional
 from typing import Union
 
-import orjson
-
 import app.state
+import orjson
 
 
 def make_safe(username: str) -> str:
@@ -22,7 +21,7 @@ def format_time(time: Union[int, float]) -> str:
 
         time /= 1000
 
-    return f"{time:.2f}{suffix}" # type: ignore
+    return f"{time:.2f}{suffix}"  # type: ignore
 
 
 async def channel_message(channel: str, message: str) -> None:

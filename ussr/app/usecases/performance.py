@@ -3,8 +3,8 @@ from __future__ import annotations
 import hashlib
 from typing import TypedDict
 
-import settings
 import app.state
+import settings
 from app.constants.mode import Mode
 from app.models.score import Score
 from app.objects.path import Path

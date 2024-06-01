@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import settings
+from app.models.user import User
+from app.usecases.user import authenticate_user
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Path
@@ -9,7 +12,6 @@ from fastapi import Response
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
-import settings
 from . import direct
 from . import error
 from . import lastfm
@@ -20,8 +22,6 @@ from . import replays
 from . import score_sub
 from . import screenshots
 from . import seasonals
-from app.models.user import User
-from app.usecases.user import authenticate_user
 
 router = APIRouter(default_response_class=Response)
 

@@ -4,12 +4,11 @@ from __future__ import annotations
 import logging
 import sys
 
-import uvicorn
-import uvloop
-
-import settings
 import app.utils
 import logger
+import settings
+import uvicorn
+import uvloop
 
 uvloop.install()
 

@@ -5,11 +5,10 @@ import os
 from abc import ABC
 from abc import abstractmethod
 
+import logger
 from aiobotocore.config import AioConfig
 from aiobotocore.session import get_session
 from types_aiobotocore_s3 import S3Client
-
-import logger
 
 
 class AbstractStorage(ABC):

@@ -3,9 +3,6 @@ from __future__ import annotations
 import time
 from urllib.parse import unquote
 
-from fastapi import Depends
-from fastapi import Query
-
 import app.state
 import app.usecases
 import app.utils
@@ -17,6 +14,8 @@ from app.constants.privileges import Privileges
 from app.models.score import Score
 from app.models.user import User
 from app.usecases.user import authenticate_user
+from fastapi import Depends
+from fastapi import Query
 
 CUR_LB_VER = 4
 

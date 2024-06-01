@@ -2,17 +2,16 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import Query
-from fastapi import status
-from fastapi.responses import ORJSONResponse
-
-import settings
 import app.usecases
 import logger
+import settings
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.objects.path import Path
 from app.usecases.performance import PerformanceScore
+from fastapi import Query
+from fastapi import status
+from fastapi.responses import ORJSONResponse
 
 COMMON_PP_PERCENTAGES = (
     100.0,

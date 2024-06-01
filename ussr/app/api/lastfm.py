@@ -3,15 +3,14 @@ from __future__ import annotations
 import asyncio
 import time
 
-from fastapi import Depends
-from fastapi import Query
-
 import app.state
 import app.usecases
 import logger
 from app.constants.lastfm import LastFMFlags
 from app.models.user import User
 from app.usecases.user import authenticate_user
+from fastapi import Depends
+from fastapi import Query
 
 # Down to earth explanations for each flag to be understandable to
 # the average admin.

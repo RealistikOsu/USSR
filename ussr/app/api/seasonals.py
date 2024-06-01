@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from fastapi.responses import ORJSONResponse
-
 import app.state
+from fastapi.responses import ORJSONResponse
 
 
 async def get_seasonals():
