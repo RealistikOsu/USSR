@@ -5,4 +5,4 @@ echo "Starting server..."
 
 cd /app/ussr/
 
-python3.12 main.py
+python3.9 main.py
