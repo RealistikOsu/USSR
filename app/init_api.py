@@ -44,7 +44,6 @@ def init_events(asgi_app: FastAPI) -> None:
         await app.redis.initialise_pubsubs()
 
         logger.info("Server has started!")
-        logger.write_log_file("Server has started!")
 
     @asgi_app.on_event("shutdown")
     async def on_shutdown() -> None:
@@ -78,10 +77,6 @@ def init_events(asgi_app: FastAPI) -> None:
         request: Request,
         e: RequestValidationError,
     ) -> Response:
-        logger.write_log_file(
-            f"Validation error on {request.url}:\n{pprint.pformat(e.errors())}",
-        )
-
         return ORJSONResponse(
             content=jsonable_encoder(e.errors()),
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

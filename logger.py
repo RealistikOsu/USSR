@@ -4,7 +4,6 @@ import os
 import sys
 import time
 from enum import IntEnum
-from functools import cache
 
 DEBUG = "debug" in sys.argv
 __all__ = (
@@ -37,7 +36,6 @@ class Ansi(IntEnum):
 
     RESET = 0
 
-    @cache
     def __repr__(self) -> str:
         return f"\x1b[{self.value}m"
 
@@ -59,7 +57,6 @@ def info(text: str):
 
 
 def error(text: str):
-    write_log_file(text)
     _log(text, "ERROR", Ansi.RED)
 
 
@@ -77,13 +74,3 @@ def ensure_log_file():
 
     if not os.path.exists("err.log"):
         os.mknod("err.log")
-
-
-def write_log_file(msg: str, timestamp: bool = True):
-    """Appends a message to the log file."""
-
-    with open("err.log", "a+") as f:
-        if timestamp:
-            f.write(f"[{formatted_date()}] {msg}\n")
-        else:
-            f.write(msg)

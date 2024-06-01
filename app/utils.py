@@ -1,35 +1,28 @@
 from __future__ import annotations
 
-import os
 from typing import Optional
 from typing import Union
 
 import orjson
 
 import app.state
-import logger
-from app.objects.path import Path
-from config import config
-
-DATA_PATH = Path(config.data_dir)
-REPLAYS = DATA_PATH / "replays"
 
 
 def make_safe(username: str) -> str:
     return username.rstrip().lower().replace(" ", "_")
 
 
-TIME_ORDER_SUFFIXES = ["ns", "μs", "ms", "s"]
+_TIME_ORDER_SUFFIXES = ["ns", "μs", "ms", "s"]
 
 
 def format_time(time: Union[int, float]) -> str:
-    for suffix in TIME_ORDER_SUFFIXES:
+    for suffix in _TIME_ORDER_SUFFIXES:
         if time < 1000:
             break
 
         time /= 1000
 
-    return f"{time:.2f}{suffix}"
+    return f"{time:.2f}{suffix}" # type: ignore
 
 
 async def channel_message(channel: str, message: str) -> None:
