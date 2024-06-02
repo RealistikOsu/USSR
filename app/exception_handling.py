@@ -3,25 +3,24 @@ from __future__ import annotations
 import logging
 import sys
 import threading
+from collections.abc import Callable
 from types import TracebackType
 from typing import Any
-from typing import Callable
-from typing import Optional
 
 ExceptionHook = Callable[
-    [type[BaseException], BaseException, Optional[TracebackType]],
+    [type[BaseException], BaseException, TracebackType | None],
     Any,
 ]
 ThreadingExceptionHook = Callable[[threading.ExceptHookArgs], Any]
 
-_default_excepthook: Optional[ExceptionHook] = None
-_default_threading_excepthook: Optional[ThreadingExceptionHook] = None
+_default_excepthook: ExceptionHook | None = None
+_default_threading_excepthook: ThreadingExceptionHook | None = None
 
 
 def internal_exception_handler(
     exc_type: type[BaseException],
     exc_value: BaseException,
-    exc_traceback: Optional[TracebackType],
+    exc_traceback: TracebackType | None,
 ) -> None:
     logging.exception(
         "An unhandled exception occurred",

@@ -10,9 +10,7 @@ from copy import copy
 from datetime import datetime
 from datetime import timezone
 from typing import NamedTuple
-from typing import Optional
 from typing import TypeVar
-from typing import Union
 
 import aio_pika
 import orjson
@@ -48,7 +46,7 @@ class ScoreData(NamedTuple):
     replay_file: StarletteUploadFile
 
 
-async def parse_form(score_data: FormData) -> Optional[ScoreData]:
+async def parse_form(score_data: FormData) -> ScoreData | None:
     try:
         score_parts = score_data.getlist("score")
         assert len(score_parts) == 2, "Invalid score data"
@@ -91,29 +89,29 @@ def decrypt_score_data(
     return score_data, client_hash_decoded
 
 
-T = TypeVar("T", bound=Union[int, float])
+T = TypeVar("T", bound=int | float)
 
 
-def chart_entry(name: str, before: Optional[T], after: T) -> str:
+def chart_entry(name: str, before: T | None, after: T) -> str:
     return f"{name}Before:{before or ''}|{name}After:{after}"
 
 
 async def submit_score(
     request: Request,
-    token: Optional[str] = Header(None),
+    token: str | None = Header(None),
     user_agent: str = Header(...),
     exited_out: bool = Form(..., alias="x"),
     fail_time: int = Form(..., alias="ft"),
     visual_settings_b64: bytes = Form(..., alias="fs"),
     updated_beatmap_hash: str = Form(..., alias="bmk"),
-    storyboard_md5: Optional[str] = Form(None, alias="sbk"),
+    storyboard_md5: str | None = Form(None, alias="sbk"),
     iv_b64: bytes = Form(..., alias="iv"),
     unique_ids: str = Form(..., alias="c1"),
     score_time: int = Form(..., alias="st"),
     password_md5: str = Form(..., alias="pass"),
     osu_version: str = Form(..., alias="osuver"),
     client_hash_b64: bytes = Form(..., alias="s"),
-    fl_cheat_screenshot: Optional[bytes] = File(None, alias="i"),
+    fl_cheat_screenshot: bytes | None = File(None, alias="i"),
 ) -> Response:
     start = time.perf_counter()
 

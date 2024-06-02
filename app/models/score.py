@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
-from typing import Mapping
-from typing import Optional
 
 from app.constants.mode import Mode
 from app.constants.mods import Mods
@@ -44,7 +43,7 @@ class Score:
     time: int
     time_elapsed: int = 0  # TODO: store this in db
 
-    online_checksum: Optional[str] = None  # optional as checksum was not always stored
+    online_checksum: str | None = None  # optional as checksum was not always stored
 
     rank: int = 0
 

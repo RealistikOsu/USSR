@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import NamedTuple
-from typing import Optional
 
 import app.state
 import app.usecases
@@ -9,7 +8,7 @@ from app.constants.mode import Mode
 from app.models.stats import Stats
 
 
-async def fetch(user_id: int, mode: Mode) -> Optional[Stats]:
+async def fetch(user_id: int, mode: Mode) -> Stats | None:
     db_stats = await app.state.services.database.fetch_one(
         """
         SELECT ranked_score, total_score, pp, avg_accuracy AS accuracy, playcount,

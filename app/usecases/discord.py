@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 from typing import Literal
-from typing import Optional
 
 from tenacity import retry
 from tenacity import stop_after_attempt
@@ -79,12 +78,12 @@ class Embed:
         self.timestamp = kwargs.get("timestamp")  # datetime
         self.color = kwargs.get("color", 0x000000)
 
-        self.footer: Optional[Footer] = kwargs.get("footer")
-        self.image: Optional[Image] = kwargs.get("image")
-        self.thumbnail: Optional[Thumbnail] = kwargs.get("thumbnail")
-        self.video: Optional[Video] = kwargs.get("video")
-        self.provider: Optional[Provider] = kwargs.get("provider")
-        self.author: Optional[Author] = kwargs.get("author")
+        self.footer: Footer | None = kwargs.get("footer")
+        self.image: Image | None = kwargs.get("image")
+        self.thumbnail: Thumbnail | None = kwargs.get("thumbnail")
+        self.video: Video | None = kwargs.get("video")
+        self.provider: Provider | None = kwargs.get("provider")
+        self.author: Author | None = kwargs.get("author")
 
         self.fields: list[Field] = kwargs.get("fields", [])
 
@@ -194,7 +193,7 @@ async def wrap_hook(webhook_url: str, embed: Embed) -> None:
         )
 
 
-def schedule_hook(hook: Optional[str], embed: Embed) -> None:
+def schedule_hook(hook: str | None, embed: Embed) -> None:
     """Performs a hook execution in a non-blocking manner."""
 
     if not hook:

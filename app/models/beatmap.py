@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
-from typing import Mapping
-from typing import Optional
 
 import config
 from app.constants.mode import Mode
@@ -37,8 +36,8 @@ class Beatmap:
     bpm: int
     filename: str
     frozen: bool
-    rankedby: Optional[int]
-    rating: Optional[float]
+    rankedby: int | None
+    rating: float | None
 
     bancho_ranked_status: RankedStatus | None
 

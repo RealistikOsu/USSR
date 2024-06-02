@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Optional
 
 from fastapi import Depends
 from fastapi import Query
@@ -49,7 +48,7 @@ async def add_rating(user_id: int, map_md5: str, rating: int) -> float:
 async def rate_map(
     user: User = Depends(authenticate_user(Query, "u", "p")),
     map_md5: str = Query(..., alias="c"),
-    user_rating: Optional[int] = Query(None, alias="v", ge=1, le=10),
+    user_rating: int | None = Query(None, alias="v", ge=1, le=10),
 ) -> bytes:
     beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
     if not beatmap:

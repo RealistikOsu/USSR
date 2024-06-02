@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from typing import Optional
 from urllib.parse import unquote_plus
 
 import httpx
@@ -136,8 +135,8 @@ async def osu_direct(
 
 async def beatmap_card(
     user: User = Depends(authenticate_user(Query, "u", "h")),
-    map_set_id: Optional[int] = Query(None, alias="s"),
-    map_id: Optional[int] = Query(None, alias="b"),
+    map_set_id: int | None = Query(None, alias="s"),
+    map_id: int | None = Query(None, alias="b"),
 ) -> Response:
     if map_set_id is None and map_id is not None:
         bmap = await app.usecases.beatmap.fetch_by_id(map_id)
@@ -188,7 +187,8 @@ async def beatmap_card(
             "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
             "{RankedStatus}|10.0|{LastUpdate}|{chimu_spell}|"
             "0|0|0|0|0".format(
-                **json_data, chimu_spell=json_data[CHIMU_SET_ID_SPELLING]
+                **json_data,
+                chimu_spell=json_data[CHIMU_SET_ID_SPELLING],
             )
         ).encode(),
     )

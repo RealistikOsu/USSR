@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from fastapi import Query
 from fastapi import Response
@@ -25,7 +24,7 @@ async def calculate_pp(
     beatmap_id: int = Query(..., alias="b"),
     mods_arg: int = Query(0, alias="m"),
     mode_arg: int = Query(0, alias="g", ge=0, le=3),
-    acc: Optional[float] = Query(None, alias="a"),
+    acc: float | None = Query(None, alias="a"),
     combo: int = Query(0, alias="max_combo"),
 ) -> Response:
     mods = Mods(mods_arg)

@@ -3,7 +3,6 @@ from __future__ import annotations
 import random
 import time
 from typing import Any
-from typing import Optional
 
 import app.state
 import config
@@ -15,7 +14,7 @@ from app.models.beatmap import Beatmap
 GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
 
 
-async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
+async def update_beatmap(beatmap: Beatmap) -> Beatmap | None:
     if not beatmap.deserves_update:
         return beatmap
 
@@ -78,7 +77,7 @@ async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
     return new_beatmap
 
 
-async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
+async def fetch_by_md5(md5: str) -> Beatmap | None:
     if beatmap := await md5_from_database(md5):
         return beatmap
 
@@ -91,7 +90,7 @@ async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
     return None
 
 
-async def fetch_by_id(id: int) -> Optional[Beatmap]:
+async def fetch_by_id(id: int) -> Beatmap | None:
     if beatmap := await id_from_database(id):
         return beatmap
 
@@ -104,7 +103,7 @@ async def fetch_by_id(id: int) -> Optional[Beatmap]:
     return None
 
 
-async def md5_from_database(md5: str) -> Optional[Beatmap]:
+async def md5_from_database(md5: str) -> Beatmap | None:
     db_result = await app.state.services.database.fetch_one(
         "SELECT * FROM beatmaps WHERE beatmap_md5 = :md5",
         {"md5": md5},
@@ -116,7 +115,7 @@ async def md5_from_database(md5: str) -> Optional[Beatmap]:
     return Beatmap.from_mapping(db_result)
 
 
-async def id_from_database(id: int) -> Optional[Beatmap]:
+async def id_from_database(id: int) -> Beatmap | None:
     db_result = await app.state.services.database.fetch_one(
         "SELECT * FROM beatmaps WHERE beatmap_id = :id",
         {"id": id},
@@ -177,7 +176,7 @@ async def md5_from_api(
     md5: str,
     *,
     is_definitely_new_beatmap: bool = False,
-) -> Optional[Beatmap]:
+) -> Beatmap | None:
     api_key = random.choice(config.API_KEYS_POOL)
 
     response = await app.state.services.http_client.get(
@@ -210,7 +209,7 @@ async def id_from_api(
     id: int,
     *,
     is_definitely_new_beatmap: bool = False,
-) -> Optional[Beatmap]:
+) -> Beatmap | None:
     api_key = random.choice(config.API_KEYS_POOL)
 
     response = await app.state.services.http_client.get(
@@ -242,7 +241,7 @@ async def id_from_api(
 async def set_from_api(
     id: int,
     is_definitely_new_beatmapset: bool = True,
-) -> Optional[list[Beatmap]]:
+) -> list[Beatmap] | None:
     api_key = random.choice(config.API_KEYS_POOL)
 
     response = await app.state.services.http_client.get(

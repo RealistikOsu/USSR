@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Awaitable
+from collections.abc import Callable
 from datetime import datetime
 from datetime import timezone
 from typing import Any
-from typing import Awaitable
-from typing import Callable
-from typing import Optional
 
 import orjson
 from fastapi import HTTPException
@@ -27,7 +26,7 @@ def make_safe_username(username: str) -> str:
     return username.rstrip().lower().replace(" ", "_")
 
 
-async def fetch_db(username: str) -> Optional[User]:
+async def fetch_db(username: str) -> User | None:
     safe_name = make_safe_username(username)
 
     db_user = await app.state.services.database.fetch_one(
@@ -56,7 +55,7 @@ async def fetch_db(username: str) -> Optional[User]:
     )
 
 
-async def fetch_db_id(user_id: int) -> Optional[User]:
+async def fetch_db_id(user_id: int) -> User | None:
     db_user = await app.state.services.database.fetch_one(
         "SELECT * FROM users WHERE id = :id",
         {"id": user_id},
@@ -84,7 +83,7 @@ async def fetch_db_id(user_id: int) -> Optional[User]:
 
 
 # common call ver
-async def auth_user(username: str, password: str) -> Optional[User]:
+async def auth_user(username: str, password: str) -> User | None:
     user = await fetch_db(username)
     if not user:
         return None
@@ -104,7 +103,7 @@ def authenticate_user(
     param_function: Callable[..., Any],
     name_arg: str = "u",
     password_arg: str = "p",
-    error_text: Optional[Any] = None,
+    error_text: Any | None = None,
 ) -> Callable[[str, str], Awaitable[User]]:
     async def wrapper(
         username: str = param_function(..., alias=name_arg),
@@ -276,7 +275,7 @@ async def update_latest_pp_awarded(user_id: int, mode: Mode) -> None:
 
 
 async def handle_pending_username_change(user_id: int) -> None:
-    new_username: Optional[bytes] = await app.state.services.redis.get(
+    new_username: bytes | None = await app.state.services.redis.get(
         f"ripple:change_username_pending:{user_id}",
     )
     if new_username is None:

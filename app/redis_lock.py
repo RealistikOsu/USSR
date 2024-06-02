@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 from types import TracebackType
-from typing import Optional
 
 import app.state.services
 
@@ -34,8 +33,8 @@ class RedisLock:
 
     async def __aexit__(
         self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         await self.release()

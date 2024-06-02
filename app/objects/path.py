@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import glob
 import os
-from typing import Union
 
 
 class Path:
@@ -16,7 +15,7 @@ class Path:
     def __str__(self) -> str:
         return self._path
 
-    def __truediv__(self, other_path: Union[str, Path]) -> Path:
+    def __truediv__(self, other_path: str | Path) -> Path:
         if isinstance(other_path, str):
             return Path(os.path.join(self._path, other_path))
 

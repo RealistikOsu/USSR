@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import struct
-from typing import Union
 
 
 class BinaryWriter:
@@ -66,7 +65,7 @@ class BinaryWriter:
         self.buffer += struct.pack("<B", value)
         return self
 
-    def write_raw(self, data: Union[bytes, bytearray]) -> BinaryWriter:
+    def write_raw(self, data: bytes | bytearray) -> BinaryWriter:
         """Write raw data to the buffer."""
         self.buffer += data
         return self

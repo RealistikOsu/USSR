@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Optional
 
 import app.state
 import app.usecases
@@ -131,7 +130,7 @@ async def handle_first_place(
 OSU_VERSION = 2021_11_03
 
 
-async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
+async def build_full_replay(score: Score) -> BinaryWriter | None:
     replay_bytes = await app.usecases.replays.download_replay(score.id)
 
     if replay_bytes is None:
