@@ -187,13 +187,13 @@ async def submit_score(
             return Response(b"error: no")
 
         score.pp, score.sr = await app.usecases.performance.calculate_performance(
-            beatmap.id,
-            beatmap.md5,
-            score.mode,
-            score.mods.value,
-            score.max_combo,
-            score.acc,
-            score.nmiss,
+            beatmap_id=beatmap.id,
+            beatmap_md5=beatmap.md5,
+            mode=score.mode,
+            mods=score.mods.value,
+            max_combo=score.max_combo,
+            accuracy=score.acc,
+            miss_count=score.nmiss,
         )
 
         # calculate the score's status
@@ -377,7 +377,7 @@ async def submit_score(
     await app.usecases.stats.refresh_stats(user.id)
 
     score.rank = await app.usecases.leaderboards.find_score_rank(
-        score_id_to_judge=score.id,
+        score_id=score.id,
         beatmap_md5=beatmap.md5,
         user_id=score.user_id,
         mode=score.mode,

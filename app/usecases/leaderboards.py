@@ -21,6 +21,7 @@ class Leaderboard:
 async def fetch_beatmap_leaderboard(
     beatmap: Beatmap,
     mode: Mode,
+    *,
     requestee_user_id: int,
     vanilla_pp_leaderboards: bool,
     mods_filter: Mods | None = None,
@@ -81,13 +82,14 @@ async def fetch_beatmap_leaderboard(
 
 
 async def find_score_rank(
-    score_id_to_judge: int,
+    score_id: int,
+    *,
     beatmap_md5: str,
     user_id: int,
     mode: Mode,
 ) -> int:
     leaderboard_score = await leaderboards_repository.fetch_score_on_leaderboard(
-        score_id=score_id_to_judge,
+        score_id=score_id,
         beatmap_md5=beatmap_md5,
         play_mode=mode.as_vn,
         user_id=user_id,

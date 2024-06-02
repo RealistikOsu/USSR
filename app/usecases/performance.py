@@ -40,13 +40,14 @@ async def calculate_performances(
 
 # TODO: split sr & pp calculations
 async def calculate_performance(
+    *,
     beatmap_id: int,
     beatmap_md5: str,
     mode: Mode,
     mods: int,
     max_combo: int,
-    acc: float,
-    nmiss: int,
+    accuracy: float,
+    miss_count: int,
 ) -> tuple[float, float]:
     response = await app.state.services.http_client.post(
         f"{config.PERFORMANCE_SERVICE_URL}/api/v1/calculate",
@@ -57,8 +58,8 @@ async def calculate_performance(
                 "mode": mode.as_vn,
                 "mods": mods,
                 "max_combo": max_combo,
-                "accuracy": acc,
-                "miss_count": nmiss,
+                "accuracy": accuracy,
+                "miss_count": miss_count,
             },
         ],
     )

@@ -82,7 +82,6 @@ async def fetch_db_id(user_id: int) -> User | None:
     )
 
 
-# common call ver
 async def auth_user(username: str, password: str) -> User | None:
     user = await fetch_db(username)
     if not user:
@@ -98,7 +97,6 @@ async def auth_user(username: str, password: str) -> User | None:
     return user
 
 
-# depends ver
 def authenticate_user(
     param_function: Callable[..., Any],
     name_arg: str = "u",

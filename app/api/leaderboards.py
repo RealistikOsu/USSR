@@ -110,11 +110,11 @@ async def get_leaderboard(
         leaderboard = await app.usecases.leaderboards.fetch_beatmap_leaderboard(
             beatmap,
             mode,
-            user.id,
-            user.vanilla_pp_leaderboards,
-            mods_filter,
-            country_filter,
-            user_ids_filter,
+            requestee_user_id=user.id,
+            vanilla_pp_leaderboards=user.vanilla_pp_leaderboards,
+            mods_filter=mods_filter,
+            country_filter=country_filter,
+            user_ids_filter=user_ids_filter,
         )
 
         response_lines.append(

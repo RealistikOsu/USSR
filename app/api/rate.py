@@ -46,7 +46,7 @@ async def add_rating(user_id: int, map_md5: str, rating: int) -> float:
 
 
 async def rate_map(
-    user: User = Depends(authenticate_user(Query, "u", "p")),
+    user: User = Depends(authenticate_user(Query, "u", "p", error_text=b"auth fail")),
     map_md5: str = Query(..., alias="c"),
     user_rating: int | None = Query(None, alias="v", ge=1, le=10),
 ) -> bytes:

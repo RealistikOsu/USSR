@@ -65,13 +65,13 @@ async def calculate_pp(
         star_rating = performance_results[0][1]
     else:
         pp_result, star_rating = await app.usecases.performance.calculate_performance(
-            beatmap.id,
-            beatmap.md5,
-            mode,
-            mods,
-            combo,
-            acc,
-            0,  # miss count
+            beatmap_id=beatmap.id,
+            beatmap_md5=beatmap.md5,
+            mode=mode,
+            mods=mods,
+            max_combo=combo,
+            accuracy=acc,
+            miss_count=0,
         )
 
     logging.info(f"Handled PP calculation API request for {beatmap.song_name}!")
