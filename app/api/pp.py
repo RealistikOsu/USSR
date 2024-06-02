@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 
 from fastapi import Query
+from fastapi import Response
 from fastapi import status
 from fastapi.responses import ORJSONResponse
 
@@ -26,11 +27,9 @@ async def calculate_pp(
     mode_arg: int = Query(0, alias="g", ge=0, le=3),
     acc: Optional[float] = Query(None, alias="a"),
     combo: int = Query(0, alias="max_combo"),
-):
+) -> Response:
     mods = Mods(mods_arg)
     mode = Mode.from_lb(mode_arg, mods_arg)
-
-    use_common_pp_percentages = acc is None
 
     beatmap = await app.usecases.beatmap.fetch_by_id(beatmap_id)
     if not beatmap:
@@ -41,8 +40,9 @@ async def calculate_pp(
 
     combo = combo if combo else beatmap.max_combo
 
-    star_rating = pp_result = 0.0
-    if use_common_pp_percentages:
+    star_rating = 0.0
+    pp_result: list[float] | float = 0.0
+    if acc is None:
         performance_requests: list[PerformanceScore] = [
             {
                 "beatmap_id": beatmap.id,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 import time
+from typing import Any
 from typing import Optional
 
 import app.state
@@ -9,6 +10,9 @@ import config
 from app.constants.mode import Mode
 from app.constants.ranked_status import RankedStatus
 from app.models.beatmap import Beatmap
+
+
+GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
 
 
 async def update_beatmap(beatmap: Beatmap) -> Optional[Beatmap]:
@@ -84,6 +88,8 @@ async def fetch_by_md5(md5: str) -> Optional[Beatmap]:
     ):
         return beatmap
 
+    return None
+
 
 async def fetch_by_id(id: int) -> Optional[Beatmap]:
     if beatmap := await id_from_database(id):
@@ -95,18 +101,7 @@ async def fetch_by_id(id: int) -> Optional[Beatmap]:
     ):
         return beatmap
 
-
-async def fetch_by_set_id(set_id: int) -> list[Beatmap]:
-    if beatmaps := await set_from_database(set_id):
-        return beatmaps
-
-    if beatmaps := await set_from_api(
-        set_id,
-        is_definitely_new_beatmapset=True,
-    ):
-        return beatmaps
-
-    return []
+    return None
 
 
 async def md5_from_database(md5: str) -> Optional[Beatmap]:
@@ -131,18 +126,6 @@ async def id_from_database(id: int) -> Optional[Beatmap]:
         return None
 
     return Beatmap.from_mapping(db_result)
-
-
-async def set_from_database(set_id: int) -> list[Beatmap]:
-    db_results = await app.state.services.database.fetch_all(
-        "SELECT * FROM beatmaps WHERE beatmapset_id = :id",
-        {"id": set_id},
-    )
-
-    return [Beatmap.from_mapping(db_result) for db_result in db_results]  # type: ignore
-
-
-GET_BEATMAP_URL = "https://old.ppy.sh/api/get_beatmaps"
 
 
 async def save(beatmap: Beatmap) -> None:
@@ -220,6 +203,8 @@ async def md5_from_api(
         if beatmap.md5 == md5:
             return beatmap
 
+    return None
+
 
 async def id_from_api(
     id: int,
@@ -250,6 +235,8 @@ async def id_from_api(
     for beatmap in beatmaps:
         if beatmap.id == id:
             return beatmap
+
+    return None
 
 
 async def set_from_api(
@@ -285,8 +272,8 @@ IGNORED_BEATMAP_CHARS = dict.fromkeys(map(ord, r':\/*<>?"|'), None)
 FROZEN_STATUSES = (RankedStatus.RANKED, RankedStatus.APPROVED, RankedStatus.LOVED)
 
 
-def parse_from_osu_api(response_json_list: list[dict]) -> list[Beatmap]:
-    maps = []
+def parse_from_osu_api(response_json_list: list[dict[str, Any]]) -> list[Beatmap]:
+    maps: list[Beatmap] = []
 
     for response_json in response_json_list:
         md5 = response_json["file_md5"]

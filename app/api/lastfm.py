@@ -5,6 +5,7 @@ import time
 
 from fastapi import Depends
 from fastapi import Query
+from fastapi import Response
 
 import app.state
 import app.usecases
@@ -86,9 +87,9 @@ async def log_lastfm_flag(user_id: int, flag: int, flag_text: str) -> None:
 async def lastfm(
     user: User = Depends(authenticate_user(Query, "us", "ha")),
     map_id_or_anticheat_flag: str = Query(..., alias="b"),
-):
+) -> Response:
     if not map_id_or_anticheat_flag.startswith("a"):
-        return b"-3"
+        return Response(b"-3")
 
     flags = LastFMFlags(int(map_id_or_anticheat_flag.removeprefix("a")))
     expl_str = "\n".join(get_flag_explanation(flags))
@@ -96,4 +97,4 @@ async def lastfm(
     await log_lastfm_flag(user.id, flags.value, expl_str)
 
     logging.info(f"{user} has been flagged with {flags!r}!\n{expl_str}")
-    return b"-3"
+    return Response(b"-3")

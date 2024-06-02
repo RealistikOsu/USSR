@@ -23,7 +23,7 @@ async def check_user_rated(user: User, beatmap: Beatmap) -> bool:
             "SELECT 1 FROM beatmaps_rating WHERE user_id = :uid AND beatmap_md5 = :md5",
             {"uid": user.id, "md5": beatmap.md5},
         )
-        == 1
+        is not None
     )
 
 
@@ -33,7 +33,7 @@ async def add_rating(user_id: int, map_md5: str, rating: int) -> float:
         {"id": user_id, "rating": rating, "md5": map_md5},
     )
 
-    new_rating = await app.state.services.database.fetch_val(
+    new_rating: float = await app.state.services.database.fetch_val(
         "SELECT AVG(rating) FROM beatmaps_rating WHERE beatmap_md5 = :md5",
         {"md5": map_md5},
     )

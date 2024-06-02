@@ -11,5 +11,4 @@ python-json-logger
 python-multipart
 redis
 tenacity
-types-aiobotocore[s3]
 uvicorn[standard]

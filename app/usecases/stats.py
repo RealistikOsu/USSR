@@ -91,7 +91,7 @@ async def full_recalc(stats: Stats, score_pp: float) -> None:
 
 
 async def calc_bonus(stats: Stats) -> float:
-    count = await app.state.services.database.fetch_val(
+    count: int = await app.state.services.database.fetch_val(
         (
             f"SELECT COUNT(*) FROM {stats.mode.scores_table} s "
             "JOIN beatmaps b USING(beatmap_md5) "
@@ -160,4 +160,4 @@ async def update_rank(stats: Stats) -> None:
 
 
 async def refresh_stats(user_id: int) -> None:
-    await app.state.services.redis.publish("peppy:update_cached_stats", user_id)
+    await app.state.services.redis.publish("peppy:update_cached_stats", str(user_id))

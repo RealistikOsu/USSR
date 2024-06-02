@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3.11
 from __future__ import annotations
 
 import atexit

@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Callable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.score import Score
+    from app.models.stats import Stats
 
 
 @dataclass
@@ -10,7 +15,7 @@ class Achievement:
     file: str
     name: str
     desc: str
-    cond: Callable
+    cond: Callable[[Score, int, Stats], bool]
 
     @property
     def full_name(self) -> str:

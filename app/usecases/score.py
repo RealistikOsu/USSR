@@ -123,7 +123,7 @@ async def handle_first_place(
     )
 
     msg = f"[{score.mode.relax_str}] User {user.embed} has submitted a #1 place on {beatmap.embed} +{score.mods!r} ({score.pp:.2f}pp)"
-    await job_scheduling.schedule_job(
+    job_scheduling.schedule_job(
         app.usecases.chat.send_message_to_channel("#announce", msg),
     )
 
@@ -139,11 +139,11 @@ async def build_full_replay(score: Score) -> Optional[BinaryWriter]:
         logging.error(
             f"Requested replay ID {score.id}, but no file could be found",
         )
-        return
+        return None
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if username is None:
-        return
+        return None
 
     replay_md5 = hashlib.md5(
         "{}p{}o{}o{}t{}a{}r{}e{}y{}o{}u{}{}{}".format(

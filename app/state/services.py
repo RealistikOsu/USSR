@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Mapping
 from typing import TYPE_CHECKING
 
 import aio_pika
@@ -10,20 +9,20 @@ import httpx
 import redis.asyncio as aioredis
 from sqlalchemy.sql import ClauseElement
 
+import config
+
 if TYPE_CHECKING:
     from types_aiobotocore_s3.client import S3Client
-
-import config
 
 
 redis: aioredis.Redis
 
 http_client: httpx.AsyncClient
 
-amqp: aio_pika.RobustConnection
-amqp_channel: aio_pika.RobustChannel
+amqp: aio_pika.abc.AbstractConnection | None
+amqp_channel: aio_pika.abc.AbstractChannel | None
 
-s3_client: S3Client
+s3_client: S3Client | None
 
 
 class Database:
@@ -42,43 +41,43 @@ class Database:
     async def fetch_all(
         self,
         query: ClauseElement | str,
-        values: dict | None = None,
-    ) -> list[Mapping]:
-        rows = await self.read_database.fetch_all(query, values)  # type: ignore
-        return [row._mapping for row in rows]
+        values: dict[Any, Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        rows = await self.read_database.fetch_all(query, values)
+        return [dict(row._mapping) for row in rows]
 
     async def fetch_one(
         self,
         query: ClauseElement | str,
-        values: dict | None = None,
-    ) -> Mapping | None:
-        row = await self.read_database.fetch_one(query, values)  # type: ignore
+        values: dict[Any, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        row = await self.read_database.fetch_one(query, values)
         if row is None:
             return None
 
-        return row._mapping
+        return dict(row._mapping)
 
     async def fetch_val(
         self,
         query: ClauseElement | str,
-        values: dict | None = None,
+        values: dict[Any, Any] | None = None,
         column: Any = 0,
     ) -> Any:
-        val = await self.read_database.fetch_val(query, values, column)  # type: ignore
+        val = await self.read_database.fetch_val(query, values, column)
         return val
 
     async def execute(
         self,
         query: ClauseElement | str,
-        values: dict | None = None,
+        values: dict[Any, Any] | None = None,
     ) -> Any:
-        result = await self.write_database.execute(query, values)  # type: ignore
+        result = await self.write_database.execute(query, values)
         return result
 
     async def execute_many(
         self,
         query: ClauseElement | str,
-        values: list,
+        values: list[Any],
     ) -> None:
         await self.write_database.execute_many(query, values)
 

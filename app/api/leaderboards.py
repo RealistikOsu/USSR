@@ -6,6 +6,7 @@ from urllib.parse import unquote_plus
 
 from fastapi import Depends
 from fastapi import Query
+from fastapi import Response
 
 import app.state
 import app.usecases
@@ -50,7 +51,7 @@ async def get_leaderboard(
     mods_arg: int = Query(..., alias="mods", ge=0, le=2_147_483_647),
     map_package_hash: str = Query(..., alias="h"),  # TODO: whaat to do?
     aqn_files_found: bool = Query(..., alias="a"),  # TODO: whaat to do?
-):
+) -> Response:
     start = time.perf_counter()
 
     mode = Mode.from_lb(mode_arg, mods_arg)
@@ -74,12 +75,12 @@ async def get_leaderboard(
             {"file_name": file_name},
         )
         if map_exists:
-            return b"1|false"
+            return Response(b"1|false")
         else:
-            return b"-1|false"
+            return Response(b"-1|false")
 
     if not beatmap.has_leaderboard:
-        return f"{beatmap.status.value}|false".encode()
+        return Response(f"{beatmap.status.value}|false".encode())
 
     response_lines: list[str] = []
 
@@ -159,4 +160,4 @@ async def get_leaderboard(
         },
     )
 
-    return "\n".join(response_lines).encode()
+    return Response("\n".join(response_lines).encode())

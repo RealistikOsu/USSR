@@ -28,7 +28,7 @@ router = APIRouter(default_response_class=Response)
 
 
 @router.get("/_health")
-async def healthcheck():
+async def healthcheck() -> Response:
     await app.state.services.redis.ping()
     await app.state.services.database.execute("SELECT 1")
     return ORJSONResponse({"status": "ok"})
@@ -73,16 +73,16 @@ router.add_api_route("/api/v1/pp", pp.calculate_pp)
 
 
 @router.get("/web/bancho-connect.php")
-async def bancho_connect():
-    return b""
+async def bancho_connect() -> Response:
+    return Response(b"")
 
 
 @router.get("/p/doyoureallywanttoaskpeppy")
-async def peppy():
-    return b"This is a peppy skill issue, please ignore."
+async def peppy() -> Response:
+    return Response(b"This is a peppy skill issue, please ignore.")
 
 
-async def osu_redirect(request: Request, _: int | str = Path(...)):
+async def osu_redirect(request: Request, _: int | str = Path(...)) -> Response:
     return RedirectResponse(
         url=f"https://osu.ppy.sh{request['path']}",
         status_code=status.HTTP_301_MOVED_PERMANENTLY,
@@ -99,7 +99,7 @@ for pattern in (
 
 
 @router.post("/difficulty-rating")
-async def difficulty_rating(request: Request):
+async def difficulty_rating(request: Request) -> Response:
     return RedirectResponse(
         url=f"https://osu.ppy.sh{request['path']}",
         status_code=status.HTTP_307_TEMPORARY_REDIRECT,
@@ -109,10 +109,10 @@ async def difficulty_rating(request: Request):
 @router.get("/web/osu-getfriends.php")
 async def get_friends(
     user: User = Depends(authenticate_user(Query, "u", "h")),
-):
-    return "\n".join(map(str, user.friends))
+) -> Response:
+    return Response("\n".join(map(str, user.friends)).encode())
 
 
 @router.get("/api/v1/status")
-async def status_handler():
+async def status_handler() -> Response:
     return ORJSONResponse({"server_status": 1})

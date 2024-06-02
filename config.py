@@ -49,7 +49,7 @@ AWS_BUCKET_NAME = config("AWS_BUCKET_NAME", default=None)
 AMQP_HOST = config("AMQP_HOST", default=None)
 amqp_port = config("AMQP_PORT", default=None)  # optional int
 if amqp_port:
-    AMQP_PORT = int(amqp_port)
+    AMQP_PORT: int | None = int(amqp_port)
 else:
     AMQP_PORT = None
 AMQP_USER = config("AMQP_USER", default=None)

@@ -21,7 +21,7 @@ from app.usecases.user import authenticate_user
 async def get_replay(
     user: User = Depends(authenticate_user(Query, "u", "h")),
     score_id: int = Query(..., alias="c"),
-):
+) -> Response:
     mode_rep = Mode.from_offset(score_id)
 
     db_score = await app.state.services.database.fetch_one(
@@ -31,7 +31,7 @@ async def get_replay(
 
     if not db_score:
         logging.error(f"Requested non-existent replay ID {score_id}")
-        return b"error: no"
+        return Response(b"error: no")
 
     mode = Mode.from_lb(db_score["play_mode"], db_score["mods"])
 
@@ -40,7 +40,7 @@ async def get_replay(
         logging.error(
             f"Requested replay ID {score_id}, but no file could be found",
         )
-        return b""
+        return Response(b"")
 
     if db_score["userid"] != user.id:
         await app.usecases.user.increment_replays_watched(db_score["userid"], mode)
@@ -63,9 +63,7 @@ async def get_replay(
     return Response(content=replay_bytes)
 
 
-async def get_full_replay(
-    score_id: int = Path(...),
-):
+async def get_full_replay(score_id: int = Path(...)) -> Response:
     mode_rep = Mode.from_offset(score_id)
 
     db_score = await app.state.services.database.fetch_one(
@@ -73,21 +71,21 @@ async def get_full_replay(
         {"id": score_id},
     )
     if not db_score:
-        return b"Score not found!"
+        return Response(b"Score not found!")
 
     score = Score.from_mapping(db_score)
 
     replay = await app.usecases.score.build_full_replay(score)
     if replay is None:
-        return b"Replay not found!"
+        return Response(b"Replay not found!")
 
     beatmap = await app.usecases.beatmap.fetch_by_md5(score.map_md5)
     if beatmap is None:
-        return b"Beatmap not found!"
+        return Response(b"Beatmap not found!")
 
     username = await app.usecases.usernames.get_username(score.user_id)
     if username is None:
-        return b"User not found!"
+        return Response(b"User not found!")
 
     filename = f"{username} - {beatmap.song_name} ({score_id}).osr"
 

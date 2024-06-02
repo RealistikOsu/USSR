@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import pprint
+from typing import TYPE_CHECKING
 
 import aio_pika
 import aiobotocore.session
@@ -21,6 +22,9 @@ import app.state
 import app.usecases
 import config
 from app import job_scheduling
+
+if TYPE_CHECKING:
+    from types_aiobotocore_s3 import S3Client
 
 ctx_stack = contextlib.AsyncExitStack()
 
@@ -46,7 +50,7 @@ def init_events(asgi_app: FastAPI) -> None:
             password=config.REDIS_PASS if should_send_redis_authentication else None,
             ssl=config.REDIS_USE_SSL,
         )
-        await app.state.services.redis.initialize()
+        await app.state.services.redis.initialize()  # type: ignore[unused-awaitable]
         await app.state.services.redis.ping()
 
         app.state.services.http_client = httpx.AsyncClient()
@@ -59,8 +63,8 @@ def init_events(asgi_app: FastAPI) -> None:
             and config.AWS_SECRET_ACCESS_KEY
         ):
             app.state.services.s3_client = await ctx_stack.enter_async_context(
-                aiobotocore.session.get_session().create_client(  # type: ignore
-                    "s3",
+                aiobotocore.session.get_session().create_client(
+                    service_name="s3",
                     region_name=config.AWS_REGION,
                     aws_access_key_id=config.AWS_ACCESS_KEY_ID,
                     aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,

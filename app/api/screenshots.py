@@ -22,19 +22,18 @@ from app.usecases.user import authenticate_user
 
 SS_DELAY = 10  # Seconds per screenshot.
 FS_LIMIT = 500_000
-ERR_RESP = "https://akatsuki.gg/"
 SS_NAME_LEN = 8
 
 
-async def is_ratelimit(ip: str) -> bool:
+async def should_ratelimit_ip(client_ip_address: str) -> bool:
     """Checks if an IP is ratelimited from taking screenshots. If not,
     it establishes the limit in Redis."""
 
-    rl_key = "less:ss_limit:" + ip
-    if await app.state.services.redis.get(rl_key):
+    redis_key = f"less:ss_limit:{client_ip_address}"
+    if await app.state.services.redis.get(redis_key):
         return True
 
-    await app.state.services.redis.setex(rl_key, SS_DELAY, 1)
+    await app.state.services.redis.setex(redis_key, SS_DELAY, 1)
     return False
 
 
@@ -45,11 +44,11 @@ def gen_rand_str(len: int) -> str:
     return "".join(random.choice(AV_CHARS) for _ in range(len))
 
 
-async def fetch_screenshot(file_path: str):
+async def fetch_screenshot(file_path: str) -> Response:
     """Fetches a screenshot from the S3 bucket."""
 
     if ".." in file_path or "/" in file_path:
-        return None
+        return Response(b"")
 
     return Response(
         await s3.download(file_path, "screenshots"),
@@ -60,25 +59,25 @@ async def fetch_screenshot(file_path: str):
 async def upload_screenshot(
     user: User = Depends(authenticate_user(Form, "u", "p")),
     screenshot_file: UploadFile = File(None, alias="ss"),
-    user_agent: str = Header(...),
-    x_real_ip: str = Header(...),
-):
+    client_user_agent: str = Header(..., alias="User-Agent"),
+    client_ip_address: str = Header(..., alias="X-Real-IP"),
+) -> Response:
     if not await app.usecases.user.user_is_online(user.id):
         logging.error(f"{user} tried to upload a screenshot while offline")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
-    if user_agent != "osu!":
+    if client_user_agent != "osu!":
         logging.error(f"{user} tried to upload a screenshot using a bot")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
-    if await is_ratelimit(x_real_ip):
+    if await should_ratelimit_ip(client_ip_address):
         logging.error(f"{user} tried to upload a screenshot while ratelimited")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     content = await screenshot_file.read()
 
     if sys.getsizeof(content) > FS_LIMIT:
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     if content[6:10] in (b"JFIF", b"Exif"):
         ext = "jpeg"
@@ -86,7 +85,7 @@ async def upload_screenshot(
         ext = "png"
     else:
         logging.error(f"{user} tried to upload unknown extension file")
-        return ERR_RESP
+        return Response(b"https://akatsuki.gg/")
 
     file_name = f"{gen_rand_str(SS_NAME_LEN)}.{ext}"
 
@@ -108,4 +107,4 @@ async def upload_screenshot(
         )
 
     logging.info(f"{user} has uploaded screenshot {file_name}")
-    return file_name
+    return Response(file_name.encode())

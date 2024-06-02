@@ -3,8 +3,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import botocore.exceptions
-
 import config
 from app.state import services
 
@@ -16,6 +14,9 @@ async def upload(
     content_type: str | None = None,
     acl: str | None = None,
 ) -> None:
+    if services.s3_client is None:
+        return None
+
     params: dict[str, Any] = {
         "Bucket": config.AWS_BUCKET_NAME,
         "Key": f"{folder}/{file_name}",
@@ -28,7 +29,7 @@ async def upload(
 
     try:
         await services.s3_client.put_object(**params)
-    except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as exc:
+    except Exception as exc:
         logging.error("Failed to upload file to S3", exc_info=exc)
         return None
 
@@ -36,14 +37,18 @@ async def upload(
 
 
 async def download(file_name: str, folder: str) -> bytes | None:
+    if services.s3_client is None:
+        return None
+
     try:
+        assert config.AWS_BUCKET_NAME is not None
         response = await services.s3_client.get_object(
             Bucket=config.AWS_BUCKET_NAME,
             Key=f"{folder}/{file_name}",
         )
     except services.s3_client.exceptions.NoSuchKey:
         return None
-    except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as exc:
+    except Exception as exc:
         logging.error("Failed to download file from S3", exc_info=exc)
         return None
 

@@ -109,7 +109,7 @@ def authenticate_user(
     async def wrapper(
         username: str = param_function(..., alias=name_arg),
         password: str = param_function(..., alias=password_arg),
-    ):
+    ) -> User:
         user = await fetch_db(username)
         if not user:
             raise HTTPException(
@@ -155,7 +155,7 @@ async def remove_from_leaderboard(user: User) -> None:
 
 
 async def notify_ban(user: User) -> None:
-    await app.state.services.redis.publish("peppy:ban", user.id)
+    await app.state.services.redis.publish("peppy:ban", str(user.id))
 
 
 async def insert_restrict_log(user: User, detail: str) -> None:
@@ -287,9 +287,10 @@ async def handle_pending_username_change(user_id: int) -> None:
         orjson.dumps({"userID": user_id, "newUsername": new_username.decode()}),
     )
 
-    await app.state.services.redis.publish("api:change_username", user_id)
+    await app.state.services.redis.publish("api:change_username", str(user_id))
 
 
 async def user_is_online(user_id: int) -> bool:
     key = f"bancho:tokens:ids:{user_id}"
-    return await app.state.services.redis.exists(key)
+    val: int = await app.state.services.redis.exists(key)
+    return val == 1

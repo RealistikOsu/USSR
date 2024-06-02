@@ -132,6 +132,5 @@ dmypy.json
 config.json
 .vscode/
 test_data/
-.data/
 *.sum
 fl/

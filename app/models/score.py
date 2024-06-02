@@ -60,8 +60,7 @@ class Score:
             "1"  # has replay
         )
 
-    @property
-    def db_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "beatmap_md5": self.map_md5,
             "userid": self.user_id,

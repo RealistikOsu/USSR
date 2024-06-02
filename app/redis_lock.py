@@ -14,8 +14,9 @@ class RedisLock:
     def __init__(self, key: str) -> None:
         self.key = key
 
-    async def _try_acquire(self, expiry: int) -> Optional[bool]:
-        return await app.state.services.redis.set(self.key, "1", ex=expiry, nx=True)
+    async def _try_acquire(self, expiry: int) -> bool:
+        val = await app.state.services.redis.set(self.key, "1", ex=expiry, nx=True)
+        return bool(val)
 
     async def acquire(
         self,

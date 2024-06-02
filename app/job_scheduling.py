@@ -18,7 +18,7 @@ def schedule_job(
         Generator[Any, None, T],
         Coroutine[Any, Any, T],
     ],
-) -> asyncio.Task[T]:
+) -> None:
     """\
     Run a coroutine to run in the background.
 
@@ -30,7 +30,7 @@ def schedule_job(
     task = asyncio.create_task(coro)
     task.add_done_callback(_handle_task_completion)
     _register_task(task)
-    return task
+    return None
 
 
 def _register_task(task: asyncio.Task[Any]) -> None:

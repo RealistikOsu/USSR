@@ -9,6 +9,7 @@ import httpx
 from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
+from fastapi import Response
 from fastapi import status
 from fastapi.responses import RedirectResponse
 
@@ -43,7 +44,7 @@ async def osu_direct(
     query: str = Query(..., alias="q"),
     mode: int = Query(..., alias="m", ge=-1, le=3),
     page_num: int = Query(..., alias="p"),
-):
+) -> Response:
     search_url = f"{config.DIRECT_URL}/search"
 
     params: dict[str, Any] = {"amount": 101, "offset": page_num}
@@ -70,7 +71,7 @@ async def osu_direct(
     except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
         if isinstance(exc, httpx.HTTPStatusError):
             if exc.response.status_code == status.HTTP_404_NOT_FOUND:
-                return b"-1\nFailed to retrieve data from the beatmap mirror."
+                return Response(b"-1\nFailed to retrieve data from the beatmap mirror.")
 
         logging.exception(
             "Failed to search for results from the beatmap mirror",
@@ -83,7 +84,7 @@ async def osu_direct(
                 "user_id": user.id,
             },
         )
-        return b"-1\nFailed to retrieve data from the beatmap mirror."
+        return Response(b"-1\nFailed to retrieve data from the beatmap mirror.")
 
     result = response.json()
 
@@ -130,18 +131,18 @@ async def osu_direct(
             ),
         )
 
-    return "\n".join(ret).encode()
+    return Response("\n".join(ret).encode())
 
 
 async def beatmap_card(
     user: User = Depends(authenticate_user(Query, "u", "h")),
     map_set_id: Optional[int] = Query(None, alias="s"),
     map_id: Optional[int] = Query(None, alias="b"),
-):
+) -> Response:
     if map_set_id is None and map_id is not None:
         bmap = await app.usecases.beatmap.fetch_by_id(map_id)
         if bmap is None:
-            return
+            return Response(b"")
 
         map_set_id = bmap.set_id
 
@@ -152,7 +153,7 @@ async def beatmap_card(
     except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
         if isinstance(exc, httpx.HTTPStatusError):
             if exc.response.status_code == status.HTTP_404_NOT_FOUND:
-                return None
+                return Response(b"")
 
         logging.exception(
             "Failed to retrieve data from the beatmap mirror",
@@ -163,7 +164,7 @@ async def beatmap_card(
                 "user_id": user.id,
             },
         )
-        return None
+        return Response(b"")
 
     result = response.json()
 
@@ -182,14 +183,18 @@ async def beatmap_card(
             ),
         )
 
-    return (
-        "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
-        "{RankedStatus}|10.0|{LastUpdate}|{chimu_spell}|"
-        "0|0|0|0|0".format(**json_data, chimu_spell=json_data[CHIMU_SET_ID_SPELLING])
-    ).encode()
+    return Response(
+        (
+            "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
+            "{RankedStatus}|10.0|{LastUpdate}|{chimu_spell}|"
+            "0|0|0|0|0".format(
+                **json_data, chimu_spell=json_data[CHIMU_SET_ID_SPELLING]
+            )
+        ).encode(),
+    )
 
 
-async def download_map(set_id: str = Path(...)):
+async def download_map(set_id: str = Path(...)) -> Response:
     domain = config.DIRECT_URL.split("/")[2]
 
     return RedirectResponse(

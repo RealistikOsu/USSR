@@ -20,6 +20,7 @@ from fastapi import File
 from fastapi import Form
 from fastapi import Header
 from fastapi import Request
+from fastapi import Response
 from fastapi.datastructures import FormData
 from py3rijndael import Pkcs7Padding
 from py3rijndael import RijndaelCbc
@@ -113,12 +114,12 @@ async def submit_score(
     osu_version: str = Form(..., alias="osuver"),
     client_hash_b64: bytes = Form(..., alias="s"),
     fl_cheat_screenshot: Optional[bytes] = File(None, alias="i"),
-):
+) -> Response:
     start = time.perf_counter()
 
     score_params = await parse_form(await request.form())
     if not score_params:
-        return b"error: no"
+        return Response(b"error: no")
 
     score_data_b64, replay_file = score_params
     score_data, _ = decrypt_score_data(
@@ -130,11 +131,11 @@ async def submit_score(
 
     beatmap_md5 = score_data[0]
     if not (beatmap := await app.usecases.beatmap.fetch_by_md5(beatmap_md5)):
-        return b"error: beatmap"
+        return Response(b"error: beatmap")
 
     username = score_data[1].rstrip()
     if not (user := await app.usecases.user.auth_user(username, password_md5)):
-        return b""  # empty resp tells osu to retry
+        return Response(b"")  # empty resp tells osu to retry
 
     score = Score.from_submission(score_data[2:], beatmap_md5, user)
     leaderboard = await app.usecases.leaderboards.fetch_beatmap_leaderboard(
@@ -151,7 +152,7 @@ async def submit_score(
     await app.usecases.user.update_latest_activity(user.id)
 
     if not score.mods.rankable:
-        return b"error: no"
+        return Response(b"error: no")
 
     # TODO: fix osu updates making this check useless?
     # if not token and not config.ALLOW_CUSTOM_CLIENTS:
@@ -187,7 +188,7 @@ async def submit_score(
         ) is not None
 
         if score_exists:
-            return b"error: no"
+            return Response(b"error: no")
 
         score.pp, score.sr = await app.usecases.performance.calculate_performance(
             beatmap.id,
@@ -245,7 +246,7 @@ async def submit_score(
                 "(:beatmap_md5, :userid, :score, :max_combo, :full_combo, :mods, :300_count, :100_count, :50_count, :katus_count, "
                 ":gekis_count, :misses_count, :time, :play_mode, :completed, :accuracy, :pp, :checksum)"
             ),
-            score.db_dict,
+            score.to_dict(),
         )
 
     replay_data = await replay_file.read()
@@ -329,7 +330,7 @@ async def submit_score(
                 "mode": score.mode.value,
             },
         )
-        return b"error: no"
+        return Response(b"error: no")
 
     old_stats = copy(stats)
 
@@ -523,4 +524,4 @@ async def submit_score(
         },
     )
 
-    return "|".join(submission_charts).encode()
+    return Response("|".join(submission_charts).encode())
