@@ -10,24 +10,9 @@ from app.constants.mode import Mode
 from app.objects.path import Path
 
 
-async def check_local_file(osu_file_path: Path, map_id: int, map_md5: str) -> bool:
-    if (
-        not osu_file_path.exists()
-        or hashlib.md5(osu_file_path.read_bytes()).hexdigest() != map_md5
-    ):
-        response = await app.state.services.http_client.get(
-            f"https://old.ppy.sh/osu/{map_id}",
-        )
-        if response.status_code != 200:
-            return False
-
-        osu_file_path.write_bytes(response.read())
-
-    return True
-
-
 class PerformanceScore(TypedDict):
     beatmap_id: int
+    beatmap_md5: str
     mode: int
     mods: int
     max_combo: int
@@ -56,6 +41,7 @@ async def calculate_performances(
 # TODO: split sr & pp calculations
 async def calculate_performance(
     beatmap_id: int,
+    beatmap_md5: str,
     mode: Mode,
     mods: int,
     max_combo: int,
@@ -67,6 +53,7 @@ async def calculate_performance(
         json=[
             {
                 "beatmap_id": beatmap_id,
+                "beatmap_md5": beatmap_md5,
                 "mode": mode.as_vn,
                 "mods": mods,
                 "max_combo": max_combo,

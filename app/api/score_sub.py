@@ -188,6 +188,7 @@ async def submit_score(
 
         score.pp, score.sr = await app.usecases.performance.calculate_performance(
             beatmap.id,
+            beatmap.md5,
             score.mode,
             score.mods.value,
             score.max_combo,

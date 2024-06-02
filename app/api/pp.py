@@ -45,6 +45,7 @@ async def calculate_pp(
         performance_requests: list[PerformanceScore] = [
             {
                 "beatmap_id": beatmap.id,
+                "beatmap_md5": beatmap.md5,
                 "mode": mode.as_vn,
                 "mods": mods,
                 "max_combo": combo,
@@ -65,6 +66,7 @@ async def calculate_pp(
     else:
         pp_result, star_rating = await app.usecases.performance.calculate_performance(
             beatmap.id,
+            beatmap.md5,
             mode,
             mods,
             combo,
