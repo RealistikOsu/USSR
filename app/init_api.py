@@ -3,7 +3,6 @@ from __future__ import annotations
 import contextlib
 import logging
 import pprint
-from typing import TYPE_CHECKING
 
 import aio_pika
 import aiobotocore.session
@@ -22,9 +21,6 @@ import app.state
 import app.usecases
 import config
 from app import job_scheduling
-
-if TYPE_CHECKING:
-    from types_aiobotocore_s3 import S3Client
 
 ctx_stack = contextlib.AsyncExitStack()
 

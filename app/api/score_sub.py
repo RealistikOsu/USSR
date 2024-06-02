@@ -30,13 +30,11 @@ import config
 from app import job_scheduling
 from app.adapters import amplitude
 from app.constants.mode import Mode
-from app.constants.mods import Mods
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.achievement import Achievement
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
-from app.objects.path import Path
 from app.redis_lock import RedisLock
 from app.usecases.user import restrict_user
 

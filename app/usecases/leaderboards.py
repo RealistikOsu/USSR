@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.models.beatmap import Beatmap
-from app.models.score import Score
 from app.repositories import leaderboards as leaderboards_repository
 from app.repositories.leaderboards import LeaderboardScore
 
