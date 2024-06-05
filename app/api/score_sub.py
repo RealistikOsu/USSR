@@ -246,8 +246,6 @@ async def submit_score(
             score.to_dict(),
         )
 
-    replay_data = await replay_file.read()
-
     if score.passed:
         submission_request = dataclasses.asdict(
             ScoreSubmissionRequest(
@@ -262,7 +260,6 @@ async def submit_score(
                 score_time=score_time,
                 osu_version=osu_version,
                 client_hash_b64=client_hash_b64.decode(),
-                replay_data_b64=b64encode(replay_data).decode(),
                 score_id=score.id,
                 user_id=user.id,
                 osu_auth_token=token,
@@ -306,6 +303,8 @@ async def submit_score(
             f"PP cap. {beatmap.song_name} +{score.mods!r} ({score.pp:.2f}pp)"
             f" ID: {score.id} (score submit gate)",
         )
+
+    replay_data = await replay_file.read()
 
     if score.passed:
         if len(replay_data) < 24:

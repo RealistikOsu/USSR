@@ -16,7 +16,6 @@ class ScoreSubmissionRequest:
     score_time: int
     osu_version: str
     client_hash_b64: str
-    replay_data_b64: str
     score_id: int
     user_id: int
     osu_auth_token: str | None
