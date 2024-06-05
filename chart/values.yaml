@@ -20,10 +20,10 @@ apps:
       resources:
         limits:
           cpu: 300m
-          memory: 250Mi
+          memory: 400Mi
         requests:
           cpu: 200m
-          memory: 200Mi
+          memory: 300Mi
       env:
         - name: APP_COMPONENT
           value: api
