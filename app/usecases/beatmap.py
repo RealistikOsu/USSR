@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 import time
 from typing import Any
@@ -186,6 +187,14 @@ async def md5_from_api(
     if response.status_code == 404:
         return None
 
+    if response.status_code == 403:
+        logging.warning(
+            "Received 403 error from the osu API when trying to fetch beatmap by md5",
+            extra={"beatmap_md5": md5},
+            exc_info=True,
+        )
+        return None
+
     response.raise_for_status()
 
     response_json = response.json()
@@ -219,6 +228,14 @@ async def id_from_api(
     if response.status_code == 404:
         return None
 
+    if response.status_code == 403:
+        logging.warning(
+            "Received 403 error from the osu API when trying to fetch beatmap by id",
+            extra={"beatmap_id": id},
+            exc_info=True,
+        )
+        return None
+
     response.raise_for_status()
 
     response_json = response.json()
@@ -249,6 +266,14 @@ async def set_from_api(
         params={"k": api_key, "s": id},
     )
     if response.status_code == 404:
+        return None
+
+    if response.status_code == 403:
+        logging.warning(
+            "Received 403 error from the osu API when trying to fetch beatmapset by id",
+            extra={"beatmapset_id": id},
+            exc_info=True,
+        )
         return None
 
     response.raise_for_status()
