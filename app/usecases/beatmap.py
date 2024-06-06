@@ -188,11 +188,7 @@ async def md5_from_api(
         return None
 
     if response.status_code == 403:
-        logging.warning(
-            "Received 403 error from the osu API when trying to fetch beatmap by md5",
-            extra={"beatmap_md5": md5},
-        )
-        return None
+        raise ValueError("osu api is down")
 
     response.raise_for_status()
 
@@ -228,11 +224,7 @@ async def id_from_api(
         return None
 
     if response.status_code == 403:
-        logging.warning(
-            "Received 403 error from the osu API when trying to fetch beatmap by id",
-            extra={"beatmap_id": id},
-        )
-        return None
+        raise ValueError("osu api is down")
 
     response.raise_for_status()
 
@@ -267,11 +259,7 @@ async def set_from_api(
         return None
 
     if response.status_code == 403:
-        logging.warning(
-            "Received 403 error from the osu API when trying to fetch beatmapset by id",
-            extra={"beatmapset_id": id},
-        )
-        return None
+        raise ValueError("osu api is down")
 
     response.raise_for_status()
 
