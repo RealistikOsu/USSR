@@ -188,7 +188,7 @@ async def md5_from_api(
         return None
 
     if response.status_code == 403:
-        raise ValueError("osu api is down")
+        raise ValueError("osu api is down") from None
 
     response.raise_for_status()
 
@@ -224,7 +224,7 @@ async def id_from_api(
         return None
 
     if response.status_code == 403:
-        raise ValueError("osu api is down")
+        raise ValueError("osu api is down") from None
 
     response.raise_for_status()
 
@@ -259,7 +259,7 @@ async def set_from_api(
         return None
 
     if response.status_code == 403:
-        raise ValueError("osu api is down")
+        raise ValueError("osu api is down") from None
 
     response.raise_for_status()
 
