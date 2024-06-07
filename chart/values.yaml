@@ -6,6 +6,7 @@ apps:
       enabled: true
       minReplicas: 2
       maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
     container:
       image:
         repository: osuakatsuki/score-service
