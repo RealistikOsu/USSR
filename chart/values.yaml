@@ -2,7 +2,10 @@ apps:
   - name: score-service-api
     environment: production
     codebase: score-service
-    replicaCount: 3
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
     container:
       image:
         repository: osuakatsuki/score-service
