@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import contextlib
 import logging
-import pprint
 
 import aio_pika
 import aiobotocore.session
@@ -113,7 +112,7 @@ def init_events(asgi_app: FastAPI) -> None:
     ) -> Response:
         try:
             return await call_next(request)
-        except Exception:
+        except BaseException:
             logging.exception("Exception in ASGI application")
             return ORJSONResponse(
                 content={"detail": "Internal server error"},
@@ -126,9 +125,9 @@ def init_events(asgi_app: FastAPI) -> None:
         e: RequestValidationError,
     ) -> Response:
         logging.error(
-            f"Validation error on {request.url}:\n{pprint.pformat(e.errors())}",
+            "Validation errors when processing API request",
+            exc_info=e,
         )
-
         return ORJSONResponse(
             content=jsonable_encoder(e.errors()),
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
