@@ -113,11 +113,12 @@ def init_events(asgi_app: FastAPI) -> None:
     ) -> Response:
         try:
             return await call_next(request)
-        except RuntimeError as err:
-            if err.args[0] == "No response returned.":
-                return Response("skill issue")
-
-            raise err
+        except Exception:
+            logging.exception("Exception in ASGI application")
+            return ORJSONResponse(
+                content={"detail": "Internal server error"},
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @asgi_app.exception_handler(RequestValidationError)
     async def handle_validation_error(
