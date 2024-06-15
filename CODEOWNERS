@@ -1,1 +1,6 @@
 * @cmyui @tsunyoku @infernalfire72
+
+# Infrastructure
+/.github/* @cmyui
+/tf/* @cmyui
+/chart/* @cmyui
