@@ -175,7 +175,7 @@ async def submit_score(
 
     if not are_mods_rankable_for_beatmap(score.mods, beatmap):
         logging.info(
-            "Score submission failed due to unrankable mods",
+            "Score submission denied due to unrankable mods",
             extra={
                 "user_id": user.id,
                 "beatmap_id": beatmap.id,
