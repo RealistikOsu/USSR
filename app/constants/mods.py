@@ -77,18 +77,6 @@ class Mods(IntFlag):
         return _mods
 
     @property
-    def rankable(self) -> bool:
-        """Checks if the mod combo is rank-worthy."""
-
-        if self & Mods.AUTOPLAY:
-            return False
-
-        if self & Mods.SCOREV2:
-            return False
-
-        return True
-
-    @property
     def conflict(self) -> bool:
         """Anticheat measure to check for illegal mod combos."""
 

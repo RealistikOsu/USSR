@@ -173,7 +173,7 @@ async def submit_score(
 
     await app.usecases.user.update_latest_activity(user.id)
 
-    if not score.mods.rankable:
+    if not are_mods_rankable_for_beatmap(score.mods, beatmap):
         return Response(b"error: no")
 
     # TODO: fix osu updates making this check useless?
