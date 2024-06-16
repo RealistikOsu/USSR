@@ -177,9 +177,9 @@ async def submit_score(
         logging.info(
             "Score submission denied due to unrankable mods",
             extra={
-                "user_id": user.id,
-                "beatmap_id": beatmap.id,
-                "mods": score.mods,
+                "beatmap": amplitude.format_beatmap(beatmap),
+                "score": amplitude.format_score(score),
+                "user": amplitude.format_user(user),
             },
         )
         return Response(b"error: no")
