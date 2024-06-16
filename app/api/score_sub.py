@@ -174,6 +174,14 @@ async def submit_score(
     await app.usecases.user.update_latest_activity(user.id)
 
     if not are_mods_rankable_for_beatmap(score.mods, beatmap):
+        logging.info(
+            "Score submission failed due to unrankable mods",
+            extra={
+                "user_id": user.id,
+                "beatmap_id": beatmap.id,
+                "mods": score.mods,
+            },
+        )
         return Response(b"error: no")
 
     # TODO: fix osu updates making this check useless?
