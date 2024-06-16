@@ -136,12 +136,12 @@ async def save(beatmap: Beatmap) -> None:
                 beatmap_id, beatmapset_id, beatmap_md5, song_name, ar, od, mode,
                 rating, max_combo, hit_length, bpm, playcount, passcount, ranked,
                 latest_update, ranked_status_freezed, file_name, rankedby,
-                bancho_ranked_status
+                bancho_ranked_status, count_circles, count_sliders, count_spinners
             ) VALUES (
                 :beatmap_id, :beatmapset_id, :beatmap_md5, :song_name, :ar, :od, :mode,
                 :rating, :max_combo, :hit_length, :bpm, :playcount, :passcount, :ranked,
                 :latest_update, :ranked_status_freezed, :file_name, :rankedby,
-                :bancho_ranked_status
+                :bancho_ranked_status, :count_circles, :count_sliders, :count_spinners
             )
             """
         ),
@@ -169,6 +169,9 @@ async def save(beatmap: Beatmap) -> None:
                 if beatmap.bancho_ranked_status is not None
                 else None
             ),
+            "count_circles": beatmap.count_circles,
+            "count_sliders": beatmap.count_sliders,
+            "count_spinners": beatmap.count_spinners,
         },
     )
 
@@ -321,6 +324,10 @@ def parse_from_osu_api(response_json_list: list[dict[str, Any]]) -> list[Beatmap
         od = float(response_json["diff_overall"])
         ar = float(response_json["diff_approach"])
 
+        count_circles = int(response_json["count_circles"])
+        count_sliders = int(response_json["count_sliders"])
+        count_spinners = int(response_json["count_spinners"])
+
         maps.append(
             Beatmap(
                 md5=md5,
@@ -342,6 +349,9 @@ def parse_from_osu_api(response_json_list: list[dict[str, Any]]) -> list[Beatmap
                 rankedby=None,
                 rating=10.0,
                 bancho_ranked_status=bancho_ranked_status,
+                count_circles=count_circles,
+                count_sliders=count_sliders,
+                count_spinners=count_spinners,
             ),
         )
 

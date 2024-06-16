@@ -30,9 +30,11 @@ import config
 from app import job_scheduling
 from app.adapters import amplitude
 from app.constants.mode import Mode
+from app.constants.mods import Mods
 from app.constants.ranked_status import RankedStatus
 from app.constants.score_status import ScoreStatus
 from app.models.achievement import Achievement
+from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.redis_lock import RedisLock
@@ -92,6 +94,30 @@ T = TypeVar("T", bound=int | float)
 
 def chart_entry(name: str, before: T | None, after: T) -> str:
     return f"{name}Before:{before or ''}|{name}After:{after}"
+
+
+def are_mods_rankable_for_beatmap(mods: Mods, beatmap: Beatmap) -> bool:
+    if mods & Mods.AUTOPLAY:
+        return False
+
+    if beatmap.mode.as_vn in {Mode.STD, Mode.CATCH}:
+        object_count = (
+            # TODO: remove `or 0` once nulls are backfilled
+            (beatmap.count_circles or 0)
+            + (beatmap.count_sliders or 0)
+            + (beatmap.count_spinners or 0)
+        )
+        if object_count >= 7000:
+            if not mods & Mods.SCOREV2:
+                return False
+        else:
+            if mods & Mods.SCOREV2:
+                return False
+    else:
+        if mods & Mods.SCOREV2:
+            return False
+
+    return True
 
 
 async def submit_score(

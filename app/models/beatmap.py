@@ -41,6 +41,11 @@ class Beatmap:
 
     bancho_ranked_status: RankedStatus | None
 
+    # TODO: remove `None`s once nulls are backfilled
+    count_circles: int | None
+    count_sliders: int | None
+    count_spinners: int | None
+
     @property
     def url(self) -> str:
         server_url = config.SRV_URL.replace("https://", "").replace("http://", "")
@@ -143,4 +148,7 @@ class Beatmap:
                 if mapping["bancho_ranked_status"] is not None
                 else None
             ),
+            count_circles=mapping["count_circles"],
+            count_sliders=mapping["count_sliders"],
+            count_spinners=mapping["count_spinners"],
         )

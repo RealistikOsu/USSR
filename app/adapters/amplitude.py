@@ -93,6 +93,14 @@ def format_beatmap(beatmap: Beatmap) -> dict[str, Any]:
         "file_name": beatmap.filename,
         "frozen": beatmap.frozen,
         "rating": beatmap.rating,
+        "bancho_ranked_status": (
+            beatmap.bancho_ranked_status.name
+            if beatmap.bancho_ranked_status is not None
+            else None
+        ),
+        "count_circles": beatmap.count_circles,
+        "count_sliders": beatmap.count_sliders,
+        "count_spinners": beatmap.count_spinners,
     }
 
 
