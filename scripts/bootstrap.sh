@@ -8,8 +8,7 @@ fi
 
 if [[ $PULL_SECRETS_FROM_VAULT -eq 1 ]]; then
   echo "Fetching secrets from vault"
-  # TODO: revert to $APP_ENV
-  akatsuki vault get score-service production-k8s -o .env
+  akatsuki vault get score-service $APP_ENV -o .env
   echo "Fetched secrets from vault"
   source .env
   echo "Sourced secrets from vault"
