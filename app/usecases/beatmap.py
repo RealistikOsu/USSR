@@ -324,9 +324,9 @@ def parse_from_osu_api(response_json_list: list[dict[str, Any]]) -> list[Beatmap
         od = float(response_json["diff_overall"])
         ar = float(response_json["diff_approach"])
 
-        count_circles = int(response_json["count_circles"])
-        count_sliders = int(response_json["count_sliders"])
-        count_spinners = int(response_json["count_spinners"])
+        count_circles = int(response_json["count_normal"])
+        count_sliders = int(response_json["count_slider"])
+        count_spinners = int(response_json["count_spinner"])
 
         maps.append(
             Beatmap(
