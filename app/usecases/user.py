@@ -87,7 +87,7 @@ async def auth_user(username: str, password: str) -> User | None:
     if not user:
         return None
 
-    correct_password = await app.usecases.password.verify_password(
+    correct_password = app.usecases.password.verify_password(
         password,
         user.password_bcrypt,
     )
@@ -114,7 +114,7 @@ def authenticate_user(
                 detail=error_text,
             )
 
-        correct_password = await app.usecases.password.verify_password(
+        correct_password = app.usecases.password.verify_password(
             password,
             user.password_bcrypt,
         )

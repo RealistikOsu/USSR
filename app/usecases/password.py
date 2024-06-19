@@ -5,7 +5,7 @@ import bcrypt
 CACHE: dict[str, str] = {}
 
 
-async def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     if hashed_password in CACHE:
         return CACHE[hashed_password] == plain_password
 
