@@ -138,6 +138,13 @@ async def beatmap_card(
     map_set_id: int | None = Query(None, alias="s"),
     map_id: int | None = Query(None, alias="b"),
 ) -> Response:
+    if not (map_set_id or map_id):
+        logging.warning(
+            "No map_set_id or map_id provided to osu-search-set.php API",
+            extra={"user_id": user.id},
+        )
+        return Response(status_code=status.HTTP_400_BAD_REQUEST)
+
     if map_set_id is None and map_id is not None:
         bmap = await app.usecases.beatmap.fetch_by_id(map_id)
         if bmap is None:
