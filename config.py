@@ -35,7 +35,6 @@ API_KEYS_POOL: list[str] = list(config("API_KEYS_POOL", cast=CommaSeparatedStrin
 ALLOW_CUSTOM_CLIENTS = config("ALLOW_CUSTOM_CLIENTS", cast=bool)
 
 SRV_URL = config("SRV_URL", default="akatsuki.gg")
-SRV_NAME = config("SRV_NAME", default="osu!Akatsuki")
 
 DISCORD_ADMIN_HOOK = config("DISCORD_ADMIN_HOOK")
 BEATMAP_UPDATE_HOOK = config("BEATMAP_UPDATE_HOOK")
