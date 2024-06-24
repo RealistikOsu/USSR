@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
+import urllib.parse
 from typing import Any
-from urllib.parse import unquote_plus
 
 import httpx
 from fastapi import Depends
@@ -21,15 +21,11 @@ from app.constants.ranked_status import RankedStatus
 from app.models.user import User
 from app.usecases.user import authenticate_user
 
-USING_CHIMU = "https://api.chimu.moe/v1" == config.DIRECT_URL
-USING_KITSU = "https://us.kitsu.moe/api" == config.DIRECT_URL
-CHIMU_SET_ID_SPELLING = "SetId" if USING_CHIMU else "SetID"
-
 DIRECT_SET_INFO_FMTSTR = (
-    "{{{chimu_set_id_spelling}}}.osz|{{Artist}}|{{Title}}|{{Creator}}|"
-    "{{RankedStatus}}|10.0|{{LastUpdate}}|{{{chimu_set_id_spelling}}}|"
-    "0|{{HasVideo}}|0|0|0|{{diffs}}"
-).format(chimu_set_id_spelling="SetId" if USING_CHIMU else "SetID")
+    "{SetID}.osz|{Artist}|{Title}|{Creator}|"
+    "{RankedStatus}|10.0|{LastUpdate}|{SetID}|"
+    "0|{HasVideo}|0|0|0|{diffs}"
+)
 
 DIRECT_MAP_INFO_FMTSTR = (
     "[{DifficultyRating:.2f}⭐] {DiffName} "
@@ -42,16 +38,18 @@ async def osu_direct(
     ranked_status: int = Query(..., alias="r", ge=0, le=8),
     query: str = Query(..., alias="q"),
     mode: int = Query(..., alias="m", ge=-1, le=3),
-    page_num: int = Query(..., alias="p"),
+    page: int = Query(..., alias="p"),
 ) -> Response:
-    search_url = f"{config.DIRECT_URL}/search"
+    search_url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/search"
 
-    params: dict[str, Any] = {"amount": 101, "offset": page_num}
+    page_size = 100
+    page = page + 1  # the osu! client starts from page 0
+    params: dict[str, Any] = {
+        "amount": page_size,
+        "offset": page * page_size - 1,
+    }
 
-    if "akatsuki.gg" in config.DIRECT_URL or "akatest.space" in config.DIRECT_URL:
-        params["osu_direct"] = True
-
-    if unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
+    if urllib.parse.unquote_plus(query) not in ("Newest", "Top Rated", "Most Played"):
         params["query"] = query
 
     if mode != -1:
@@ -64,19 +62,18 @@ async def osu_direct(
         response = await app.state.services.http_client.get(
             search_url,
             params=params,
-            timeout=5,
+            timeout=15,
         )
+        if response.status_code == status.HTTP_404_NOT_FOUND:
+            return Response(b"-1\nFailed to retrieve data from the beatmap mirror.")
         response.raise_for_status()
-    except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
-        if isinstance(exc, httpx.HTTPStatusError):
-            if exc.response.status_code == status.HTTP_404_NOT_FOUND:
-                return Response(b"-1\nFailed to retrieve data from the beatmap mirror.")
-
+    except Exception:
         logging.exception(
             "Failed to search for results from the beatmap mirror",
             extra={
                 "query": query,
-                "page_num": page_num,
+                "page": page,
+                "page_size": page_size,
                 "game_mode": mode,
                 "ranked_status": ranked_status,
                 "url": search_url,
@@ -91,8 +88,8 @@ async def osu_direct(
     #    if result["code"] != 200:
     #        return b"-1\nFailed to retrieve data from the beatmap mirror."
 
-    result_len = len(result)
-    ret = [f"{'101' if result_len == 100 else result_len}"]
+    # NOTE: 101 informs the osu! client that there are more available
+    ret = ["101" if len(result) == 100 else str(len(result))]
 
     for bmap in result:
         if not bmap["ChildrenBeatmaps"]:
@@ -121,7 +118,7 @@ async def osu_direct(
                 device_id=None,
                 event_properties={
                     "query": query,
-                    "page_num": page_num,
+                    "page_num": page,
                     "game_mode": (
                         amplitude.format_mode(mode) if mode != -1 else "All modes"
                     ),
@@ -148,19 +145,17 @@ async def beatmap_card(
     if map_set_id is None and map_id is not None:
         bmap = await app.usecases.beatmap.fetch_by_id(map_id)
         if bmap is None:
-            return Response(b"")
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
 
         map_set_id = bmap.set_id
 
-    url = f"{config.DIRECT_URL}/{'set' if USING_CHIMU else 's'}/{map_set_id}"
+    url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/s/{map_set_id}"
     try:
-        response = await app.state.services.http_client.get(url, timeout=5)
+        response = await app.state.services.http_client.get(url, timeout=15)
+        if response.status_code == status.HTTP_404_NOT_FOUND:
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
         response.raise_for_status()
-    except (httpx.RequestError, httpx.HTTPStatusError, TimeoutError) as exc:
-        if isinstance(exc, httpx.HTTPStatusError):
-            if exc.response.status_code == status.HTTP_404_NOT_FOUND:
-                return Response(b"")
-
+    except Exception:
         logging.exception(
             "Failed to retrieve data from the beatmap mirror",
             extra={
@@ -170,11 +165,9 @@ async def beatmap_card(
                 "user_id": user.id,
             },
         )
-        return Response(b"")
+        return Response(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    result = response.json()
-
-    json_data = result["data"] if USING_CHIMU else result
+    json_data = response.json()
 
     if config.AMPLITUDE_API_KEY:
         job_scheduling.schedule_job(
@@ -191,20 +184,15 @@ async def beatmap_card(
 
     return Response(
         (
-            "{chimu_spell}.osz|{Artist}|{Title}|{Creator}|"
-            "{RankedStatus}|10.0|{LastUpdate}|{chimu_spell}|"
-            "0|0|0|0|0".format(
-                **json_data,
-                chimu_spell=json_data[CHIMU_SET_ID_SPELLING],
-            )
+            "{SetID}.osz|{Artist}|{Title}|{Creator}|"
+            "{RankedStatus}|10.0|{LastUpdate}|{SetID}|"
+            "0|0|0|0|0".format(**json_data)
         ).encode(),
     )
 
 
 async def download_map(set_id: str = Path(...)) -> Response:
-    domain = config.DIRECT_URL.split("/")[2]
-
     return RedirectResponse(
-        url=f"https://{domain}/d/{set_id}",
+        url=f"https://beatmaps.akatsuki.gg/api/d/{set_id}",
         status_code=status.HTTP_301_MOVED_PERMANENTLY,
     )

@@ -25,7 +25,10 @@ READ_DB_USER = config("READ_DB_USER")
 READ_DB_PASS = config("READ_DB_PASS")
 READ_DB_NAME = config("READ_DB_NAME")
 
-DIRECT_URL = config("DIRECT_URL", default="https://catboy.best/api")
+BEATMAPS_SERVICE_BASE_URL = config(
+    "BEATMAPS_SERVICE_BASE_URL",
+    default="https://beatmaps.akatsuki.gg",
+)
 
 API_KEYS_POOL: list[str] = list(config("API_KEYS_POOL", cast=CommaSeparatedStrings))
 
