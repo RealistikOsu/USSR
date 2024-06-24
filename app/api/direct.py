@@ -40,7 +40,7 @@ async def osu_direct(
     mode: int = Query(..., alias="m", ge=-1, le=3),
     page: int = Query(..., alias="p"),
 ) -> Response:
-    search_url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/search"
+    search_url = f"{config.BEATMAPS_SERVICE_BASE_URL}/public/api/search"
 
     page_size = 100
     page = page + 1  # the osu! client starts from page 0
@@ -149,7 +149,7 @@ async def beatmap_card(
 
         map_set_id = bmap.set_id
 
-    url = f"{config.BEATMAPS_SERVICE_BASE_URL}/api/s/{map_set_id}"
+    url = f"{config.BEATMAPS_SERVICE_BASE_URL}/public/api/s/{map_set_id}"
     try:
         response = await app.state.services.http_client.get(url, timeout=15)
         if response.status_code == status.HTTP_404_NOT_FOUND:
