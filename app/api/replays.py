@@ -37,7 +37,7 @@ async def get_replay(
 
     replay_bytes = await app.usecases.replays.download_replay(score_id)
     if replay_bytes is None:
-        logging.error(
+        logging.warning(
             f"Requested replay ID {score_id}, but no file could be found",
         )
         return Response(b"")

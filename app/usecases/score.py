@@ -135,7 +135,7 @@ async def build_full_replay(score: Score) -> BinaryWriter | None:
 
     if replay_bytes is None:
         # TODO: assert the error code is "not found"?
-        logging.error(
+        logging.warning(
             f"Requested replay ID {score.id}, but no file could be found",
         )
         return None
