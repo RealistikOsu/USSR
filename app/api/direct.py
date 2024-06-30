@@ -143,7 +143,7 @@ async def beatmap_card(
         return Response(status_code=status.HTTP_400_BAD_REQUEST)
 
     if map_set_id is None and map_id is not None:
-        bmap = await app.usecases.beatmap.fetch_by_id(map_id)
+        bmap = await app.usecases.akatsuki_beatmaps.fetch_by_id(map_id)
         if bmap is None:
             return Response(status_code=status.HTTP_404_NOT_FOUND)
 

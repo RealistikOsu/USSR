@@ -152,7 +152,7 @@ async def submit_score(
     )
 
     beatmap_md5 = score_data[0]
-    if not (beatmap := await app.usecases.beatmap.fetch_by_md5(beatmap_md5)):
+    if not (beatmap := await app.usecases.akatsuki_beatmaps.fetch_by_md5(beatmap_md5)):
         return Response(b"error: beatmap")
 
     username = score_data[1].rstrip()
@@ -394,7 +394,7 @@ async def submit_score(
 
     await app.usecases.stats.save(stats)
 
-    await app.usecases.beatmap.increment_playcount(
+    await app.usecases.akatsuki_beatmaps.increment_playcount(
         beatmap=beatmap,
         increment_passcount=score.passed,
     )

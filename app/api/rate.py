@@ -50,7 +50,7 @@ async def rate_map(
     map_md5: str = Query(..., alias="c"),
     user_rating: int | None = Query(None, alias="v", ge=1, le=10),
 ) -> bytes:
-    beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
+    beatmap = await app.usecases.akatsuki_beatmaps.fetch_by_md5(map_md5)
     if not beatmap:
         return b"no exist"
 

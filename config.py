@@ -30,14 +30,11 @@ BEATMAPS_SERVICE_BASE_URL = config(
     default="https://beatmaps.akatsuki.gg",
 )
 
-API_KEYS_POOL: list[str] = list(config("API_KEYS_POOL", cast=CommaSeparatedStrings))
-
 ALLOW_CUSTOM_CLIENTS = config("ALLOW_CUSTOM_CLIENTS", cast=bool)
 
 SRV_URL = config("SRV_URL", default="akatsuki.gg")
 
 DISCORD_ADMIN_HOOK = config("DISCORD_ADMIN_HOOK")
-BEATMAP_UPDATE_HOOK = config("BEATMAP_UPDATE_HOOK")
 
 BOT_USER_ID = config("BOT_USER_ID", cast=int)
 FOKABOT_KEY = config("FOKABOT_KEY")

@@ -30,7 +30,7 @@ async def calculate_pp(
     mods = Mods(mods_arg)
     mode = Mode.from_lb(mode_arg, mods_arg)
 
-    beatmap = await app.usecases.beatmap.fetch_by_id(beatmap_id)
+    beatmap = await app.usecases.akatsuki_beatmaps.fetch_by_id(beatmap_id)
     if not beatmap:
         return ORJSONResponse(
             content={"message": "Invalid/non-existent beatmap id."},

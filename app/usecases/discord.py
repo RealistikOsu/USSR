@@ -209,7 +209,6 @@ EDIT_COL = "4360181"
 EDIT_ICON = "https://cdn3.iconfinder.com/data/icons/bold-blue-glyphs-free-samples/32/Info_Circle_Symbol_Information_Letter-512.png"
 
 admin_hook = a_hook if (a_hook := config.DISCORD_ADMIN_HOOK) else None
-beatmap_hook = b_hook if (b_hook := config.BEATMAP_UPDATE_HOOK) else None
 
 
 def log_user_edit(
@@ -227,20 +226,3 @@ def log_user_edit(
     embed.set_footer(text="This is an automated action performed by the server.")
 
     schedule_hook(admin_hook, embed)
-
-
-def beatmap_status_change(
-    *,
-    old_beatmap: Beatmap,
-    new_beatmap: Beatmap,
-    action_taken: Literal["status_change", "frozen"],
-) -> None:
-    embed = Embed(title="Beatmap Status/Freeze Change During Update!", color=EDIT_COL)
-    if action_taken == "status_change":
-        embed.description = f"Non-frozen {old_beatmap.embed} has just been changed from {old_beatmap.status.name} to {new_beatmap.status.name}!"
-    else:
-        embed.description = f"{new_beatmap.embed} has just been frozen in transit from {old_beatmap.status.name} to {new_beatmap.status.name}!"
-    embed.set_author(name="LESS Score Server", icon_url=EDIT_ICON)
-    embed.set_footer(text="This is an automated action performed by the server.")
-
-    schedule_hook(beatmap_hook, embed)

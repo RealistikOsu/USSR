@@ -64,9 +64,7 @@ async def get_leaderboard(
             f"{CUR_LB_VER}, but the client sent {leaderboard_version}. (leaderboard gate)",
         )
 
-    beatmap = await app.usecases.beatmap.fetch_by_md5(map_md5)
-    if beatmap and beatmap.deserves_update:
-        beatmap = await app.usecases.beatmap.update_beatmap(beatmap)
+    beatmap = await app.usecases.akatsuki_beatmaps.fetch_by_md5(map_md5)
 
     if not beatmap:
         file_name = unquote_plus(map_file_name)

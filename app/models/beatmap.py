@@ -70,29 +70,6 @@ class Beatmap:
     def has_leaderboard(self) -> bool:
         return self.status >= RankedStatus.RANKED
 
-    @property
-    def deserves_update(self) -> bool:
-        """Checks if there should be an attempt to update a map/check if
-        should be updated."""
-
-        match self.status:
-            case RankedStatus.QUALIFIED:
-                update_interval = timedelta(minutes=5)
-            case RankedStatus.PENDING:
-                update_interval = timedelta(minutes=10)
-            case RankedStatus.LOVED:
-                # loved maps can *technically* be updated
-                update_interval = timedelta(days=1)
-            case RankedStatus.RANKED | RankedStatus.APPROVED:
-                # in very rare cases, the osu! team has updated ranked/appvoed maps
-                # this is usually done to remove things like inappropriate content
-                update_interval = timedelta(days=1)
-            case _:
-                raise NotImplementedError(f"Unknown ranked status: {self.status}")
-
-        last_updated = datetime.fromtimestamp(self.last_update)
-        return last_updated <= (datetime.now() - update_interval)
-
     def osu_string(self, score_count: int, rating: float) -> str:
         return (
             f"{int(self.status)}|false|{self.id}|{self.set_id}|{score_count}|0|\n"  # |0| = featured artist bs

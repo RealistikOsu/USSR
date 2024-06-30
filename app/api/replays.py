@@ -79,7 +79,7 @@ async def get_full_replay(score_id: int = Path(...)) -> Response:
     if replay is None:
         return Response(b"Replay not found!")
 
-    beatmap = await app.usecases.beatmap.fetch_by_md5(score.map_md5)
+    beatmap = await app.usecases.akatsuki_beatmaps.fetch_by_md5(score.map_md5)
     if beatmap is None:
         return Response(b"Beatmap not found!")
 
