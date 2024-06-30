@@ -65,11 +65,13 @@ async def osu_direct(
             timeout=15,
         )
         if response.status_code == status.HTTP_404_NOT_FOUND:
-            return Response(b"-1\nFailed to retrieve data from the beatmap mirror.")
+            return Response(
+                b"-1\nFailed to retrieve search data -- please try again later",
+            )
         response.raise_for_status()
     except Exception:
         logging.exception(
-            "Failed to search for results from the beatmap mirror",
+            "Failed to search for beatmaps in osu!direct",
             extra={
                 "query": query,
                 "page": page,
@@ -80,13 +82,13 @@ async def osu_direct(
                 "user_id": user.id,
             },
         )
-        return Response(b"-1\nFailed to retrieve data from the beatmap mirror.")
+        return Response(b"-1\nFailed to retrieve search data -- please try again later")
 
     result = response.json()
 
     # if USING_KITSU: # kitsu is kinda annoying here and sends status in body
     #    if result["code"] != 200:
-    #        return b"-1\nFailed to retrieve data from the beatmap mirror."
+    #        return b"-1\nFailed to retrieve search data -- please try again later"
 
     # NOTE: 101 informs the osu! client that there are more available
     ret = ["101" if len(result) == 100 else str(len(result))]
@@ -157,7 +159,7 @@ async def beatmap_card(
         response.raise_for_status()
     except Exception:
         logging.exception(
-            "Failed to retrieve data from the beatmap mirror",
+            "Failed to retrieve data from the in osu-search-set.php",
             extra={
                 "beatmapset_id": map_set_id,
                 "beatmap_id": map_id,
