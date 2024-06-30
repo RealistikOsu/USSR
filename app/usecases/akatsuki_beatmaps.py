@@ -50,7 +50,7 @@ def _remap_beatmap_to_score_service_model(beatmap: dict[str, Any]) -> Beatmap:
 async def fetch_by_md5(beatmap_md5: str, /) -> Beatmap | None:
     try:
         response = await beatmaps_service_http_client.get(
-            f"/api/akatsuki/v1/beatmaps/lookup",
+            "/api/akatsuki/v1/beatmaps/lookup",
             params={"beatmap_md5": beatmap_md5},
         )
         if response.status_code == 404:
@@ -69,7 +69,7 @@ async def fetch_by_md5(beatmap_md5: str, /) -> Beatmap | None:
 async def fetch_by_id(beatmap_id: int, /) -> Beatmap | None:
     try:
         response = await beatmaps_service_http_client.get(
-            f"/api/akatsuki/v1/beatmaps/lookup",
+            "/api/akatsuki/v1/beatmaps/lookup",
             params={"beatmap_id": beatmap_id},
         )
         if response.status_code == 404:
