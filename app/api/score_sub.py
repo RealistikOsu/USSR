@@ -305,10 +305,17 @@ async def submit_score(
         # send request to rmq
         if app.state.services.amqp_channel is not None:
             for routing_key in config.SCORE_SUBMISSION_ROUTING_KEYS:
-                await app.state.services.amqp_channel.default_exchange.publish(
-                    aio_pika.Message(body=orjson.dumps(submission_request)),
-                    routing_key=routing_key,
-                )
+                try:
+                    await app.state.services.amqp_channel.default_exchange.publish(
+                        aio_pika.Message(body=orjson.dumps(submission_request)),
+                        routing_key=routing_key,
+                    )
+                except Exception:
+                    # TODO: setup a deadletter queue for failed messages
+                    logging.error(
+                        "Failed to submit score submission to RMQ listener",
+                        extra={"routing_key": routing_key, "score_id": score.id},
+                    )
 
     # update most played
     await app.state.services.database.execute(
