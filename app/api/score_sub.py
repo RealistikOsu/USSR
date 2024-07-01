@@ -312,7 +312,7 @@ async def submit_score(
                     )
                 except Exception:
                     # TODO: setup a deadletter queue for failed messages
-                    logging.error(
+                    logging.exception(
                         "Failed to submit score submission to RMQ listener",
                         extra={"routing_key": routing_key, "score_id": score.id},
                     )
