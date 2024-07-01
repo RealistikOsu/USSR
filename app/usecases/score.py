@@ -134,10 +134,6 @@ async def build_full_replay(score: Score) -> BinaryWriter | None:
     replay_bytes = await app.usecases.replays.download_replay(score.id)
 
     if replay_bytes is None:
-        # TODO: assert the error code is "not found"?
-        logging.warning(
-            f"Requested replay ID {score.id}, but no file could be found",
-        )
         return None
 
     username = await app.usecases.usernames.get_username(score.user_id)
