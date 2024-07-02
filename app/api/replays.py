@@ -60,6 +60,15 @@ async def get_replay(
     return Response(content=replay_bytes)
 
 
+def get_replay_mode_name(mode: int) -> str:
+    return {
+        0: "osu",
+        1: "taiko",
+        2: "fruits",
+        3: "mania",
+    }[mode]
+
+
 async def get_full_replay(score_id: int = Path(...)) -> Response:
     mode_rep = Mode.from_offset(score_id)
 
@@ -84,9 +93,9 @@ async def get_full_replay(score_id: int = Path(...)) -> Response:
     if username is None:
         return Response(b"User not found!")
 
-    filename = f"{username} - {beatmap.song_name} ({score_id}).osr"
+    game_mode_str = get_replay_mode_name(score.mode.as_vn)
+    filename = f"replay-{game_mode_str}_{beatmap.id}_{score_id}.osr"
 
-    logging.info(f"Serving compiled replay ID {score_id}")
     return Response(
         content=bytes(replay.buffer),
         media_type="application/octet-stream",
