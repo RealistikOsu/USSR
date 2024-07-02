@@ -27,13 +27,15 @@ async def get_player_match_details(user_id: int) -> MatchDetails | None:
             timeout=5.0,
         )
         response.raise_for_status()
-        response_data = response.json()["result"]
+        response_data = response.json()
+        if response_data["message"] != "ok":
+            return None
         return MatchDetails(
-            match_name=response_data["match_name"],
-            match_id=response_data["match_id"],
-            slot_id=response_data["slot_id"],
-            game_id=response_data["game_id"],
-            team=response_data["team"],
+            match_name=response_data["result"]["match_name"],
+            match_id=response_data["result"]["match_id"],
+            slot_id=response_data["result"]["slot_id"],
+            game_id=response_data["result"]["game_id"],
+            team=response_data["result"]["team"],
         )
     except Exception:
         logging.exception(
