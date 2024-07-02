@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import logging
 
 import app.state
 import app.usecases
@@ -13,64 +12,6 @@ from app.models.stats import Stats
 from app.models.user import User
 from app.objects.binary import BinaryWriter
 from app.utils.datetime import timestamp_to_dotnet_ticks
-
-
-def calculate_accuracy(score: Score) -> float:
-    vanilla_mode = score.mode.as_vn
-
-    n300 = score.n300
-    n100 = score.n100
-    n50 = score.n50
-
-    ngeki = score.ngeki
-    nkatu = score.nkatu
-
-    nmiss = score.nmiss
-
-    if vanilla_mode == 0:  # osu!
-        total = n300 + n100 + n50 + nmiss
-
-        if total == 0:
-            return 0.0
-
-        return (
-            100.0 * ((n300 * 300.0) + (n100 * 100.0) + (n50 * 50.0)) / (total * 300.0)
-        )
-
-    elif vanilla_mode == 1:  # osu!taiko
-        total = n300 + n100 + nmiss
-
-        if total == 0:
-            return 0.0
-
-        return 100.0 * ((n100 * 0.5) + n300) / total
-
-    elif vanilla_mode == 2:  # osu!catch
-        total = n300 + n100 + n50 + nkatu + nmiss
-
-        if total == 0:
-            return 0.0
-
-        return 100.0 * (n300 + n100 + n50) / total
-
-    elif vanilla_mode == 3:  # osu!mania
-        total = n300 + n100 + n50 + ngeki + nkatu + nmiss
-
-        if total == 0:
-            return 0.0
-
-        return (
-            100.0
-            * (
-                (n50 * 50.0)
-                + (n100 * 100.0)
-                + (nkatu * 200.0)
-                + ((n300 + ngeki) * 300.0)
-            )
-            / (total * 300.0)
-        )
-    else:
-        raise NotImplementedError(f"Unknown mode: {vanilla_mode}")
 
 
 async def unlock_achievements(score: Score, stats: Stats) -> list[Achievement]:
