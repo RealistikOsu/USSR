@@ -29,6 +29,7 @@ import app.usecases
 import config
 from app import job_scheduling
 from app.adapters import amplitude
+from app.adapters import bancho_service
 from app.constants.mode import Mode
 from app.constants.mods import Mods
 from app.constants.ranked_status import RankedStatus
@@ -38,7 +39,9 @@ from app.models.beatmap import Beatmap
 from app.models.score import Score
 from app.models.score_submission_request import ScoreSubmissionRequest
 from app.redis_lock import RedisLock
+from app.usecases import multiplayer
 from app.usecases.user import restrict_user
+from app.utils.score_utils import calculate_accuracy
 
 
 class ScoreData(NamedTuple):
@@ -168,7 +171,15 @@ async def submit_score(
     )
     previous_best = leaderboard.personal_best
 
-    score.acc = app.usecases.score.calculate_accuracy(score)
+    score.acc = calculate_accuracy(
+        n300=score.n300,
+        n100=score.n100,
+        n50=score.n50,
+        ngeki=score.ngeki,
+        nkatu=score.nkatu,
+        nmiss=score.nmiss,
+        vanilla_mode=score.mode.as_vn,
+    )
     score.quit = exited_out
 
     await app.usecases.user.update_latest_activity(user.id)
@@ -433,6 +444,26 @@ async def submit_score(
             score,
             beatmap,
             user,
+        )
+
+    multiplayer_details = await multiplayer.get_player_match_details(score.user_id)
+    if multiplayer_details is not None:
+        await multiplayer.insert_match_game_score(
+            match_id=multiplayer_details.match_id,
+            game_id=multiplayer_details.game_id,
+            user_id=score.user_id,
+            mode=score.mode.as_vn,
+            count_300=score.n300,
+            count_100=score.n100,
+            count_50=score.n50,
+            count_miss=score.nmiss,
+            count_geki=score.ngeki,
+            count_katu=score.nkatu,
+            score=score.score,
+            max_combo=score.max_combo,
+            mods=score.mods.value,
+            passed=score.passed,
+            team=multiplayer_details.team,
         )
 
     # NOTE: osu! login double hashes with md5, while score submission
