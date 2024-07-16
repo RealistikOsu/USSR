@@ -61,6 +61,6 @@ async def send_message_to_channel(channel: str, message: str) -> None:
     except Exception:
         logging.exception(
             "Failed to send chat message via bancho-service API",
-            extra={"channel": channel, "message": message},
+            extra={"channel": channel, "chat_message": message},
         )
         return None
