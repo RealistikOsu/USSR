@@ -45,7 +45,12 @@ async def get_player_match_details(user_id: int) -> MatchDetails | None:
         return None
 
 
-async def send_message_to_channel(channel: str, message: str) -> None:
+async def send_message_to_channel(
+    *,
+    channel: str,
+    message: str,
+    timeout: float,
+) -> None:
     try:
         response = await bancho_service_http_client.get(
             "/api/v1/fokabotMessage",
@@ -54,7 +59,7 @@ async def send_message_to_channel(channel: str, message: str) -> None:
                 "msg": message,
                 "k": config.FOKABOT_KEY,
             },
-            timeout=3.0,
+            timeout=timeout,
         )
         response.raise_for_status()
         return None

@@ -64,7 +64,11 @@ async def handle_first_place(
 
     msg = f"[{score.mode.relax_str}] User {user.embed} has submitted a #1 place on {beatmap.embed} +{score.mods!r} ({score.pp:.2f}pp)"
     job_scheduling.schedule_job(
-        app.usecases.chat.send_message_to_channel("#announce", msg),
+        app.usecases.chat.send_message_to_channel(
+            channel="#announce",
+            message=msg,
+            timeout=15.0,
+        ),
     )
 
 
