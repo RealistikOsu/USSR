@@ -42,6 +42,7 @@ from app.redis_lock import RedisLock
 from app.usecases import multiplayer
 from app.usecases.user import restrict_user
 from app.utils.score_utils import calculate_accuracy
+from app.utils.score_utils import calculate_grade
 
 
 class ScoreData(NamedTuple):
@@ -405,10 +406,61 @@ async def submit_score(
             beatmap.status in (RankedStatus.RANKED, RankedStatus.APPROVED)
             and score.status == ScoreStatus.BEST
         ):
+            grade = calculate_grade(
+                vanilla_mode=score.mode.as_vn,
+                mods=score.mods.value,
+                acc=score.acc,
+                n300=score.n300,
+                n100=score.n100,
+                n50=score.n50,
+                nmiss=score.nmiss,
+            )
+            if grade == "XH":
+                stats.xh_count += 1
+            elif grade == "X":
+                stats.x_count += 1
+            elif grade == "SH":
+                stats.sh_count += 1
+            elif grade == "S":
+                stats.s_count += 1
+            elif grade == "A":
+                stats.a_count += 1
+            elif grade == "B":
+                stats.b_count += 1
+            elif grade == "C":
+                stats.c_count += 1
+            elif grade == "D":
+                stats.d_count += 1
+
             stats.ranked_score += score.score
 
             if previous_best is not None:
                 stats.ranked_score -= previous_best["score"]
+                previous_best_grade = calculate_grade(
+                    vanilla_mode=previous_best["play_mode"],
+                    mods=previous_best["mods"],
+                    acc=previous_best["accuracy"],
+                    n300=previous_best["count_300"],
+                    n100=previous_best["count_100"],
+                    n50=previous_best["count_50"],
+                    nmiss=previous_best["count_miss"],
+                )
+                if previous_best_grade == "XH":
+                    stats.xh_count -= 1
+                elif previous_best_grade == "X":
+                    stats.x_count -= 1
+                elif previous_best_grade == "SH":
+                    stats.sh_count -= 1
+                elif previous_best_grade == "S":
+                    stats.s_count -= 1
+                elif previous_best_grade == "A":
+                    stats.a_count -= 1
+                elif previous_best_grade == "B":
+                    stats.b_count -= 1
+                elif previous_best_grade == "C":
+                    stats.c_count -= 1
+                elif previous_best_grade == "D":
+                    stats.d_count -= 1
 
     await app.usecases.stats.save(stats)
 

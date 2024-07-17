@@ -21,3 +21,11 @@ class Stats:
     max_combo: int
     total_hits: int
     replays_watched: int
+    xh_count: int
+    x_count: int
+    sh_count: int
+    s_count: int
+    a_count: int
+    b_count: int
+    c_count: int
+    d_count: int

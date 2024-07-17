@@ -12,7 +12,8 @@ async def fetch(user_id: int, mode: Mode) -> Stats | None:
     db_stats = await app.state.services.database.fetch_one(
         """
         SELECT ranked_score, total_score, pp, avg_accuracy AS accuracy, playcount,
-               playtime, max_combo, total_hits, replays_watched
+               playtime, max_combo, total_hits, replays_watched, xh_count,
+               x_count, sh_count, s_count, a_count, b_count, c_count, d_count
         FROM user_stats
         WHERE user_id = :user_id
         AND mode = :mode
@@ -39,6 +40,14 @@ async def fetch(user_id: int, mode: Mode) -> Stats | None:
         max_combo=db_stats["max_combo"],
         total_hits=db_stats["total_hits"],
         replays_watched=db_stats["replays_watched"],
+        xh_count=db_stats["xh_count"],
+        x_count=db_stats["x_count"],
+        sh_count=db_stats["sh_count"],
+        s_count=db_stats["s_count"],
+        a_count=db_stats["a_count"],
+        b_count=db_stats["b_count"],
+        c_count=db_stats["c_count"],
+        d_count=db_stats["d_count"],
     )
 
 
@@ -120,7 +129,15 @@ async def save(stats: Stats) -> None:
                 playtime = :playtime,
                 max_combo = :max_combo,
                 total_hits = :total_hits,
-                replays_watched = :replays_watched
+                replays_watched = :replays_watched,
+                xh_count = :xh_count,
+                x_count = :x_count,
+                sh_count = :sh_count,
+                s_count = :s_count,
+                a_count = :a_count,
+                b_count = :b_count,
+                c_count = :c_count,
+                d_count = :d_count
             WHERE user_id = :user_id
             AND mode = :mode
             """
@@ -137,6 +154,14 @@ async def save(stats: Stats) -> None:
             "replays_watched": stats.replays_watched,
             "user_id": stats.user_id,
             "mode": stats.mode.value,
+            "xh_count": stats.xh_count,
+            "x_count": stats.x_count,
+            "sh_count": stats.sh_count,
+            "s_count": stats.s_count,
+            "a_count": stats.a_count,
+            "b_count": stats.b_count,
+            "c_count": stats.c_count,
+            "d_count": stats.d_count,
         },
     )
 
