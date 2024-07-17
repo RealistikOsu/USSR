@@ -2,6 +2,8 @@ aiobotocore == 2.5.2
 aiodns
 aiohttp
 aioredis==2.0.1
+# databases likes to say that there's no extra asyncmy.
+asyncmy==0.2.2
 bcrypt==4.0.1
 Brotli
 cchardet
