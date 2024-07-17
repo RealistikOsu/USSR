@@ -154,14 +154,15 @@ async def save(stats: Stats) -> None:
             "replays_watched": stats.replays_watched,
             "user_id": stats.user_id,
             "mode": stats.mode.value,
-            "xh_count": stats.xh_count,
-            "x_count": stats.x_count,
-            "sh_count": stats.sh_count,
-            "s_count": stats.s_count,
-            "a_count": stats.a_count,
-            "b_count": stats.b_count,
-            "c_count": stats.c_count,
-            "d_count": stats.d_count,
+            # TODO: remove max() once backfill is complete
+            "xh_count": max(stats.xh_count, 0),
+            "x_count": max(stats.x_count, 0),
+            "sh_count": max(stats.sh_count, 0),
+            "s_count": max(stats.s_count, 0),
+            "a_count": max(stats.a_count, 0),
+            "b_count": max(stats.b_count, 0),
+            "c_count": max(stats.c_count, 0),
+            "d_count": max(stats.d_count, 0),
         },
     )
 
