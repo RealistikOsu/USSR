@@ -48,7 +48,7 @@ async def upload_screenshot(
     user: User = Depends(authenticate_user(Form, "u", "p")),
     screenshot_file: UploadFile = File(None, alias="ss"),
     user_agent: str = Header(...),
-    x_real_ip: str = Header(...),
+    x_forwarded_for: str = Header(...),
 ):
     if not await app.utils.check_online(user.id):
         logger.error(f"{user} tried to upload a screenshot while offline")
@@ -58,7 +58,7 @@ async def upload_screenshot(
         logger.error(f"{user} tried to upload a screenshot using a bot")
         return ERR_RESP
 
-    if await is_ratelimit(x_real_ip):
+    if await is_ratelimit(x_forwarded_for):
         logger.error(f"{user} tried to upload a screenshot while ratelimited")
         return ERR_RESP
 
