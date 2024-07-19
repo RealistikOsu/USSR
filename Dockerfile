@@ -14,4 +14,5 @@ COPY ./scripts /app/scripts
 # Application.
 COPY ./ussr /app/ussr
 
+RUN chmod +x -R /app/scripts
 ENTRYPOINT [ "/app/scripts/bootstrap.sh" ]
