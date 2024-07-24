@@ -12,6 +12,7 @@ from typing import Union
 
 import app.state
 import app.usecases
+import app.usecases.whitelist
 import app.utils
 import logger
 import settings
@@ -238,7 +239,10 @@ async def submit_score(
     ):
         # Separated from the previous clause to only call the pp cap function
         # when necessary.
-        if not await app.usecases.verified.get_verified(user.id):
+        if (
+            not await app.usecases.verified.get_verified(user.id)
+            and not await app.usecases.whitelist.is_whitelisted(user.id)
+        ):
             await restrict_user(
                 user,
                 f"Surpassing PP cap as unverified!",
