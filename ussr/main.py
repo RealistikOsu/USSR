@@ -4,9 +4,11 @@ from __future__ import annotations
 import logging
 import sys
 
+
 import app.utils
 import logger
 import settings
+import ddtrace
 import uvicorn
 import uvloop
 
@@ -16,7 +18,7 @@ DEBUG = "debug" in sys.argv
 
 
 def main() -> int:
-    logger.ensure_log_file()
+    ddtrace.patch_all()
 
     uvicorn.run(
         "app.init_api:asgi_app",

@@ -8,11 +8,13 @@ bcrypt==4.0.1
 Brotli
 cchardet
 databases[asyncmy]==0.5.5
+ddtrace
 fastapi
 meilisearch-python-async
 orjson
 py3rijndael
 python-dotenv
+python-json-logger==2.0.7
 # Pinned as it breaks databases
 sqlalchemy==1.4.41
 types-aiobotocore[s3] == 2.5.2
