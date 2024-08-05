@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import Optional
-
 import logging
-from pythonjsonlogger import jsonlogger
 import os
 import sys
 import time
 from enum import IntEnum
+from typing import Any
+from typing import Optional
+
+from pythonjsonlogger import jsonlogger
 
 DEBUG = "debug" in sys.argv
 __all__ = (
