@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.api import aggregate_score_stats
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Path
@@ -70,6 +71,11 @@ router.add_api_route("/web/osu-addfavourite.php", favourites.add_favourite)
 router.add_api_route("/web/osu-getfavourites.php", favourites.get_favourites)
 
 router.add_api_route("/api/v1/pp", pp.calculate_pp)
+
+router.add_api_route(
+    "/v1/aggregate-score-stats/total-scores-set",
+    aggregate_score_stats.total_scores_set,
+)
 
 
 @router.get("/web/bancho-connect.php")

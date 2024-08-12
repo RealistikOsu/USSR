@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from . import akatsuki_beatmaps
+from . import aggregate_score_stats
 from . import chat
 from . import countries
 from . import discord
