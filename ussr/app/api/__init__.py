@@ -22,6 +22,7 @@ from . import replays
 from . import score_sub
 from . import screenshots
 from . import seasonals
+from . import coins
 
 router = APIRouter(default_response_class=Response)
 
@@ -45,6 +46,7 @@ if settings.USE_MEILI_DIRECT:
     router.add_api_route("/web/osu-search.php", direct.osu_direct_meili)
 else:
     router.add_api_route("/web/osu-search.php", direct.osu_direct_cheesegull)
+
 router.add_api_route("/web/osu-search-set.php", direct.beatmap_card)
 router.add_api_route("/d/{set_id}", direct.download_map)
 
@@ -59,6 +61,8 @@ router.add_api_route(
 )
 
 router.add_api_route("/web/osu-rate.php", rate.rate_map)
+
+router.add_api_route("/web/coins.php", coins.coins)
 
 router.add_api_route("/api/v1/pp", pp.calculate_pp)
 

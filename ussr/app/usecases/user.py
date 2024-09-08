@@ -52,6 +52,7 @@ async def fetch_db(username: str) -> Optional[User]:
         friends=friends,
         password_bcrypt=db_user["password_md5"],
         country=country,
+        coins=db_user["coins"],
     )
 
 
@@ -83,6 +84,7 @@ async def fetch_db_id(user_id: int) -> Optional[User]:
         friends=friends,
         password_bcrypt=db_user["password_md5"],
         country=country,
+        coins=db_user["coins"],
     )
 
 
