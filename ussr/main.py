@@ -4,11 +4,10 @@ from __future__ import annotations
 import logging
 import sys
 
-
 import app.utils
+import ddtrace
 import logger
 import settings
-import ddtrace
 import uvicorn
 import uvloop
 

@@ -14,6 +14,7 @@ class User:
     friends: list[int]
     password_bcrypt: str
     country: str
+    coins: int
 
     def __repr__(self) -> str:
         return f"<{self.name} ({self.id})>"

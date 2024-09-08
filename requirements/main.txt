@@ -15,9 +15,9 @@ orjson
 py3rijndael
 python-dotenv
 python-json-logger==2.0.7
+python-multipart
 # Pinned as it breaks databases
 sqlalchemy==1.4.41
 types-aiobotocore[s3] == 2.5.2
 uvicorn
 uvloop
-python-multipart
