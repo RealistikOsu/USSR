@@ -25,11 +25,11 @@ async def coins(
     elif action == "use":
         logger.info(f"{user} has used a coin.")
         user.coins -= 1
-    else: # recharge
+    else:  # recharge
         if user.coins <= 0:
             logger.info(f"{user} has recharged their coins.")
             user.coins = 1
-    
+
     await app.state.services.database.execute(
         "UPDATE users SET coins = :coins WHERE id = :id",
         {"coins": coins, "id": user.id},

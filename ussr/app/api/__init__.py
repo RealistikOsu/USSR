@@ -12,6 +12,7 @@ from fastapi import Response
 from fastapi.responses import ORJSONResponse
 from fastapi.responses import RedirectResponse
 
+from . import coins
 from . import direct
 from . import error
 from . import lastfm
@@ -22,7 +23,6 @@ from . import replays
 from . import score_sub
 from . import screenshots
 from . import seasonals
-from . import coins
 
 router = APIRouter(default_response_class=Response)
 
