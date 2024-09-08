@@ -32,7 +32,7 @@ async def coins(
 
     await app.state.services.database.execute(
         "UPDATE users SET coins = :coins WHERE id = :id",
-        {"coins": coins, "id": user.id},
+        {"coins": user.coins, "id": user.id},
     )
 
     return user.coins
