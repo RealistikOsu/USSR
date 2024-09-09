@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import asyncio
-import time
-from typing import Optional
-
 import logger
+import app.state.services
 from app.models.user import User
 from app.usecases.user import authenticate_user
+from fastapi import Depends
 from fastapi import Query
 
 
