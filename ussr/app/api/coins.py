@@ -15,7 +15,7 @@ async def coins(
     checksum: str = Query(..., alias="cs"),
 ):
     if action not in ("earn", "use", "recharge"):
-        return user.coins
+        return str(user.coins)
 
     if action == "earn":
         logger.info(f"{user} has earned a coin.")
@@ -33,4 +33,4 @@ async def coins(
         {"coins": user.coins, "id": user.id},
     )
 
-    return user.coins
+    return str(user.coins)
