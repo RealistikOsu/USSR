@@ -48,9 +48,9 @@ class Score:
     def osu_string(self, username: str, rank: int, show_pp: Optional[bool] = None) -> str:
         score = self.score
         
-        if show_pp is not None and show_pp:
+        if show_pp:
             score = int(self.pp)
-        else:
+        elif show_pp is None:
             if self.mode > Mode.MANIA:
                 score = int(self.pp)
 
