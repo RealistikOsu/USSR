@@ -45,9 +45,11 @@ class Score:
     rank: int = 0
     old_best: Optional[Score] = None
 
-    def osu_string(self, username: str, rank: int, show_pp: Optional[bool] = None) -> str:
+    def osu_string(
+        self, username: str, rank: int, show_pp: Optional[bool] = None,
+    ) -> str:
         score = self.score
-        
+
         if show_pp:
             score = int(self.pp)
         elif show_pp is None:
