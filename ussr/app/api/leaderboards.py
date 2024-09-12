@@ -33,7 +33,7 @@ async def get_leaderboard(
     mods_arg: int = Query(..., alias="mods", ge=0, le=2_147_483_647),
     map_package_hash: str = Query(..., alias="h"),  # TODO: whaat to do?
     aqn_files_found: bool = Query(..., alias="a"),  # TODO: whaat to do?
-    leaderboard_pp: Optional[bool] = Query(None, alias="pp", ge=0, le=1),
+    leaderboard_pp: Optional[bool] = Query(None, alias="pp"),
 ):
     start = time.perf_counter_ns()
 
