@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import time
-from urllib.parse import unquote
 from typing import Optional
+from urllib.parse import unquote
 
 import app.state
 import app.usecases
@@ -161,7 +161,9 @@ async def get_leaderboard(
                 else:
                     displayed_name = score_username
 
-            response_lines.append(score.osu_string(displayed_name, rank=idx + 1, show_pp=leaderboard_pp))
+            response_lines.append(
+                score.osu_string(displayed_name, rank=idx + 1, show_pp=leaderboard_pp),
+            )
 
     end = time.perf_counter_ns()
     formatted_time = app.utils.format_time(end - start)
