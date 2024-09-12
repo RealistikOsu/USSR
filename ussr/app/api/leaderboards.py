@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from urllib.parse import unquote
+from typing import Optional
 
 import app.state
 import app.usecases
@@ -32,6 +33,7 @@ async def get_leaderboard(
     mods_arg: int = Query(..., alias="mods", ge=0, le=2_147_483_647),
     map_package_hash: str = Query(..., alias="h"),  # TODO: whaat to do?
     aqn_files_found: bool = Query(..., alias="a"),  # TODO: whaat to do?
+    leaderboard_pp: Optional[int] = Query(None, alias="pp"),
 ):
     start = time.perf_counter_ns()
 
@@ -159,7 +161,7 @@ async def get_leaderboard(
                 else:
                     displayed_name = score_username
 
-            response_lines.append(score.osu_string(displayed_name, rank=idx + 1))
+            response_lines.append(score.osu_string(displayed_name, rank=idx + 1, show_pp=leaderboard_pp))
 
     end = time.perf_counter_ns()
     formatted_time = app.utils.format_time(end - start)
