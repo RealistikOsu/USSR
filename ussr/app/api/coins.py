@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import logger
 import app.state.services
+import logger
 from app.models.user import User
 from app.usecases.user import authenticate_user
 from fastapi import Depends
