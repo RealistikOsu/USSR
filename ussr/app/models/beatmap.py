@@ -79,6 +79,7 @@ class Beatmap:
             self.status
             not in (RankedStatus.RANKED, RankedStatus.APPROVED, RankedStatus.LOVED)
             and self.last_update < int(time.time()) - ONE_DAY
+            and self.id < 999999999
         )
 
     def osu_string(self, score_count: int, rating: float) -> str:
