@@ -113,7 +113,9 @@ async def get_leaderboard(
         if personal_best:
             response_lines.append(
                 personal_best["score"].osu_string(
-                    user.name, personal_best["rank"], show_pp=leaderboard_pp,
+                    user.name,
+                    personal_best["rank"],
+                    show_pp=leaderboard_pp,
                 ),
             )
         else:
