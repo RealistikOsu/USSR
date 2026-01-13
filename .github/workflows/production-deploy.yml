@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   production-deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, vpc]
 
     steps:
       - name: Check out latest commit
